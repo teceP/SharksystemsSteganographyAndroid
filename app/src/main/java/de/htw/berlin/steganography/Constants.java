@@ -13,6 +13,9 @@ public interface Constants {
     String ACCESS_TOKEN_STORAGE = "sharksys_network_access_token";
     String ACCESS_TOKEN_STORAGE_TIMESTAMP = "sharksys_network_access_token_timestamp";
 
+    String REFRESH_TOKEN_STORAGE = "sharksys_network_refresh_token";
+    String REFRESH_TOKEN_STORAGE_TIMESTAMP = "sharksys_network_refresh_token_timestamp";
+
     String NO_RESULT = "";
 
     String APP_NAME = "SharksystemsStegaMobile";

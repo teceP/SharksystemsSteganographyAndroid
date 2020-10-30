@@ -6,13 +6,15 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="@drawable/card_background"
+    android:descendantFocusability="afterDescendants"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main" tools:context=".MainActivity">
 
     <LinearLayout
         android:id="@+id/oAuth"
-        android:layout_width="237dp"
-        android:layout_height="409dp"
+        android:layout_width="257dp"
+        android:layout_height="394dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
@@ -22,9 +24,9 @@
         android:layout_marginStart="40dp"
         android:layout_marginLeft="40dp"
         android:layout_marginTop="125dp"
-        android:layout_marginEnd="57dp"
-        android:layout_marginRight="57dp"
-        android:layout_marginBottom="0dp"
+        android:layout_marginEnd="37dp"
+        android:layout_marginRight="37dp"
+        android:layout_marginBottom="15dp"
         android:orientation="vertical"
         tools:context=".MainActivity">
 
@@ -47,7 +49,7 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="273dp">
+            android:layout_height="210dp">
 
             <Button
                 android:id="@+id/auth"
@@ -69,26 +71,52 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"
-                android:layout_marginStart="1dp"
-                android:layout_marginLeft="1dp"
-                android:layout_marginEnd="1dp"
-                android:layout_marginRight="1dp"
-                android:layout_marginBottom="213dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginEnd="-1dp"
+                android:layout_marginRight="-1dp"
+                android:layout_marginBottom="153dp"
                 android:layout_toEndOf="@+id/auth"
                 android:layout_toRightOf="@+id/auth" />
 
             <TextView
                 android:id="@+id/infoText"
                 android:layout_width="match_parent"
-                android:layout_height="166dp"
+                android:layout_height="139dp"
                 android:layout_below="@+id/auth"
                 android:layout_alignParentBottom="true"
                 android:layout_marginTop="2dp"
-                android:layout_marginBottom="113dp"
+                android:layout_marginBottom="4dp"
                 android:gravity="center"
                 android:text="Info Textbox" />
 
         </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/retrieveAccessTokenBtn"
+                android:layout_width="114dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="2dp"
+                android:layout_marginRight="2dp"
+                android:layout_toStartOf="@+id/retrieveRefreshTokenBtn"
+                android:layout_toLeftOf="@+id/retrieveRefreshTokenBtn"
+                android:text="Access" />
+
+            <Button
+                android:id="@+id/retrieveRefreshTokenBtn"
+                android:layout_width="122dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginEnd="3dp"
+                android:layout_marginRight="3dp"
+                android:text="Refresh" />
+        </RelativeLayout>
+
     </LinearLayout>
 
 </RelativeLayout>
