@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Sharksystems Steganography</string>
+    <!-- Strings related to login -->
+    <string name="action_settings">Settings</string>
+</resources>
