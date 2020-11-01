@@ -2,6 +2,7 @@ package de.htw.berlin.steganography.auth;
 
 public class Information {
 
+    private String platform;
     private String clientId;
     private String clientSecret;
     private String authUrl;
@@ -10,11 +11,14 @@ public class Information {
     private String duration;
     private String grantType;
     private String scope;
+    private String responseType;
+    private String state;
 
     public Information(){
     }
 
     public Information(Builder builder){
+        this.platform = builder.platform;
         this.clientId = builder.clientId;
         this.clientSecret = builder.clientSecret;
         this.authUrl = builder.authUrl;
@@ -23,6 +27,32 @@ public class Information {
         this.duration = builder.duration;
         this.grantType = builder.grantType;
         this.scope = builder.scope;
+        this.responseType = builder.responseType;
+        this.state = builder.state;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getResponseType() {
+        return responseType;
+    }
+
+    public void setResponseType(String responseType) {
+        this.responseType = responseType;
     }
 
     public String getClientId() {
@@ -94,6 +124,7 @@ public class Information {
     }
 
     public static final class Builder{
+        private String platform;
         private String clientId;
         private String clientSecret;
         private String authUrl;
@@ -102,8 +133,25 @@ public class Information {
         private String duration;
         private String grantType;
         private String scope;
+        private String responseType;
+        private String state;
 
         public Builder(){}
+
+        public Builder withPlatform(String platform){
+            this.platform = platform;
+            return this;
+        }
+
+        public Builder withState(String state){
+            this.state = state;
+            return this;
+        }
+
+        public Builder withResponseType(String responseType){
+            this.responseType = responseType;
+            return this;
+        }
 
         public Builder withClientId(String clientId){
             this.clientId = clientId;

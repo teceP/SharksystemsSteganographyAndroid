@@ -88,7 +88,8 @@
                 android:layout_marginTop="2dp"
                 android:layout_marginBottom="4dp"
                 android:gravity="center"
-                android:text="Info Textbox" />
+                android:text="Select a platform and click on update."
+                android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 
         </RelativeLayout>
 
@@ -115,6 +116,18 @@
                 android:layout_marginEnd="3dp"
                 android:layout_marginRight="3dp"
                 android:text="Refresh" />
+
+            <Button
+                android:id="@+id/updateStateBtn"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="0dp"
+                android:layout_marginLeft="0dp"
+                android:layout_marginBottom="22dp"
+                android:text="Update" />
         </RelativeLayout>
 
     </LinearLayout>

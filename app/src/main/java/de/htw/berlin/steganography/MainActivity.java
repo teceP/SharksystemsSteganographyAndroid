@@ -1,7 +1,6 @@
 package de.htw.berlin.steganography;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
@@ -9,17 +8,12 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.CookieManager;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -37,6 +31,8 @@ import apis.SocialMedia;
 import de.htw.berlin.steganography.auth.BasicAuthInterceptor;
 import de.htw.berlin.steganography.auth.Information;
 import de.htw.berlin.steganography.auth.InformationHolder;
+import de.htw.berlin.steganography.strategy.AuthStrategy;
+import de.htw.berlin.steganography.strategy.AuthStrategyFactory;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Credentials;
@@ -51,25 +47,16 @@ public class MainActivity extends AppCompatActivity {
     private SocialMedia socialMedia;
 
     private Spinner spinner;
-
+    private AuthStrategy authStrategy;
     private InformationHolder informationHolder;
     int authStatus;
     Information information;
     WebView web;
-    Button retrieveAuthTokenBtn, retrieveAccessTokenBtn, retrieveRefreshTokenBtn;
+    Button retrieveAuthTokenBtn, retrieveAccessTokenBtn, refreshTokenBtn, updateStateBtn;
     SharedPreferences pref;
     Dialog auth_dialog;
     String authCode;
     TextView infoText;
-
-    /**
-     * Returns different to now in minutes.
-     * @param l
-     * @return
-     */
-    public double getTimeDifferent(long l) {
-        return (double) (((System.currentTimeMillis() - l) / 1000) / 60);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,31 +73,29 @@ public class MainActivity extends AppCompatActivity {
 
         this.setSpinner();
         this.informationHolder = new InformationHolder();
-        this.addSpinnerInformations(this.informationHolder);
+        this.loadSpinnerInformations();
 
-        //this.resetAllTokens();
+        this.updateStateBtn = findViewById(R.id.updateStateBtn);
+        this.updateStateBtn.setOnClickListener(this.updateStateOnClick);
 
         //Auth token
         this.retrieveAuthTokenBtn = findViewById(R.id.auth);
-        this.retrieveAuthTokenBtn.setOnClickListener(tokenOnClick);
 
         //Access token
         this.retrieveAccessTokenBtn = findViewById(R.id.retrieveAccessTokenBtn);
-        this.retrieveAccessTokenBtn.setOnClickListener(accessTokenOnClick);
 
         //Refresh token
-        this.retrieveRefreshTokenBtn = findViewById(R.id.retrieveRefreshTokenBtn);
-        this.retrieveRefreshTokenBtn.setOnClickListener(refreshTokenOnClick);
+        this.refreshTokenBtn = findViewById(R.id.retrieveRefreshTokenBtn);
 
         /**
-         * Token Expiration
+         * Initial token state call
          */
-        this.authStatus = -1;
-        this.authStatus = this.checkTokenExpiration();
+        this.authStatus = Constants.STATUS_UNCHECKED;
+        this.setButtonStates();
+    }
 
-        Log.i("MYY", "refr.: " + pref.getString(Constants.REFRESH_TOKEN_STORAGE, ""));
-
-        if (this.authStatus == Constants.T_AT_NOT_EXPIRED) {
+    private void setButtonStates(){
+        if (this.authStatus == Constants.T_AT_NOT_EXPIRED || this.authStatus == Constants.STATUS_UNCHECKED) {
             //No button clickable
             retrieveAuthTokenBtn.setClickable(false);
             retrieveAuthTokenBtn.setAlpha(.2f);
@@ -118,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
             retrieveAccessTokenBtn.setClickable(false);
             retrieveAccessTokenBtn.setAlpha(.2f);
 
-            retrieveRefreshTokenBtn.setClickable(false);
-            retrieveRefreshTokenBtn.setAlpha(.2f);
+            refreshTokenBtn.setClickable(false);
+            refreshTokenBtn.setAlpha(.2f);
         } else if (this.authStatus == Constants.T_EXPIRED) {
             //Only retrieve new auth token button is clickable
             //When finished, onClick-Event will make retrieve new access token clickable
@@ -129,8 +114,8 @@ public class MainActivity extends AppCompatActivity {
             retrieveAccessTokenBtn.setClickable(false);
             retrieveAccessTokenBtn.setAlpha(.2f);
 
-            retrieveRefreshTokenBtn.setClickable(false);
-            retrieveRefreshTokenBtn.setAlpha(.2f);
+            refreshTokenBtn.setClickable(false);
+            refreshTokenBtn.setAlpha(.2f);
         } else if (this.authStatus == Constants.AT_NEVER_RETRIEVED) {
             //Only retrieve new access token is clickable
             retrieveAuthTokenBtn.setClickable(false);
@@ -139,8 +124,8 @@ public class MainActivity extends AppCompatActivity {
             retrieveAccessTokenBtn.setClickable(true);
             retrieveAccessTokenBtn.setAlpha(1.0f);
 
-            retrieveRefreshTokenBtn.setClickable(false);
-            retrieveRefreshTokenBtn.setAlpha(.2f);
+            refreshTokenBtn.setClickable(false);
+            refreshTokenBtn.setAlpha(.2f);
         } else if (this.authStatus == Constants.AT_NEEDS_REFRESH) {
             //All buttons are not clickable. Tokens are valid
             retrieveAuthTokenBtn.setClickable(false);
@@ -149,24 +134,18 @@ public class MainActivity extends AppCompatActivity {
             retrieveAccessTokenBtn.setClickable(false);
             retrieveAccessTokenBtn.setAlpha(.2f);
 
-            retrieveRefreshTokenBtn.setClickable(true);
-            retrieveRefreshTokenBtn.setAlpha(1.0f);
+            refreshTokenBtn.setClickable(true);
+            refreshTokenBtn.setAlpha(1.0f);
         }
-
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putInt(Constants.AUTH_STATUS, this.authStatus);
-        editor.apply();
     }
 
-    private void resetAllTokens(){
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
-        editor.putString(Constants.TOKEN_STORAGE, "").apply();
-        editor.putLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1);
-        editor.putString(Constants.ACCESS_TOKEN_STORAGE, "");
-        editor.putLong(Constants.REFRESH_TOKEN_STORAGE_TIMESTAMP, -1);
-        editor.putString(Constants.REFRESH_TOKEN_STORAGE, "");
-        editor.apply();
+    /**
+     * Returns different to now in minutes.
+     * @param l
+     * @return
+     */
+    public double getTimeDifferent(long l) {
+        return (double) (((System.currentTimeMillis() - l) / 1000) / 60);
     }
 
     /**
@@ -179,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
      * @return 3 == access token is expired [AT_NEEDS_REFRESH]
      */
     private int checkTokenExpiration() {
+        SharedPreferences pref = MainActivity.this.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
         long token = pref.getLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
         long accessToken = pref.getLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1);
         String accessTokenString = pref.getString(Constants.ACCESS_TOKEN_STORAGE, "");
@@ -228,225 +208,25 @@ public class MainActivity extends AppCompatActivity {
     public void setInformations(){
         String chosenNetwork = spinner.getSelectedItem().toString().toLowerCase();
         information = informationHolder.get(chosenNetwork);
-        infoText.setText("Choosen Network: " + chosenNetwork);
+        Log.i("MYY", "Choosen Network: " + chosenNetwork);
     }
-
-    /**
-     * Token Click Events
-     */
-
-    /**
-     * Will only be called, when there is no valid access token AND no token.
-     */
-    private View.OnClickListener tokenOnClick = new View.OnClickListener() {
-        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-        @Override
-        public void onClick(View v) {
-            setInformations();
-
-            auth_dialog = new Dialog(MainActivity.this);
-            auth_dialog.setContentView(R.layout.auth_dialog);
-
-            web = auth_dialog.findViewById(R.id.webv);
-            web.getSettings().setJavaScriptEnabled(true);
-
-            CookieManager.getInstance().removeAllCookies(null);
-            CookieManager.getInstance().flush();
-
-            String url = information.getAuthUrl()
-                    + "client_id=" + information.getClientId()
-                    + "&response_type=code"
-                    + "&duration=" + information.getDuration()
-                    + "&state=" + UUID.randomUUID().toString()
-                    + "&redirect_uri=" + information.getRedirectUri()
-                    + "&scope=" + information.getScope();
-
-            Log.i("MYY", url);
-
-            web.loadUrl(url);
-            web.setWebViewClient(new WebViewClient() {
-                @RequiresApi(api = Build.VERSION_CODES.N)
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    view.loadUrl(url);
-                    return true;
-                }
-
-                @RequiresApi(api = Build.VERSION_CODES.N)
-                @Override
-                public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                    super.onPageStarted(view, url, favicon);
-                }
-
-                @Override
-                public void onPageFinished(WebView view, String url) {
-                    super.onPageFinished(view, url);
-
-                    if (url.contains("?code=") || url.contains("&code=")) {
-                        Uri uri = Uri.parse(url);
-                        Log.i("MYY", "Code: " + uri.getQueryParameter("code"));
-                        authCode = uri.getQueryParameter("code");
-
-                        SharedPreferences pref = MainActivity.this.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
-                        SharedPreferences.Editor editor = pref.edit();
-                        editor.putString(Constants.TOKEN_STORAGE, authCode);
-                        editor.putLong(Constants.TOKEN_STORAGE_TIMESTAMP, System.currentTimeMillis());
-                        editor.apply();
-
-                        Log.i("MYY", "New Token: " + pref.getString(Constants.TOKEN_STORAGE, ""));
-
-                        auth_dialog.dismiss();
-                        MainActivity.this.retrieveAuthTokenBtn.setOnClickListener(MainActivity.this.accessTokenOnClick);
-
-                        //Activate accesstoken Button & deactivate authtoken button
-                        retrieveAccessTokenBtn.setClickable(true);
-                        retrieveAccessTokenBtn.setAlpha(1.0f);
-                        retrieveAuthTokenBtn.setClickable(false);
-                        retrieveAuthTokenBtn.setAlpha(.2f);
-                    } else if (url.contains("error=access_denied")) {
-                        Log.i("MYY", "Error, access denied.");
-                        SharedPreferences pref = MainActivity.this.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
-                        SharedPreferences.Editor editor = pref.edit();
-                        editor.putString(Constants.TOKEN_STORAGE, Constants.NO_RESULT);
-                        editor.putLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
-                        editor.apply();
-                        auth_dialog.dismiss();
-                    }
-                }
-            });
-
-            auth_dialog.show();
-            auth_dialog.setTitle("Authorize");
-            auth_dialog.setCancelable(true);
-        }
-    };
-
-    private View.OnClickListener accessTokenOnClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            retrieveAccessTokenBtn.setAlpha(0.2f);
-            retrieveAccessTokenBtn.setClickable(false);
-
-            setInformations();
-
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new BasicAuthInterceptor(Constants.CLIENT_ID, Constants.CLIENT_SECRET)).build();
-
-            RequestBody body = new FormBody.Builder()
-                    .add("grant_type", Constants.GRANT_TYPE_AUTH_CODE)
-                    .add("code", pref.getString(Constants.TOKEN_STORAGE, ""))
-                    .add("redirect_uri", information.getRedirectUri())
-                    .build();
-
-            Request request = new Request.Builder()
-                    .url(Constants.TOKEN_URI)
-                    .addHeader("Authorization", Credentials.basic(Constants.CLIENT_ID, Constants.CLIENT_SECRET))
-                    .post(body)
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    Log.i("MYY", "failure ");
-                }
-
-                @Override
-                public void onResponse(@NotNull Call call, @NotNull Response r) throws IOException {
-                    String resp = r.body().string();
-                    Log.i("MYY", "Return Code: " + r.code() + " - body: " + resp + "\nheaders: " + r.headers());
-
-                    SharedPreferences pref = MainActivity.this.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
-                    SharedPreferences.Editor editor = pref.edit();
-
-                    if (resp.contains("error")) {
-                        Log.i("MYY", "Error in response: " + resp);
-                        editor.putString(Constants.REFRESH_TOKEN_STORAGE, Constants.NO_RESULT);
-                        editor.putLong(Constants.REFRESH_TOKEN_STORAGE_TIMESTAMP, -1);
-                        editor.putString(Constants.ACCESS_TOKEN_STORAGE, Constants.NO_RESULT);
-                        editor.putLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1);
-                    } else if (resp.contains("access_token")) {
-                        try {
-                            JSONObject json = new JSONObject(resp);
-                            Log.i("MYY","json resp: " + json);
-                            editor.putString(Constants.REFRESH_TOKEN_STORAGE, (String)json.get("refresh_token"));
-                            editor.putLong(Constants.REFRESH_TOKEN_STORAGE_TIMESTAMP, System.currentTimeMillis());
-                            editor.putString(Constants.ACCESS_TOKEN_STORAGE, (String)json.get("access_token"));
-                            editor.putLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, System.currentTimeMillis());
-                            infoText.setText("Access grandet.");
-                        } catch (JSONException e) {
-                            //Set auth token to null/empty because it can only be used one time.
-                            //If any error occures, it must be deleted.
-                            editor.putString(Constants.TOKEN_STORAGE, "");
-                            editor.putLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
-                            e.printStackTrace();
-                            infoText.setText("Access denied.");
-                            retrieveAccessTokenBtn.setAlpha(1.0f);
-                            retrieveAccessTokenBtn.setClickable(true);
-                        }
-                    }
-                    editor.commit();
-                }
-            });
-        }
-    };
-
-    private View.OnClickListener refreshTokenOnClick = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            setInformations();
-
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new BasicAuthInterceptor(Constants.CLIENT_ID, Constants.CLIENT_SECRET)).build();
-
-            RequestBody body = new FormBody.Builder()
-                    .add("grant_type", Constants.GRANT_TYPE_REFRESH)
-                    .add("refresh_token", pref.getString(Constants.REFRESH_TOKEN_STORAGE, ""))
-                    .build();
-
-            Request request = new Request.Builder()
-                    .url(Constants.TOKEN_URI)
-                    .addHeader("Authorization", Credentials.basic(Constants.CLIENT_ID, Constants.CLIENT_SECRET))
-                    .post(body)
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    Log.i("MYY", "failure ");
-                }
-
-                @Override
-                public void onResponse(@NotNull Call call, @NotNull Response r) throws IOException {
-                    String resp = r.body().string();
-                    Log.i("MYY", "Return Code: " + r.code() + " - body: " + resp + "\nheaders: " + r.headers());
-
-                    SharedPreferences pref = MainActivity.this.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
-                    SharedPreferences.Editor editor = pref.edit();
-
-                    if (resp.contains("error")) {
-                        Log.i("MYY", "Error in response: " + resp);
-                        editor.putString(Constants.ACCESS_TOKEN_STORAGE, Constants.NO_RESULT);
-                        editor.putLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1);
-                    } else if (resp.contains("access_token")) {
-                        try {
-                            JSONObject json = new JSONObject(resp);
-                            editor.putString(Constants.ACCESS_TOKEN_STORAGE, (String)json.get("access_token"));
-                            editor.putLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, System.currentTimeMillis());
-                        } catch (JSONException e) {
-                            //Set auth token to null/empty because it can only be used one time.
-                            //If any error occures, it must be deleted.
-                            editor.putString(Constants.TOKEN_STORAGE, "");
-                            editor.putLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
-                            e.printStackTrace();
-                        }
-                    }
-                    editor.commit();
-                }
-            });
-        }
-    };
 
     /**
      * Other Click Events
      */
+    private View.OnClickListener updateStateOnClick = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+            setInformations();
+            authStrategy = AuthStrategyFactory.getAuthStrategy(information);
+            authStatus = checkTokenExpiration();
+            retrieveAuthTokenBtn.setOnClickListener(authStrategy.authorize(MainActivity.this, infoText, retrieveAuthTokenBtn, retrieveAccessTokenBtn));
+            retrieveAccessTokenBtn.setOnClickListener(authStrategy.token(MainActivity.this, infoText));
+            refreshTokenBtn.setOnClickListener(authStrategy.refresh(MainActivity.this));
+            setButtonStates();
+        }
+    };
+
     private View.OnClickListener infoTextOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -471,8 +251,9 @@ public class MainActivity extends AppCompatActivity {
         spinner.setAdapter(spinnerAdapter);
     }
 
-    private void addSpinnerInformations(InformationHolder informationHolder) {
+    private void loadSpinnerInformations() {
         Information redditInfo = new Information.Builder()
+                .withPlatform("reddit")
                 .withAuthUrl(Constants.AUTH_URI)
                 .withTokenUrl(Constants.TOKEN_URI)
                 .withClientId(Constants.CLIENT_ID)
@@ -481,21 +262,37 @@ public class MainActivity extends AppCompatActivity {
                 .withRedirectUri(Constants.REDIRECT)
                 .withScope(Constants.SCOPE)
                 .withGrantType(Constants.GRANT_TYPE_AUTH_CODE)
+                .withResponseType(Constants.RESPONSE_TYPE)
+                .withState(UUID.randomUUID().toString())
                 .build();
+        this.informationHolder.put("reddit", redditInfo);
 
-        informationHolder.put("reddit", redditInfo);
-
-        Information imgurInfo = new Information();
-        informationHolder.put("imgur", imgurInfo);
+        Information imgurInfo = new Information().Builder()
+                .withPlatform("imgur")
+                .withAuthUrl(ImgurConstants.AUTH_URI)
+                .withTokenUrl(ImgurConstants.TOKEN_URI)
+                .withClientId(ImgurConstants.CLIENT_ID)
+                .withClientSecret(ImgurConstants.CLIENT_SECRET)
+                .withDuration(ImgurConstants.DURATION_PERM)
+                .withRedirectUri(ImgurConstants.REDIRECT)
+                .withScope(ImgurConstants.SCOPE)
+                .withGrantType(ImgurConstants.GRANT_TYPE_AUTH_CODE)
+                .withResponseType(ImgurConstants.RESPONSE_TYPE)
+                .withState(UUID.randomUUID().toString())
+                .build();
+        this.informationHolder.put("imgur", imgurInfo);
 
         Information twitterInfo = new Information();
-        informationHolder.put("twitter", twitterInfo);
+        //TODO
+        this.informationHolder.put("twitter", twitterInfo);
 
         Information youtubeInfo = new Information();
-        informationHolder.put("youtube", youtubeInfo);
+        //TODO
+        this.informationHolder.put("youtube", youtubeInfo);
 
         Information instagramInfo = new Information();
-        informationHolder.put("instagram", instagramInfo);
+        //TODO
+        this.informationHolder.put("instagram", instagramInfo);
     }
 
     @Override
@@ -507,11 +304,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
-
         if (id == R.id.action_settings) {
             return true;
+        } else if(id == R.id.action_reset){
+            resetAllTokens();
+            infoText.setText("All tokens were reset.");
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void resetAllTokens(){
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
+        editor.putString(Constants.TOKEN_STORAGE, "").apply();
+        editor.putLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1);
+        editor.putString(Constants.ACCESS_TOKEN_STORAGE, "");
+        editor.putLong(Constants.REFRESH_TOKEN_STORAGE_TIMESTAMP, -1);
+        editor.putString(Constants.REFRESH_TOKEN_STORAGE, "");
+        editor.apply();
     }
 }
