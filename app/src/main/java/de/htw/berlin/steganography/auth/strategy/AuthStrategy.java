@@ -1,12 +1,10 @@
-package de.htw.berlin.steganography.strategy;
+package de.htw.berlin.steganography.auth.strategy;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.View;
 import android.widget.TextView;
 
-import de.htw.berlin.steganography.MainActivity;
-import de.htw.berlin.steganography.auth.Information;
+import de.htw.berlin.steganography.auth.models.Information;
 
 public interface AuthStrategy {
 

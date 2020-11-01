@@ -2,6 +2,8 @@ package de.htw.berlin.steganography.auth;
 
 import java.util.HashMap;
 
+import de.htw.berlin.steganography.auth.models.Information;
+
 public class InformationHolder {
 
     private HashMap<String, Information> map;

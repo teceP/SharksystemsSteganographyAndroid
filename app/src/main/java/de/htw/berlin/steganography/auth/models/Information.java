@@ -1,4 +1,4 @@
-package de.htw.berlin.steganography.auth;
+package de.htw.berlin.steganography.auth.models;
 
 public class Information {
 

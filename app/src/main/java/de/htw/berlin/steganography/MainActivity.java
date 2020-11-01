@@ -3,7 +3,6 @@ package de.htw.berlin.steganography;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -13,55 +12,50 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import apis.SocialMedia;
-import de.htw.berlin.steganography.auth.BasicAuthInterceptor;
-import de.htw.berlin.steganography.auth.Information;
+import apis.Token;
+import apis.reddit.Reddit;
+import de.htw.berlin.steganography.auth.constants.ImgurConstants;
+import de.htw.berlin.steganography.auth.constants.RedditConstants;
+import de.htw.berlin.steganography.auth.models.Information;
 import de.htw.berlin.steganography.auth.InformationHolder;
-import de.htw.berlin.steganography.strategy.AuthStrategy;
-import de.htw.berlin.steganography.strategy.AuthStrategyFactory;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Credentials;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import de.htw.berlin.steganography.auth.models.AuthInformation;
+import de.htw.berlin.steganography.auth.strategy.AuthStrategy;
+import de.htw.berlin.steganography.auth.strategy.AuthStrategyFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SocialMedia socialMedia;
-
+    private List<SocialMedia> socialMedia;
+    private List<AuthInformation> authInformationPerNetwork;
     private Spinner spinner;
     private AuthStrategy authStrategy;
     private InformationHolder informationHolder;
     int authStatus;
     Information information;
-    WebView web;
     Button retrieveAuthTokenBtn, retrieveAccessTokenBtn, refreshTokenBtn, updateStateBtn;
     SharedPreferences pref;
-    Dialog auth_dialog;
-    String authCode;
     TextView infoText;
+    String chosenNetwork;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.socialMedia = new ArrayList<>();
+        //retrieve old social media datas here (?)
 
         this.pref = getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
 
@@ -75,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         this.informationHolder = new InformationHolder();
         this.loadSpinnerInformations();
 
+        //Update token state for chosen network
         this.updateStateBtn = findViewById(R.id.updateStateBtn);
         this.updateStateBtn.setOnClickListener(this.updateStateOnClick);
 
@@ -92,6 +87,42 @@ public class MainActivity extends AppCompatActivity {
          */
         this.authStatus = Constants.STATUS_UNCHECKED;
         this.setButtonStates();
+    }
+
+    public void restoreSocialMedias(){
+        List<String> networks = new ArrayList<>();
+        networks.add(Constants.REDDIT_TOKEN_OBJ);
+        networks.add(Constants.IMGUR_TOKEN_OBJ);
+        networks.add(Constants.TWITTER_TOKEN_OBJ);
+        networks.add(Constants.YOUTUBE_TOKEN_OBJ);
+        networks.add(Constants.INSTAGRAM_TOKEN_OBJ);
+
+        for(String network : networks){
+            AuthInformation authInformation = getAuthInformation(network);
+
+            if(authInformation != null){
+                switch(authInformation.getNetwork()){
+                    case "reddit":
+                        SocialMedia reddit = new Reddit();
+                        reddit.setToken(new Token(authInformation.getAccessToken(), authInformation.getAccessTokenTimestamp()));
+                        socialMedia.add(reddit);
+                        break;
+                    case "imgur":
+                        // socialMedia.add(new Imgur());
+                        //
+                        break;
+                    case "instagram":
+                        //TODO
+                        break;
+                    case "twitter":
+                        //TODO
+                        break;
+                    case "youtube":
+                        //TODO
+                        break;
+                }
+            }
+        }
     }
 
     private void setButtonStates(){
@@ -149,6 +180,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     *
+     * @return AuthInformation for current (on spinner) selected item.
+     */
+    public AuthInformation getCurrentSelectedAuthInformation(){
+
+        String selectedOnSpinner = spinner.getSelectedItem().toString().trim().toLowerCase();
+        AuthInformation authInformation = getAuthInformation(selectedOnSpinner + Constants.TOKEN_OBJ_SUFFIX);
+
+        if(authInformation != null){
+            return authInformation;
+        }
+
+        return new AuthInformation(selectedOnSpinner);
+    }
+
+    /**
+     *
+     * @param network: MUST be an Constant like Constants.REDDIT_TOKEN_OBJ
+     * @return null, if there are no information stored for this network.
+     * @return AuthInformation object
+     */
+    public AuthInformation getAuthInformation(String network){
+        String json = pref.getString(network, "");
+
+        if(!json.equals(Constants.NO_RESULT)){
+            return new Gson().fromJson(json, AuthInformation.class);
+        }
+
+        return null;
+    }
+
+
+    /**
      * Tokens are normally valid for one Hour.
      * If a access token is expired, they can be refreshed.
      *
@@ -158,10 +222,10 @@ public class MainActivity extends AppCompatActivity {
      * @return 3 == access token is expired [AT_NEEDS_REFRESH]
      */
     private int checkTokenExpiration() {
-        SharedPreferences pref = MainActivity.this.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
-        long token = pref.getLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
-        long accessToken = pref.getLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1);
-        String accessTokenString = pref.getString(Constants.ACCESS_TOKEN_STORAGE, "");
+        AuthInformation authInformation = getCurrentSelectedAuthInformation();
+        long token = authInformation.getTokenTimestamp();
+        long accessToken = authInformation.getAccessTokenTimestamp();
+        String accessTokenString = authInformation.getAccessToken();
 
         //Check if Access Token is expired.
         if (this.tokenExpired(accessToken)) {
@@ -184,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        double minsLeft = Constants.ONE_HOUR_IN_MINS - (this.getTimeDifferent(pref.getLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1)));
+        double minsLeft = Constants.ONE_HOUR_IN_MINS - (this.getTimeDifferent(authInformation.getAccessTokenTimestamp()));
         this.infoText.setText("Access token is valid.\nTime till retrieval: " + minsLeft + " minutes.");
         Log.i("MYY", "Access Token: " + accessTokenString);
         return Constants.T_AT_NOT_EXPIRED;
@@ -237,6 +301,21 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private AdapterView.OnItemSelectedListener spinnerOnItemClick() {
+        return new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                chosenNetwork = parent.getSelectedItem().toString();
+                Log.i("MYY", "Selected spinner item: " + chosenNetwork);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                //nothing
+            }
+        };
+    }
+
     /**
      * UI Objects
      */
@@ -249,20 +328,21 @@ public class MainActivity extends AppCompatActivity {
 
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(spinnerAdapter);
+        spinner.setOnItemSelectedListener(spinnerOnItemClick());
     }
 
     private void loadSpinnerInformations() {
         Information redditInfo = new Information.Builder()
                 .withPlatform("reddit")
-                .withAuthUrl(Constants.AUTH_URI)
-                .withTokenUrl(Constants.TOKEN_URI)
-                .withClientId(Constants.CLIENT_ID)
-                .withClientSecret(Constants.CLIENT_SECRET)
-                .withDuration(Constants.DURATION_PERM)
-                .withRedirectUri(Constants.REDIRECT)
-                .withScope(Constants.SCOPE)
-                .withGrantType(Constants.GRANT_TYPE_AUTH_CODE)
-                .withResponseType(Constants.RESPONSE_TYPE)
+                .withAuthUrl(RedditConstants.AUTH_URI)
+                .withTokenUrl(RedditConstants.TOKEN_URI)
+                .withClientId(RedditConstants.CLIENT_ID)
+                .withClientSecret(RedditConstants.CLIENT_SECRET)
+                .withDuration(RedditConstants.DURATION_PERM)
+                .withRedirectUri(RedditConstants.REDIRECT)
+                .withScope(RedditConstants.SCOPE)
+                .withGrantType(RedditConstants.GRANT_TYPE_AUTH_CODE)
+                .withResponseType(RedditConstants.RESPONSE_TYPE)
                 .withState(UUID.randomUUID().toString())
                 .build();
         this.informationHolder.put("reddit", redditInfo);
@@ -307,21 +387,32 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         } else if(id == R.id.action_reset){
-            resetAllTokens();
-            infoText.setText("All tokens were reset.");
+            resetTokensForSelectedNetwork();
+            infoText.setText("Tokens for network " + spinner.getSelectedItem().toString() + " were reset.");
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void resetAllTokens(){
+    private void resetTokensForSelectedNetwork(){
+        AuthInformation authInformation = getCurrentSelectedAuthInformation();
+        authInformation = new AuthInformation(authInformation.getNetwork());
+
+        Gson gson = new Gson();
+        String json = gson.toJson(authInformation);
+
         SharedPreferences.Editor editor = pref.edit();
-        editor.putLong(Constants.TOKEN_STORAGE_TIMESTAMP, -1);
-        editor.putString(Constants.TOKEN_STORAGE, "").apply();
-        editor.putLong(Constants.ACCESS_TOKEN_STORAGE_TIMESTAMP, -1);
-        editor.putString(Constants.ACCESS_TOKEN_STORAGE, "");
-        editor.putLong(Constants.REFRESH_TOKEN_STORAGE_TIMESTAMP, -1);
-        editor.putString(Constants.REFRESH_TOKEN_STORAGE, "");
+        editor.putString(spinner.getSelectedItem().toString().trim().toLowerCase() + Constants.TOKEN_OBJ_SUFFIX, json);
         editor.apply();
+    }
+
+    /*
+    **********************************************************************************
+    ** Provide SocialMediaSteganography Objects here: ********************************
+    **********************************************************************************
+     */
+
+    public List<SocialMedia> provideActiveSocial(){
+        return this.socialMedia;
     }
 }

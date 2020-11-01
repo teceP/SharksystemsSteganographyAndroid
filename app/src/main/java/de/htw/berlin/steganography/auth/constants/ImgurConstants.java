@@ -1,4 +1,4 @@
-package de.htw.berlin.steganography;
+package de.htw.berlin.steganography.auth.constants;
 
 public interface ImgurConstants {
 

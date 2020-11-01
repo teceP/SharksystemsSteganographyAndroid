@@ -1,14 +1,15 @@
-package de.htw.berlin.steganography.strategy;
+package de.htw.berlin.steganography.auth.strategy;
 
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
-import de.htw.berlin.steganography.auth.Information;
+import de.htw.berlin.steganography.auth.models.Information;
 
-public class TwitterAuthStrategy  extends BasicAbstractAuthStrategy{
+public class InstagramAuthStrategy extends BasicAbstractAuthStrategy{
+    //TODO
 
-    public TwitterAuthStrategy(Information information) {
+    public InstagramAuthStrategy(Information information) {
         super(information);
     }
 
@@ -19,6 +20,7 @@ public class TwitterAuthStrategy  extends BasicAbstractAuthStrategy{
 
     @Override
     public View.OnClickListener token(Context context, TextView infoText) {
+
         return null;
     }
 

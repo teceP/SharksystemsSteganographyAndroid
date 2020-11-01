@@ -1,14 +1,8 @@
-package de.htw.berlin.steganography.strategy;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
+package de.htw.berlin.steganography.auth.strategy;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import de.htw.berlin.steganography.Constants;
-import de.htw.berlin.steganography.MainActivity;
-import de.htw.berlin.steganography.auth.Information;
+import de.htw.berlin.steganography.auth.models.Information;
 
 public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implements AuthStrategy {
 
