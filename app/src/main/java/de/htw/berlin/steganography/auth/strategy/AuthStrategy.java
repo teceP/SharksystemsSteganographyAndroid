@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
-import de.htw.berlin.steganography.auth.models.Information;
+import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public interface AuthStrategy {
 
@@ -23,7 +23,7 @@ public interface AuthStrategy {
      */
     View.OnClickListener refresh(Context context);
 
-    public Information getInformation();
+    public AuthInformation getAuthInformation();
 
-    public void setInformation(Information information);
+    public void setAuthInformation(AuthInformation authInformation);
 }

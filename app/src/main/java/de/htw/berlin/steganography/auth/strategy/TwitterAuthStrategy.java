@@ -4,13 +4,13 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
-import de.htw.berlin.steganography.auth.models.Information;
+import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class TwitterAuthStrategy  extends BasicAbstractAuthStrategy{
     //TODO
 
-    public TwitterAuthStrategy(Information information) {
-        super(information);
+    public TwitterAuthStrategy(AuthInformation authInformation) {
+        super(authInformation);
     }
 
     @Override

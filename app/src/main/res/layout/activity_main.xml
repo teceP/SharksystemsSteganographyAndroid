@@ -18,4 +18,20 @@
         android:layout_marginEnd="27dp"
         android:layout_marginRight="27dp" />
 
+    <ListView
+        android:id="@+id/activeNetworksList"
+        android:layout_width="wrap_content"
+        android:layout_height="177dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="29dp"
+        android:layout_marginLeft="29dp"
+        android:layout_marginTop="-32dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="36dp" />
+
 </RelativeLayout>

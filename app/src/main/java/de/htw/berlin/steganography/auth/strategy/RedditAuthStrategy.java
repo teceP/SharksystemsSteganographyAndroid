@@ -26,8 +26,8 @@ import de.htw.berlin.steganography.Constants;
 import de.htw.berlin.steganography.R;
 import de.htw.berlin.steganography.auth.BasicAuthInterceptor;
 import de.htw.berlin.steganography.auth.constants.RedditConstants;
+import de.htw.berlin.steganography.auth.models.TokenInformation;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
-import de.htw.berlin.steganography.auth.models.Information;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Credentials;
@@ -39,8 +39,8 @@ import okhttp3.Response;
 
 public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
-    public RedditAuthStrategy(Information information) {
-        super(information);
+    public RedditAuthStrategy(AuthInformation authInformation) {
+        super(authInformation);
     }
 
     /**
@@ -49,20 +49,20 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
      *
      * @return the restored objects or in case the JSON was empty, an fresh objects.
      */
-    public AuthInformation getAuthInformation(Context context){
+    private TokenInformation getTokenInformation(Context context){
         String json = context.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
                 .getString(Constants.REDDIT_TOKEN_OBJ, Constants.NO_RESULT);
 
         if(!json.equals(Constants.NO_RESULT)){
-            return new Gson().fromJson(json, AuthInformation.class);
+            return new Gson().fromJson(json, TokenInformation.class);
         }
 
-        return new AuthInformation("reddit");
+        return new TokenInformation("reddit");
     }
 
-    public void applyAuthInformation(Context context, AuthInformation authInformation){
+    private void applyTokenInformation(Context context, TokenInformation tokenInformation){
         Gson gson = new Gson();
-        String json = gson.toJson(authInformation);
+        String json = gson.toJson(tokenInformation);
         context.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
                 .edit().putString(Constants.REDDIT_TOKEN_OBJ, json)
                 .apply();
@@ -86,13 +86,13 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                 CookieManager.getInstance().removeAllCookies(null);
                 CookieManager.getInstance().flush();
 
-                String url = getInformation().getAuthUrl()
-                        + "client_id=" + getInformation().getClientId()
-                        + "&response_type=" + getInformation().getResponseType()
-                        + "&duration=" + getInformation().getDuration()
-                        + "&state=" + getInformation().getState()
-                        + "&scope=" + getInformation().getScope()
-                        + "&redirect_uri=" + getInformation().getRedirectUri();
+                String url = getAuthInformation().getAuthUrl()
+                        + "client_id=" + getAuthInformation().getClientId()
+                        + "&response_type=" + getAuthInformation().getResponseType()
+                        + "&duration=" + getAuthInformation().getDuration()
+                        + "&state=" + getAuthInformation().getState()
+                        + "&scope=" + getAuthInformation().getScope()
+                        + "&redirect_uri=" + getAuthInformation().getRedirectUri();
 
                 Log.i("MYY", url);
 
@@ -114,16 +114,16 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                     @Override
                     public void onPageFinished(WebView view, String url) {
                         super.onPageFinished(view, url);
-                        AuthInformation authInformation = getAuthInformation(context);
+                        TokenInformation tokenInformation = getTokenInformation(context);
 
                         if (url.contains("?code=") || url.contains("&code=")) {
                             Uri uri = Uri.parse(url);
                             String authCode = uri.getQueryParameter("code");
 
-                            authInformation.setToken(authCode);
-                            authInformation.setTokenTimestamp(System.currentTimeMillis());
+                            tokenInformation.setToken(authCode);
+                            tokenInformation.setTokenTimestamp(System.currentTimeMillis());
 
-                            Log.i("MYY", "New Token: " + authInformation.getToken());
+                            Log.i("MYY", "New Token: " + tokenInformation.getToken());
 
                             authDialog.dismiss();
                             infoText.setText("Auth token granted. Get your access token now.");
@@ -133,8 +133,8 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                         } else if (url.contains("error=access_denied")) {
                             Log.i("MYY", "Error, access denied.");
 
-                            authInformation.setToken(Constants.NO_RESULT);
-                            authInformation.setTokenTimestamp(-1);
+                            tokenInformation.setToken(Constants.NO_RESULT);
+                            tokenInformation.setTokenTimestamp(-1);
 
                             authDialog.dismiss();
                             retrieveAuthTokenBtn.setClickable(true);
@@ -142,7 +142,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
                             infoText.setText("Auth token was not granted. Check your credentials or try later again.");
                         }
-                        applyAuthInformation(context, authInformation);
+                        applyTokenInformation(context, tokenInformation);
                     }
                 });
 
@@ -159,14 +159,14 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
             v.setAlpha(0.2f);
             v.setClickable(false);
 
-            AuthInformation authInformation = getAuthInformation(context);
+            TokenInformation tokenInformation = getTokenInformation(context);
 
             OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new BasicAuthInterceptor(RedditConstants.CLIENT_ID, RedditConstants.CLIENT_SECRET)).build();
 
             RequestBody body = new FormBody.Builder()
                     .add("grant_type", RedditConstants.GRANT_TYPE_AUTH_CODE)
-                    .add("code", authInformation.getToken())
-                    .add("redirect_uri", getInformation().getRedirectUri())
+                    .add("code", tokenInformation.getToken())
+                    .add("redirect_uri", getAuthInformation().getRedirectUri())
                     .build();
 
             Request request = new Request.Builder()
@@ -188,34 +188,34 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
                     if (resp.contains("error")) {
                         Log.i("MYY", "Error in response: " + resp);
-                        authInformation.setRefreshToken(Constants.NO_RESULT);
-                        authInformation.setTokenTimestamp(-1);
-                        authInformation.setAccessToken(Constants.NO_RESULT);
-                        authInformation.setAccessTokenTimestamp(-1);
+                        tokenInformation.setRefreshToken(Constants.NO_RESULT);
+                        tokenInformation.setTokenTimestamp(-1);
+                        tokenInformation.setAccessToken(Constants.NO_RESULT);
+                        tokenInformation.setAccessTokenTimestamp(-1);
                     } else if (resp.contains("access_token")) {
                         try {
                             JSONObject json = new JSONObject(resp);
                             Log.i("MYY","json resp: " + json);
                             long ts = System.currentTimeMillis();
-                            authInformation.setRefreshToken( (String)json.get("refresh_token"));
-                            authInformation.setTokenTimestamp(ts);
-                            authInformation.setAccessToken((String)json.get("access_token"));
-                            authInformation.setAccessTokenTimestamp(ts);
+                            tokenInformation.setRefreshToken( (String)json.get("refresh_token"));
+                            tokenInformation.setTokenTimestamp(ts);
+                            tokenInformation.setAccessToken((String)json.get("access_token"));
+                            tokenInformation.setAccessTokenTimestamp(ts);
                             infoText.setText("Access grandet.");
                             v.setAlpha(.2f);
                             v.setClickable(false);
                         } catch (JSONException e) {
                             //Set auth token to null/empty because it can only be used one time.
                             //If any error occures, it must be deleted.
-                            authInformation.setToken(Constants.NO_RESULT);
-                            authInformation.setTokenTimestamp(System.currentTimeMillis());
+                            tokenInformation.setToken(Constants.NO_RESULT);
+                            tokenInformation.setTokenTimestamp(System.currentTimeMillis());
                             e.printStackTrace();
                             infoText.setText("Access denied.");
                             v.setAlpha(1.0f);
                             v.setClickable(true);
                         }
                     }
-                    applyAuthInformation(context, authInformation);
+                    applyTokenInformation(context, tokenInformation);
                 }
             });
         };
@@ -224,12 +224,12 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
     @Override
     public View.OnClickListener refresh(Context context) {
         return v -> {
-            AuthInformation authInformation = getAuthInformation(context);
+            TokenInformation tokenInformation = getTokenInformation(context);
             OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new BasicAuthInterceptor(RedditConstants.CLIENT_ID, RedditConstants.CLIENT_SECRET)).build();
 
             RequestBody body = new FormBody.Builder()
                     .add("grant_type", RedditConstants.GRANT_TYPE_REFRESH)
-                    .add("refresh_token", authInformation.getRefreshToken())
+                    .add("refresh_token", tokenInformation.getRefreshToken())
                     .build();
 
             Request request = new Request.Builder()
@@ -251,22 +251,22 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
                     if (resp.contains("error")) {
                         Log.i("MYY", "Error in response: " + resp);
-                        authInformation.setAccessToken(Constants.NO_RESULT);
-                        authInformation.setAccessTokenTimestamp(-1);
+                        tokenInformation.setAccessToken(Constants.NO_RESULT);
+                        tokenInformation.setAccessTokenTimestamp(-1);
                     } else if (resp.contains("access_token")) {
                         try {
                             JSONObject json = new JSONObject(resp);
-                            authInformation.setAccessToken((String)json.get("access_token"));
-                            authInformation.setAccessTokenTimestamp(System.currentTimeMillis());
+                            tokenInformation.setAccessToken((String)json.get("access_token"));
+                            tokenInformation.setAccessTokenTimestamp(System.currentTimeMillis());
                         } catch (JSONException e) {
                             //Set auth token to null/empty because it can only be used one time.
                             //If any error occures, it must be deleted.
-                            authInformation.setToken(Constants.NO_RESULT);
-                            authInformation.setTokenTimestamp(-1);
+                            tokenInformation.setToken(Constants.NO_RESULT);
+                            tokenInformation.setTokenTimestamp(-1);
                             e.printStackTrace();
                         }
                     }
-                    applyAuthInformation(context, authInformation);
+                    applyTokenInformation(context, tokenInformation);
                 }
             });
         };

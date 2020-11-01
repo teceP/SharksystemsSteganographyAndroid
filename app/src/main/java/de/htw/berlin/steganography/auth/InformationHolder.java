@@ -2,21 +2,21 @@ package de.htw.berlin.steganography.auth;
 
 import java.util.HashMap;
 
-import de.htw.berlin.steganography.auth.models.Information;
+import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class InformationHolder {
 
-    private HashMap<String, Information> map;
+    private HashMap<String, AuthInformation> map;
 
     public InformationHolder(){
         this.map = new HashMap<>();
     }
 
-    public void put(String service, Information information){
-        this.map.put(service, information);
+    public void put(String service, AuthInformation authInformation){
+        this.map.put(service, authInformation);
     }
 
-    public Information get(String service){
+    public AuthInformation get(String service){
         return this.map.get(service);
     }
 

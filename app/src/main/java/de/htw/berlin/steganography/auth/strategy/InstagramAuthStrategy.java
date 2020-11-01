@@ -4,13 +4,13 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
-import de.htw.berlin.steganography.auth.models.Information;
+import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class InstagramAuthStrategy extends BasicAbstractAuthStrategy{
     //TODO
 
-    public InstagramAuthStrategy(Information information) {
-        super(information);
+    public InstagramAuthStrategy(AuthInformation authInformation) {
+        super(authInformation);
     }
 
     @Override

@@ -4,14 +4,14 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
-import de.htw.berlin.steganography.auth.models.Information;
+import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class YoutubeAuthStrategy extends BasicAbstractAuthStrategy{
 
     //TODO
 
-    public YoutubeAuthStrategy(Information information) {
-        super(information);
+    public YoutubeAuthStrategy(AuthInformation authInformation) {
+        super(authInformation);
     }
 
     @Override

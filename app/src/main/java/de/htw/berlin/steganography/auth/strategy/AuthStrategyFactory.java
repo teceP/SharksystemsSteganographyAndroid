@@ -1,27 +1,23 @@
 package de.htw.berlin.steganography.auth.strategy;
 
-import android.util.Log;
-
-import de.htw.berlin.steganography.auth.models.Information;
+import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class AuthStrategyFactory {
 
-    public static AuthStrategy getAuthStrategy(Information information){
-        Log.i("MYYY", "-----");
-        Log.i("MYYY", information.getPlatform());
-        if(information.getPlatform() == null || information.getPlatform().equals("")){
+    public static AuthStrategy getAuthStrategy(AuthInformation authInformation){
+        if(authInformation.getPlatform() == null || authInformation.getPlatform().equals("")){
             return null;
         }
 
-        switch(information.getPlatform().toLowerCase()){
+        switch(authInformation.getPlatform().toLowerCase()){
             case "reddit":
-                return new RedditAuthStrategy(information);
+                return new RedditAuthStrategy(authInformation);
             case "imgur":
-                return new ImgurAuthStrategy(information);
+                return new ImgurAuthStrategy(authInformation);
             case "instagram":
-                return new InstagramAuthStrategy(information);
+                return new InstagramAuthStrategy(authInformation);
             case "twitter":
-                return new TwitterAuthStrategy(information);
+                return new TwitterAuthStrategy(authInformation);
             default:
                 return null;
         }

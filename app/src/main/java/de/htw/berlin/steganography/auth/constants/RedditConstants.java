@@ -16,7 +16,7 @@ public interface RedditConstants {
     String GRANT_TYPE_REFRESH = "refresh_token";
 
     String DURATION_PERM = "permanent";
-    String SCOPE = "identity,edit,flair,history,modconfig,modflair,modlog,modposts,modwiki,mysubreddits,privatemessages,read,report,save,submit,subscribe,vote,wikiedit,wikiread";
+    String SCOPE = "read save submit";
 
 
 }
