@@ -7,24 +7,33 @@ import android.widget.TextView;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class TwitterAuthStrategy  extends BasicAbstractAuthStrategy{
-    //TODO
+
+    /*TODO implement methods and do following:
+     Am Ende jeder Methode muss folgende Methode aufgerufen werden:
+     MainActivity.getMainActivityInstace().updateState();
+
+     Info: im authInformation Objekt sind alle Daten enhalten, die ihr für euren OAuth Vorgang
+     benötigt und vorher in der MainActivity eingesetzt habt. Falls ihr noch weitere Attribute braucht,
+     bearbeitet einfach die AuthInformation-Klasse. Aber bitte keine Attribute entfernen.
+   */
+
 
     public TwitterAuthStrategy(AuthInformation authInformation) {
         super(authInformation);
     }
 
     @Override
-    public View.OnClickListener authorize(Context context, TextView infoText, View retrieveAuthTokenBtn, View retrieveAccessTokenBtn) {
+    public View.OnClickListener authorize() {
         return null;
     }
 
     @Override
-    public View.OnClickListener token(Context context, TextView infoText) {
+    public View.OnClickListener token() {
         return null;
     }
 
     @Override
-    public View.OnClickListener refresh(Context context) {
+    public View.OnClickListener refresh() {
         return null;
     }
 }

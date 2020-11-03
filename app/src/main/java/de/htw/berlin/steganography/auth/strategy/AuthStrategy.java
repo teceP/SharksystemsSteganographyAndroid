@@ -5,25 +5,43 @@ import android.view.View;
 import android.widget.TextView;
 
 import de.htw.berlin.steganography.auth.models.AuthInformation;
+import de.htw.berlin.steganography.auth.models.TokenInformation;
 
 public interface AuthStrategy {
 
     /**
      * Represents the oauth2 authorization flow
      */
-    View.OnClickListener authorize(Context context, TextView infoText, View retrieveAuthTokenBtn, View retrieveAccessTokenBtn);
+    View.OnClickListener authorize();
 
     /**
      * Represents the oauth2 access token & refresh token retrieving flow
      */
-    View.OnClickListener token(Context context, TextView infoText);
+    View.OnClickListener token();
 
     /**
      * Represents the oauth2 refresh token flow
      */
-    View.OnClickListener refresh(Context context);
+    View.OnClickListener refresh();
 
-    public AuthInformation getAuthInformation();
+    /**
+     * @return Authorization information
+     */
+    AuthInformation getAuthInformation();
 
-    public void setAuthInformation(AuthInformation authInformation);
+    /**
+     *
+     * @param context
+     * @param network Example "reddit", "imgur", ...
+     * @return Returns current token information for a specific network.
+     */
+    TokenInformation getTokenInformation(Context context, String network);
+
+    /**
+     * Stores the token information in the shared preferences.
+     * @param context
+     * @param tokenInformation
+     */
+    void applyTokenInformation(Context context, TokenInformation tokenInformation);
+
 }

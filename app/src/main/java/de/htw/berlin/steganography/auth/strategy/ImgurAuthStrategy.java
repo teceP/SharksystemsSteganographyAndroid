@@ -1,7 +1,6 @@
 package de.htw.berlin.steganography.auth.strategy;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -10,11 +9,10 @@ import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
-
-import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -22,7 +20,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import de.htw.berlin.steganography.Constants;
+import de.htw.berlin.steganography.MainActivity;
+import de.htw.berlin.steganography.auth.constants.Constants;
 import de.htw.berlin.steganography.R;
 import de.htw.berlin.steganography.auth.BasicAuthInterceptor;
 import de.htw.berlin.steganography.auth.constants.ImgurConstants;
@@ -43,41 +42,19 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
         super(authInformation);
     }
 
-    /**
-     * Restores AuthInformation objects from shared preferences.
-     * @param context
-     *
-     * @return the restored objects or in case the JSON was empty, an fresh objects.
-     */
-    private TokenInformation getTokenInformation(Context context){
-        String json = context.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
-                .getString(Constants.IMGUR_TOKEN_OBJ, Constants.NO_RESULT);
-
-        if(!json.equals(Constants.NO_RESULT)){
-            return new Gson().fromJson(json, TokenInformation.class);
-        }
-
-        return new TokenInformation("imgur");
-    }
-
-    private void applyTokenInformation(Context context, TokenInformation tokenInformation){
-        Gson gson = new Gson();
-        String json = gson.toJson(tokenInformation);
-        context.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
-                .edit().putString(Constants.IMGUR_TOKEN_OBJ, json)
-                .apply();
-    }
-
     @Override
-    public View.OnClickListener authorize(Context context, TextView infoText, View retrieveAuthTokenBtn, View retrieveAccessTokenBtn) {
+    public View.OnClickListener authorize() {
         return new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onClick(View v) {
-                retrieveAuthTokenBtn.setClickable(false);
-                retrieveAuthTokenBtn.setAlpha(.2f);
+                TextView infoText = MainActivity.getMainActivityInstance().findViewById(R.id.infoText);
+                Button oauthBtn = MainActivity.getMainActivityInstance().findViewById(R.id.auth);
 
-                Dialog authDialog = new Dialog(context);
+                oauthBtn.setClickable(false);
+                oauthBtn.setAlpha(.2f);
+
+                Dialog authDialog = new Dialog(MainActivity.getMainActivityInstance());
                 authDialog.setContentView(R.layout.auth_dialog);
 
                 WebView web = authDialog.findViewById(R.id.webv);
@@ -111,9 +88,10 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                     @Override
                     public void onPageFinished(WebView view, String url) {
                         super.onPageFinished(view, url);
-                        TokenInformation tokenInformation = getTokenInformation(context);
+                        TokenInformation tokenInformation = getTokenInformation(MainActivity.getMainActivityInstance(), "imgur");
 
                         Log.i("MYY", "URL: " + url);
+                        boolean granted = false;
 
                         if (url.contains("?code=") || url.contains("&code=")) {
                             Uri uri = Uri.parse(url);
@@ -126,9 +104,7 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
 
                             authDialog.dismiss();
                             infoText.setText("Auth token granted. Get your access token now.");
-
-                            retrieveAccessTokenBtn.setClickable(true);
-                            retrieveAccessTokenBtn.setAlpha(1.0f);
+                            granted = true;
                         } else if (url.contains("error=access_denied")) {
                             Log.i("MYY", "Error, access denied.");
 
@@ -136,15 +112,21 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                             tokenInformation.setTokenTimestamp(-1);
 
                             authDialog.dismiss();
-                            retrieveAuthTokenBtn.setClickable(true);
-                            retrieveAuthTokenBtn.setAlpha(1.0f);
-
                             infoText.setText("Auth token was not granted. Check your credentials or try later again.");
                         }
-                        applyTokenInformation(context, tokenInformation);
+                        applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
+                        if(granted){
+                            Button b = MainActivity.getMainActivityInstance().findViewById(R.id.dummyBtn);
+                            b.setOnClickListener(token());
+                            b.callOnClick();
+                        }else{
+                            oauthBtn.setClickable(true);
+                            oauthBtn.setAlpha(1.0f);
+                        }
                     }
                 });
 
+                MainActivity.getMainActivityInstance().updateState();
                 authDialog.show();
                 authDialog.setTitle("Authorize");
                 authDialog.setCancelable(true);
@@ -153,12 +135,13 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
     }
 
     @Override
-    public View.OnClickListener token(Context context, TextView infoText) {
+    public View.OnClickListener token() {
         return v -> {
+            TextView infoText = MainActivity.getMainActivityInstance().findViewById(R.id.infoText);
             v.setAlpha(0.2f);
             v.setClickable(false);
 
-            TokenInformation tokenInformation = getTokenInformation(context);
+            TokenInformation tokenInformation = getTokenInformation(MainActivity.getMainActivityInstance(), "imgur");
 
             OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new BasicAuthInterceptor(ImgurConstants.CLIENT_ID, ImgurConstants.CLIENT_SECRET)).build();
 
@@ -203,8 +186,6 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                             tokenInformation.setAccessToken((String)json.get("access_token"));
                             tokenInformation.setAccessTokenTimestamp(ts);
                             infoText.setText("Access grandet.");
-                            v.setAlpha(.2f);
-                            v.setClickable(false);
                         } catch (JSONException e) {
                             //Set auth token to null/empty because it can only be used one time.
                             //If any error occures, it must be deleted.
@@ -212,20 +193,23 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                             tokenInformation.setTokenTimestamp(System.currentTimeMillis());
                             e.printStackTrace();
                             infoText.setText("Access denied.");
-                            v.setAlpha(1.0f);
-                            v.setClickable(true);
+                            Button oauthBtn = MainActivity.getMainActivityInstance().findViewById(R.id.auth);
+                            oauthBtn.setClickable(true);
+                            oauthBtn.setAlpha(1.0f);
                         }
                     }
-                    applyTokenInformation(context, tokenInformation);
+                    applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
+            MainActivity.getMainActivityInstance().updateState();
+            MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
         };
     }
 
     @Override
-    public View.OnClickListener refresh(Context context) {
+    public View.OnClickListener refresh() {
         return v -> {
-            TokenInformation tokenInformation = getTokenInformation(context);
+            TokenInformation tokenInformation = getTokenInformation(MainActivity.getMainActivityInstance(), "imgur");
             OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new BasicAuthInterceptor(ImgurConstants.CLIENT_ID, ImgurConstants.CLIENT_SECRET)).build();
 
             RequestBody body = new FormBody.Builder()
@@ -268,14 +252,19 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                             //If any error occures, it must be deleted.
                             tokenInformation.setToken(Constants.NO_RESULT);
                             tokenInformation.setTokenTimestamp(-1);
-                            tokenInformation.setAccessToken(Constants.NO_RESULT);
-                            tokenInformation.setAccessTokenTimestamp(-1);
-                            e.printStackTrace();
+                            TextView infoText = MainActivity.getMainActivityInstance().findViewById(R.id.infoText);
+                            infoText.setText("Refreshing failed.");
+                            Log.i("MYY", "Error during refreshing: " + e.getMessage());
+                            Button oauthBtn = MainActivity.getMainActivityInstance().findViewById(R.id.auth);
+                            oauthBtn.setClickable(true);
+                            oauthBtn.setAlpha(1.0f);
                         }
                     }
-                    applyTokenInformation(context, tokenInformation);
+                    applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
+            MainActivity.getMainActivityInstance().updateState();
+            MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
         };
     }
 }

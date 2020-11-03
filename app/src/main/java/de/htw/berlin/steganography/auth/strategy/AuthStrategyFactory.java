@@ -1,5 +1,7 @@
 package de.htw.berlin.steganography.auth.strategy;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class AuthStrategyFactory {

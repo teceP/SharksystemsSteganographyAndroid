@@ -1,8 +1,9 @@
-package de.htw.berlin.steganography;
+package de.htw.berlin.steganography.auth.constants;
 
 public interface Constants {
 
-    double ONE_HOUR_IN_MINS = 60;
+    int ONE_HOUR_IN_MINS = 60;
+    long ONE_HOUR_IN_MS = 3600000;
     String SHARKSYS_PREF = "sharksys_prefs";
 
     String TOKEN_OBJ_SUFFIX = "_shared_pref";
@@ -12,7 +13,6 @@ public interface Constants {
     String TWITTER_TOKEN_OBJ = "twitter" + TOKEN_OBJ_SUFFIX;
     String INSTAGRAM_TOKEN_OBJ = "instagram" + TOKEN_OBJ_SUFFIX;
     String YOUTUBE_TOKEN_OBJ = "youtube" + TOKEN_OBJ_SUFFIX;
-
 
     int T_AT_NOT_EXPIRED = 0;
     int T_EXPIRED = 1;

@@ -1,6 +1,6 @@
 package de.htw.berlin.steganography.auth.models;
 
-import de.htw.berlin.steganography.Constants;
+import de.htw.berlin.steganography.auth.constants.Constants;
 
 public class TokenInformation {
 
