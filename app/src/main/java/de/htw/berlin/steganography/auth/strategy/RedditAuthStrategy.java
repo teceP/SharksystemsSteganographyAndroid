@@ -198,7 +198,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().updateState();
+            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
 
         };
@@ -241,6 +241,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                             JSONObject json = new JSONObject(resp);
                             tokenInformation.setAccessToken((String)json.get("access_token"));
                             tokenInformation.setAccessTokenTimestamp(System.currentTimeMillis());
+                           // MainActivity.getMainActivityInstance().setAuthStatus(Constants.T_AT_NOT_EXPIRED);
                         } catch (JSONException e) {
                             //Set auth token to null/empty because it can only be used one time.
                             //If any error occures, it must be deleted.
@@ -257,7 +258,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().updateState();
+            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
         };
     }

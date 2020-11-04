@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +43,8 @@ import de.htw.berlin.steganography.auth.constants.ImgurConstants;
 import de.htw.berlin.steganography.auth.constants.RedditConstants;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 import de.htw.berlin.steganography.auth.InformationHolder;
+import de.htw.berlin.steganography.auth.models.NetworkParcel;
+import de.htw.berlin.steganography.auth.models.Networks;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
 import de.htw.berlin.steganography.auth.strategy.AuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.AuthStrategyFactory;
@@ -53,13 +57,14 @@ public class MainActivity extends AppCompatActivity {
      * A list of all networks, which has tokens and a valid timestamp.
      * Note: Token could be expired.
      */
-    private List<SocialMedia> networks;
+    private Map<Networks, NetworkParcel> parcelMap;
+    private Map<String, SocialMedia> networks;
     private List<TokenInformation> tokenInformationPerNetwork;
     private Spinner spinner;
     AuthStrategy selectedAuthStrategy;
     Map<String, AuthStrategy> authStrategys;
     private InformationHolder authInformationHolder;
-    int authStatus;
+    Integer authStatus;
     AuthInformation authInformation;
     Button oauthBtn;
     Button refreshTokenBtn;
@@ -72,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences pref;
     TextView infoText;
     String chosenNetwork;
-
+    String latestRefreshedNetwork;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +85,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         instance = this;
 
-        this.networks = new ArrayList<>();
+        this.networks = new HashMap<>();
         this.tokenInformationPerNetwork = new ArrayList<>();
         this.authStrategys = new HashMap<>();
+        this.parcelMap = new HashMap<>();
+        this.latestRefreshedNetwork = Constants.NO_RESULT;
 
         this.pref = getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
 
@@ -102,15 +109,14 @@ public class MainActivity extends AppCompatActivity {
         this.refreshTokenBtn.setVisibility(View.GONE);
 
         /**
-         * Initial token state call
+         * Initial token state
          */
-        this.authStatus = Constants.STATUS_UNCHECKED;
+        this.authStatus = new Integer(Constants.STATUS_UNCHECKED);
 
         /**
          * Recycler View
          */
         this.networkRecyclerView = findViewById(R.id.activeNetworksList);
-        this.networkRecyclerView.setHasFixedSize(true);
         this.networkRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(this));
         this.networkRecyclerLayoutManager = new LinearLayoutManager(this);
         this.networkRecyclerAdapter = new NetworkListAdapter(this.tokenInformationPerNetwork);
@@ -120,11 +126,32 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Update state & UI
          */
-        this.updateState();
+        //this.updateState();
+        this.restoreSocialMedias();
+        this.updateUI();
+    }
+
+    public void updateSocialMediaToken(String network) {
+        TokenInformation ti = getTokenInformation(network);
+        this.networks.get(network).setToken(new Token(ti.getAccessToken(), ti.getAccessTokenTimestamp()));
+    }
+
+    /**
+     * Restores AuthInformation objects from shared preferences.
+     *
+     * @return the restored objects or in case the JSON was empty, an fresh objects.
+     */
+    public TokenInformation getTokenInformation(String network) {
+        String json = pref.getString(network + Constants.TOKEN_OBJ_SUFFIX, Constants.NO_RESULT);
+
+        if (!json.equals(Constants.NO_RESULT)) {
+            return new Gson().fromJson(json, TokenInformation.class);
+        }
+
+        return new TokenInformation(network);
     }
 
     public void restoreSocialMedias() {
-        this.tokenInformationPerNetwork.clear();
         List<String> networks = new ArrayList<>();
         networks.add(Constants.REDDIT_TOKEN_OBJ);
         networks.add(Constants.IMGUR_TOKEN_OBJ);
@@ -144,13 +171,13 @@ public class MainActivity extends AppCompatActivity {
                     this.tokenInformationPerNetwork.add(tokenInformation);
                     SocialMedia reddit = new Reddit();
                     reddit.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
-                    this.networks.add(reddit);
+                    this.networks.put(tokenInformation.getNetwork(), reddit);
                     break;
                 case "imgur":
                     this.tokenInformationPerNetwork.add(tokenInformation);
                     SocialMedia imgur = new Imgur();
                     imgur.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
-                    this.networks.add(imgur);
+                    this.networks.put(tokenInformation.getNetwork(), imgur);
                     break;
                 case "instagram":
                     this.tokenInformationPerNetwork.add(tokenInformation);
@@ -186,7 +213,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setButtonStates() {
-        Log.i("MYY", authStatus + " = AuthStatus");
         if (this.authStatus == Constants.T_AT_NOT_EXPIRED || this.authStatus == Constants.STATUS_UNCHECKED) {
             //Button not clickable, refresh possible
             oauthBtn.setClickable(false);
@@ -266,7 +292,6 @@ public class MainActivity extends AppCompatActivity {
         if (!json.equals(Constants.NO_RESULT)) {
             return new Gson().fromJson(json, TokenInformation.class);
         }
-
         return null;
     }
 
@@ -296,8 +321,9 @@ public class MainActivity extends AppCompatActivity {
                     this.infoText.setText("Access token was never retrieved.\nRetrieve first access token.");
                     return Constants.AT_NEVER_RETRIEVED;
                 }
-            } else {
+            } else if (!accessTokenString.isEmpty() && this.tokenExpired(accessToken)) {
                 //Access token is expired. Get new with grant_type refresh_token
+                Log.i("MYY", "token >>" + accessTokenString);
                 this.infoText.setText("Access token is expired.\nRefresh access token.");
                 return Constants.AT_NEEDS_REFRESH;
             }
@@ -306,8 +332,6 @@ public class MainActivity extends AppCompatActivity {
         double minsLeft = Constants.ONE_HOUR_IN_MINS - (this.getTimeDifferentInMin(tokenInformation.getAccessTokenTimestamp()));
         this.infoText.setText("Access token is valid.\nTime till retrieval: " + minsLeft + " minutes.");
         Log.i("MYY", "Access Token: " + accessTokenString);
-
-        //this.refreshTokenAutomatically(tokenInformation.getNetwork());
 
         return Constants.T_AT_NOT_EXPIRED;
     }
@@ -327,15 +351,15 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void setInformations() {
+    public void setCurrentAuthInformations() {
         String chosenNetwork = spinner.getSelectedItem().toString().toLowerCase();
         authInformation = authInformationHolder.get(chosenNetwork);
         Log.i("MYY", "Choosen Network: " + chosenNetwork);
     }
 
     public void updateState() {
-        UpdateStateAsyncTask usat = new UpdateStateAsyncTask();
-        usat.execute();
+        new UpdateStateAsyncTask().execute(this);
+        //Second run shouldnt be 3
     }
 
     public void addAutoRefreshTimer(long timer) {
@@ -366,12 +390,19 @@ public class MainActivity extends AppCompatActivity {
 
     public View.OnClickListener doRefreshOnClick(String network) {
         return v -> {
-            try{
-                refreshTokenBtn.setOnClickListener(authStrategys.get(network).refresh());
-                refreshTokenBtn.callOnClick();
-                refreshTokenBtn.setOnClickListener(selectedAuthStrategy.refresh());
-                updateState();
-            }catch (NullPointerException ex){
+            try {
+                if (!getTokenInformation(network).getToken().equals(Constants.NO_RESULT) &&
+                        (!getTokenInformation(network).getAccessToken().equals(Constants.NO_RESULT))) {
+                    refreshTokenBtn.setOnClickListener(authStrategys.get(network).refresh());
+                    refreshTokenBtn.callOnClick();
+                    refreshTokenBtn.setOnClickListener(selectedAuthStrategy.refresh());
+                    this.latestRefreshedNetwork = network;
+                    updateState();
+                    networkRecyclerAdapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(this, "Authorize first.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (NullPointerException ex) {
                 Log.i("MYY", "Invalid Authstrategy or AuthInformation. Refreshing not possible.");
                 Toast.makeText(this, "Invalid Authstrategy or AuthInformation. Refreshing not possible.", Toast.LENGTH_SHORT).show();
             }
@@ -382,10 +413,16 @@ public class MainActivity extends AppCompatActivity {
      * UI Objects
      */
 
-    public void updateUI(){
+    public void setAuthStatus(int authStatus) {
+        Log.i("MYY", "Old state: " + this.authStatus);
+        this.authStatus = authStatus;
+        Log.i("MYY", "New state: " + this.authStatus);
+
+    }
+
+    public void updateUI() {
         setButtonStates();
         networkRecyclerAdapter.notifyDataSetChanged();
-        progressPnl.setVisibility(View.GONE);
     }
 
     private void setSpinner() {
@@ -470,12 +507,27 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_reset) {
             resetTokensForSelectedNetwork();
+            for(int i = 0; i < this.tokenInformationPerNetwork.size(); i++){
+                if(this.tokenInformationPerNetwork.get(i).getNetwork().equals(getCurrentSelectedTokenInformation().getNetwork())){
+                    this.tokenInformationPerNetwork.get(i).setAccessToken(Constants.NO_RESULT);
+                    this.tokenInformationPerNetwork.get(i).setAccessTokenTimestamp(-1);
+                    this.tokenInformationPerNetwork.get(i).setRefreshToken(Constants.NO_RESULT);
+                    this.tokenInformationPerNetwork.get(i).setRefreshTokenTimestamp(-1);
+                    this.tokenInformationPerNetwork.get(i).setToken(Constants.NO_RESULT);
+                    this.tokenInformationPerNetwork.get(i).setTokenTimestamp(-1);
+                }
+            }
             infoText.setText("Tokens for network " + spinner.getSelectedItem().toString() + " were reset.");
+            networkRecyclerAdapter.notifyDataSetChanged();
         } else if (id == R.id.action_update_ui) {
             updateState();
+            updateUI();
+            networkRecyclerAdapter.notifyDataSetChanged();
         } else if (id == R.id.action_refresh_token) {
             refreshTokenBtn.callOnClick();
+            networkRecyclerAdapter.notifyDataSetChanged();
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -502,7 +554,7 @@ public class MainActivity extends AppCompatActivity {
      **********************************************************************************
      */
 
-    public List<SocialMedia> provideActiveSocial() {
+    public Map<String, SocialMedia> provideActiveSocial() {
         return this.networks;
     }
 

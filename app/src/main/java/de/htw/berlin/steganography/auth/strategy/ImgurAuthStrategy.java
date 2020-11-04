@@ -202,7 +202,7 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                 }
             });
             Log.i("MYY", "Update UI now");
-            MainActivity.getMainActivityInstance().updateState();
+            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
         };
     }
@@ -244,6 +244,7 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                     } else if (resp.contains("access_token")) {
                         try {
                             JSONObject json = new JSONObject(resp);
+                            Log.i("MYY", "new access token: " + json.getString("access_token"));
                             tokenInformation.setAccessToken((String)json.get("access_token"));
                             tokenInformation.setAccessTokenTimestamp(System.currentTimeMillis());
                             tokenInformation.setRefreshToken((String)json.get("refresh_token"));
@@ -264,7 +265,7 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().updateState();
+            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
         };
     }
