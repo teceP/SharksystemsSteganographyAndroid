@@ -382,6 +382,12 @@ public class MainActivity extends AppCompatActivity {
      * UI Objects
      */
 
+    public void updateUI(){
+        setButtonStates();
+        networkRecyclerAdapter.notifyDataSetChanged();
+        progressPnl.setVisibility(View.GONE);
+    }
+
     private void setSpinner() {
         spinner = findViewById(R.id.spinner);
         String[] items = new String[]{"Reddit", "Imgur", "Twitter", "Instagram", "YouTube"};

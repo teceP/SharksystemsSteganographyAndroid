@@ -22,7 +22,6 @@ public class UpdateStateAsyncTask extends AsyncTask<Void, Void, Void> {
         ma.restoreSocialMedias();
         ma.selectedAuthStrategy = ma.authStrategys.get(ma.getCurrentSelectedTokenInformation().getNetwork());
         ma.authStatus = ma.checkTokenExpiration();
-        Log.i("MYY", (ma.authStrategys.size() + ma.selectedAuthStrategy.getAuthInformation().getPlatform()) + "--c----" );
         ma.oauthBtn.setOnClickListener(ma.selectedAuthStrategy.authorize());
         ma.refreshTokenBtn.setOnClickListener(ma.selectedAuthStrategy.refresh());
         return null;
@@ -31,9 +30,6 @@ public class UpdateStateAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
-        MainActivity ma = MainActivity.getMainActivityInstance();
-        ma.setButtonStates();
-        ma.networkRecyclerAdapter.notifyDataSetChanged();
-        ma.progressPnl.setVisibility(View.GONE);
+        MainActivity.getMainActivityInstance().updateUI();
     }
 }

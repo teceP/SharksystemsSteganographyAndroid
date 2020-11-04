@@ -13,7 +13,7 @@ import de.htw.berlin.steganography.auth.constants.Constants;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
 
-public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implements AuthStrategy {
+public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implements AuthStrategy, Runnable {
 
     private AuthInformation authInformation;
 
@@ -34,6 +34,13 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
 
     @Override
     public abstract View.OnClickListener refresh();
+
+    @Override
+    public void run() {
+        View v = MainActivity.getMainActivityInstance().findViewById(R.id.dummyBtn);
+        v.setOnClickListener(this.refresh());
+        v.callOnClick();
+    }
 
     /**
      * Restores AuthInformation objects from shared preferences.
