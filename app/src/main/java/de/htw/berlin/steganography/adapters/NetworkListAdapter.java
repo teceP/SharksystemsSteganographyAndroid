@@ -36,7 +36,7 @@ public class NetworkListAdapter extends RecyclerView.Adapter<NetworkListAdapter.
             super(itemView);
             imageView = itemView.findViewById(R.id.networkIcon);
             textView = itemView.findViewById(R.id.networkText);
-            refreshBtn = itemView.findViewById(R.id.refreshTokenBtnn);
+            refreshBtn = itemView.findViewById(R.id.refreshTokenFloatingBtn);
         }
     }
 
@@ -69,6 +69,7 @@ public class NetworkListAdapter extends RecyclerView.Adapter<NetworkListAdapter.
         }
         this.setTextView(curr, holder);
         this.setRefreshButton(curr.getNetwork(), holder);
+        holder.refreshBtn.setOnClickListener(MainActivity.getMainActivityInstance().doRefreshOnClick(curr.getNetwork().toLowerCase()));
     }
 
     @Override

@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -54,13 +56,14 @@ public class MainActivity extends AppCompatActivity {
     private List<SocialMedia> networks;
     private List<TokenInformation> tokenInformationPerNetwork;
     private Spinner spinner;
-    private AuthStrategy selectedAuthStrategy;
-    private Map<String, AuthStrategy> authStrategys;
-    private InformationHolder informationHolder;
+    AuthStrategy selectedAuthStrategy;
+    Map<String, AuthStrategy> authStrategys;
+    private InformationHolder authInformationHolder;
     int authStatus;
     AuthInformation authInformation;
     Button oauthBtn;
     Button refreshTokenBtn;
+    ProgressBar progressPnl;
 
     RecyclerView networkRecyclerView;
     RecyclerView.Adapter networkRecyclerAdapter;
@@ -74,11 +77,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        instance = this;
         setContentView(R.layout.activity_main);
+        instance = this;
 
         this.networks = new ArrayList<>();
         this.tokenInformationPerNetwork = new ArrayList<>();
+        this.authStrategys = new HashMap<>();
 
         this.pref = getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
 
@@ -86,19 +90,21 @@ public class MainActivity extends AppCompatActivity {
          * UI Elements
          */
         this.infoText = findViewById(R.id.infoText);
+        this.progressPnl = findViewById(R.id.progressPnl);
 
         this.setSpinner();
-        this.informationHolder = new InformationHolder();
+        this.authInformationHolder = new InformationHolder();
         this.loadSpinnerInformations();
 
         //OAuth2 Button
         this.oauthBtn = findViewById(R.id.auth);
+        this.refreshTokenBtn = findViewById(R.id.refreshTokenBtn);
+        this.refreshTokenBtn.setVisibility(View.GONE);
 
         /**
          * Initial token state call
          */
         this.authStatus = Constants.STATUS_UNCHECKED;
-        this.updateState();
 
         /**
          * Recycler View
@@ -111,7 +117,10 @@ public class MainActivity extends AppCompatActivity {
         this.networkRecyclerView.setLayoutManager(networkRecyclerLayoutManager);
         this.networkRecyclerView.setAdapter(networkRecyclerAdapter);
 
-        this.refreshTokenBtn =  findViewById(R.id.refreshTokenBtn);
+        /**
+         * Update state & UI
+         */
+        this.updateState();
     }
 
     public void restoreSocialMedias() {
@@ -153,12 +162,12 @@ public class MainActivity extends AppCompatActivity {
                     this.tokenInformationPerNetwork.add(tokenInformation);
                     /**
                      * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
-                     */                    break;
+                     */break;
                 case "youtube":
                     this.tokenInformationPerNetwork.add(tokenInformation);
                     /**
                      * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
-                     */                    break;
+                     */break;
             }
         }
     }
@@ -176,7 +185,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void setButtonStates() {
+    public void setButtonStates() {
+        Log.i("MYY", authStatus + " = AuthStatus");
         if (this.authStatus == Constants.T_AT_NOT_EXPIRED || this.authStatus == Constants.STATUS_UNCHECKED) {
             //Button not clickable, refresh possible
             oauthBtn.setClickable(false);
@@ -198,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
             oauthBtn.setAlpha(.2f);
             oauthBtn.setOnClickListener(selectedAuthStrategy.token());
             oauthBtn.callOnClick();
+            this.authStatus = checkTokenExpiration();
             oauthBtn.setOnClickListener(selectedAuthStrategy.authorize());
 
             refreshTokenBtn.setClickable(false);
@@ -206,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
             //Only refresh possible. Will be called automatically
             oauthBtn.setClickable(false);
             oauthBtn.setAlpha(.2f);
-
             refreshTokenBtn.callOnClick();
+            this.authStatus = checkTokenExpiration();
         }
     }
 
@@ -223,10 +234,11 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Computes how many ms left till expiration of access token.
+     *
      * @param l
      * @return
      */
-    public long timeLeftInMs(long l){
+    public long timeLeftInMs(long l) {
         return Constants.ONE_HOUR_IN_MS - (System.currentTimeMillis() - l);
     }
 
@@ -258,14 +270,13 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-
     /**
      * Tokens are normally valid for one Hour.
      * If a access token is expired, they can be refreshed.
      *
      * @return 3 == access token is expired [AT_NEEDS_REFRESH]
      */
-    private int checkTokenExpiration() {
+    public int checkTokenExpiration() {
         TokenInformation tokenInformation = getCurrentSelectedTokenInformation();
         long token = tokenInformation.getTokenTimestamp();
         long accessToken = tokenInformation.getAccessTokenTimestamp();
@@ -318,35 +329,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void setInformations() {
         String chosenNetwork = spinner.getSelectedItem().toString().toLowerCase();
-        authInformation = informationHolder.get(chosenNetwork);
+        authInformation = authInformationHolder.get(chosenNetwork);
         Log.i("MYY", "Choosen Network: " + chosenNetwork);
     }
 
-    public void updateState(){
-        setInformations();
-        restoreSocialMedias();
-
-        /**
-         * TODO hier erst abfragen, ob in hashmap schon objekt vorhanden ist.
-         * wenn nicht, dann hinzufügen
-         * wenn doch, dann mit diesem objekt weiter arbeiten
-         *
-         * -> dadurch refreshTokenOnClick möglich
-         */
-
-        selectedAuthStrategy = AuthStrategyFactory.getAuthStrategy(authInformation);
-        authStatus = checkTokenExpiration();
-        Log.i("MYY", (selectedAuthStrategy == null) + " , " + (selectedAuthStrategy.refresh() == null));
-        oauthBtn.setOnClickListener(selectedAuthStrategy.authorize());
-        refreshTokenBtn.setOnClickListener(selectedAuthStrategy.refresh());
-        setButtonStates();
-        networkRecyclerAdapter.notifyDataSetChanged();
+    public void updateState() {
+        UpdateStateAsyncTask usat = new UpdateStateAsyncTask();
+        usat.execute();
     }
 
-    public void addAutoRefreshTimer(long timer){
+    public void addAutoRefreshTimer(long timer) {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.schedule((Runnable) selectedAuthStrategy, timer, TimeUnit.MILLISECONDS);
-        Toast.makeText(this, "New auto refresh timer was set.", Toast.LENGTH_LONG).show();
+        Log.i("MYY", "Auto refresh was set for " + selectedAuthStrategy.getAuthInformation().getPlatform() + " in " + timer + " ms.");
     }
 
     /**
@@ -369,8 +364,17 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    public View.OnClickListener doRefreshOnClick(String network){
+    public View.OnClickListener doRefreshOnClick(String network) {
         return v -> {
+            try{
+                refreshTokenBtn.setOnClickListener(authStrategys.get(network).refresh());
+                refreshTokenBtn.callOnClick();
+                refreshTokenBtn.setOnClickListener(selectedAuthStrategy.refresh());
+                updateState();
+            }catch (NullPointerException ex){
+                Log.i("MYY", "Invalid Authstrategy or AuthInformation. Refreshing not possible.");
+                Toast.makeText(this, "Invalid Authstrategy or AuthInformation. Refreshing not possible.", Toast.LENGTH_SHORT).show();
+            }
         };
     }
 
@@ -403,7 +407,8 @@ public class MainActivity extends AppCompatActivity {
                 .withResponseType(RedditConstants.RESPONSE_TYPE)
                 .withState(UUID.randomUUID().toString())
                 .build();
-        this.informationHolder.put("reddit", redditInfo);
+        this.authInformationHolder.put("reddit", redditInfo);
+        this.authStrategys.put("reddit", AuthStrategyFactory.getAuthStrategy(redditInfo));
 
         AuthInformation imgurInfo = new AuthInformation().Builder()
                 .withPlatform("imgur")
@@ -418,24 +423,32 @@ public class MainActivity extends AppCompatActivity {
                 .withResponseType(ImgurConstants.RESPONSE_TYPE)
                 .withState(UUID.randomUUID().toString())
                 .build();
-        this.informationHolder.put("imgur", imgurInfo);
+        this.authInformationHolder.put("imgur", imgurInfo);
+        this.authStrategys.put("imgur", AuthStrategyFactory.getAuthStrategy(imgurInfo));
 
         AuthInformation twitterInfo = new AuthInformation();
+        twitterInfo.setPlatform("twitter");
         /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
          * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
          */
-        this.informationHolder.put("twitter", twitterInfo);
+        this.authInformationHolder.put("twitter", twitterInfo);
+        this.authStrategys.put("twitter", AuthStrategyFactory.getAuthStrategy(twitterInfo));
 
         AuthInformation youtubeInfo = new AuthInformation();
         /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
          * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
-         */        this.informationHolder.put("youtube", youtubeInfo);
+         */
+        this.authInformationHolder.put("youtube", youtubeInfo);
+        youtubeInfo.setPlatform("youtube");
+        this.authStrategys.put("youtube", AuthStrategyFactory.getAuthStrategy(youtubeInfo));
 
         AuthInformation instagramInfo = new AuthInformation();
         /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
          * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
          */
-        this.informationHolder.put("instagram", instagramInfo);
+        this.authInformationHolder.put("instagram", instagramInfo);
+        instagramInfo.setPlatform("instagram");
+        this.authStrategys.put("instagram", AuthStrategyFactory.getAuthStrategy(instagramInfo));
     }
 
     @Override
@@ -452,8 +465,10 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_reset) {
             resetTokensForSelectedNetwork();
             infoText.setText("Tokens for network " + spinner.getSelectedItem().toString() + " were reset.");
-        } else if(id == R.id.action_update){
+        } else if (id == R.id.action_update_ui) {
             updateState();
+        } else if (id == R.id.action_refresh_token) {
+            refreshTokenBtn.callOnClick();
         }
 
         return super.onOptionsItemSelected(item);
@@ -471,7 +486,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    public static MainActivity getMainActivityInstance(){
+    public static MainActivity getMainActivityInstance() {
         return instance;
     }
 

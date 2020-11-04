@@ -200,6 +200,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
             });
             MainActivity.getMainActivityInstance().updateState();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
+
         };
     }
 

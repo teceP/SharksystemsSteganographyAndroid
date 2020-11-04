@@ -201,6 +201,7 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
+            Log.i("MYY", "Update UI now");
             MainActivity.getMainActivityInstance().updateState();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
         };

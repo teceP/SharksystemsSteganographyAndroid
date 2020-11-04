@@ -41,13 +41,14 @@
 
         <Spinner
             android:id="@+id/spinner"
-            android:layout_width="178dp"
+            android:layout_width="158dp"
             android:layout_height="45dp"
             android:layout_alignRight="@+id/auth"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
-            android:layout_marginTop="21dp"
-            android:layout_marginRight="11dp" />
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="17dp"
+            android:layout_marginRight="2dp" />
 
         <TextView
             android:id="@+id/infoText"
@@ -58,10 +59,5 @@
             android:elevation="10dp"
             android:text="Current information about the selected network."
             android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/refreshTokenBtn"/>
     </RelativeLayout>
 </LinearLayout>

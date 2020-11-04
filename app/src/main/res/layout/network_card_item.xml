@@ -3,34 +3,56 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="120dp"
-    android:layout_margin="8dp"
-    android:elevation="10dp"
+    android:layout_margin="4dp"
+    android:elevation="8dp"
     android:orientation="vertical"
     card_view:cardCornerRadius="10dp"
-    card_view:cardElevation="10dp">
+    card_view:cardElevation="8dp">
 
-    <ImageView
-        android:id="@+id/networkIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="center|left"
-        android:layout_marginLeft="10dp" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/networkText"
-        android:layout_width="310dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center|left"
-        android:layout_marginLeft="70dp" />
+        <ImageView
+            android:id="@+id/networkIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="29dp"
+            android:layout_marginLeft="29dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="40dp" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/refreshTokenBtnn"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:layout_marginLeft="245dp"
-        android:layout_marginTop="-20dp"
-        android:src="@drawable/refresh_ico"
-        android:textColorHint="#FFFFFF"
-        card_view:backgroundTint="#FFFFFF"
-        card_view:fabCustomSize="25dp" />
+        <TextView
+            android:id="@+id/networkText"
+            android:layout_width="280dp"
+            android:layout_height="50dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="17dp"
+            android:layout_marginLeft="17dp"
+            android:layout_marginTop="36dp"
+            android:layout_marginEnd="29dp"
+            android:layout_marginRight="29dp"
+            android:layout_marginBottom="34dp"
+            android:layout_toEndOf="@+id/networkIcon"
+            android:layout_toRightOf="@+id/networkIcon" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/refreshTokenFloatingBtn"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginLeft="317dp"
+            android:src="@drawable/refresh_ico"
+            android:textColorHint="#FFFFFF"
+            card_view:backgroundTint="#FFFFFF"
+            card_view:fabCustomSize="25dp"
+            android:elevation="0dp"
+            />
+    </RelativeLayout>
 </androidx.cardview.widget.CardView>

@@ -9,6 +9,27 @@
     <com.google.android.material.appbar.AppBarLayout android:layout_height="wrap_content"
         android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay"/>
 
+
+    <RelativeLayout
+        android:id="@+id/loadingPanel"
+        style="@style/GenericProgressBackground"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginLeft="290dp"
+        android:layout_marginTop="50dp">
+
+        <ProgressBar
+            android:id="@+id/progressPnl"
+            style="@style/GenericProgressIndicator"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"/>
+    </RelativeLayout>
+
+    <Button
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/refreshTokenBtn"/>
+
     <include
         layout="@layout/content_main"
         android:layout_width="wrap_content"
@@ -25,7 +46,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/activeNetworksList"
         android:layout_width="wrap_content"
-        android:layout_height="453dp"
+        android:layout_height="398dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentEnd="true"

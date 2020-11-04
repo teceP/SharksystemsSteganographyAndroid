@@ -4,8 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/action_update" android:title="@string/action_update"
-        android:orderInCategory="100" app:showAsAction="never"/>
+    <item android:id="@+id/action_refresh_token" android:title="@string/action_refresh_token"
+        android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_reset" android:title="@string/action_reset"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_update_ui" android:title="@string/action_update_ui"
+    android:orderInCategory="100" app:showAsAction="never"/>
 </menu>
