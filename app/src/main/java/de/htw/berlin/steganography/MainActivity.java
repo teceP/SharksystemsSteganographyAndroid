@@ -85,6 +85,11 @@ public class MainActivity extends AppCompatActivity {
          * Restore Data
          */
         this.restoreNetworkParcels();
+
+        for(NetworkParcel np : this.parcelMap.values()){
+            Log.i("MYY", "ID --->" + np.getId());
+        }
+
         this.updateTokenInformationForRecyclerView();
 
         /**

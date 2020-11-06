@@ -10,12 +10,14 @@ public class NetworkParcel implements Comparable<NetworkParcel>{
     /**
      * Also holds AuthInformations
      */
+    private final Integer id;
     private String networkName;
     private AuthStrategy authStrategy;
     private TokenInformation tokenInformation;
     private SocialMedia socialMedia;
 
     public NetworkParcel(Builder builder){
+        this.id = IdService.getId();
         this.networkName = builder.networkName;
         this.authStrategy = builder.authStrategy;
         this.tokenInformation = builder.tokenInformation;
@@ -62,10 +64,14 @@ public class NetworkParcel implements Comparable<NetworkParcel>{
         this.tokenInformation = tokenInformation;
     }
 
+    public int getId(){
+        return this.id;
+    }
+
     @Override
     public int compareTo(NetworkParcel o) {
         Log.i("MYY", o.getNetworkName() + " - " + this.getNetworkName());
-        return this.getNetworkName().compareTo(o.getNetworkName());
+        return this.getId() - o.getId();
     }
 
     public static class Builder{
