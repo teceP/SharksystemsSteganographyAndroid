@@ -29,6 +29,8 @@ public interface AuthStrategy {
      */
     AuthInformation getAuthInformation();
 
+    void setAuthInformation(AuthInformation authInformation);
+
     /**
      *
      * @param context

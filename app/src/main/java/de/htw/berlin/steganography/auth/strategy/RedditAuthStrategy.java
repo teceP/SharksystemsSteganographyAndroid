@@ -25,6 +25,7 @@ import de.htw.berlin.steganography.MainActivity;
 import de.htw.berlin.steganography.R;
 import de.htw.berlin.steganography.auth.BasicAuthInterceptor;
 import de.htw.berlin.steganography.auth.constants.RedditConstants;
+import de.htw.berlin.steganography.auth.models.NetworkName;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 import okhttp3.Call;
@@ -45,7 +46,6 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
     @Override
     public View.OnClickListener authorize() {
         return new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onClick(View v) {
                 Button oauthBtn = MainActivity.getMainActivityInstance().findViewById(R.id.auth);
@@ -75,14 +75,12 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
                 web.loadUrl(url);
                 web.setWebViewClient(new WebViewClient() {
-                    @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, String url) {
                         view.loadUrl(url);
                         return true;
                     }
 
-                    @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
                     public void onPageStarted(WebView view, String url, Bitmap favicon) {
                         super.onPageStarted(view, url, favicon);
@@ -199,7 +197,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                 }
             });
             MainActivity.getMainActivityInstance().updateUI();
-            MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
+            MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
 
         };
     }
@@ -241,7 +239,6 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                             JSONObject json = new JSONObject(resp);
                             tokenInformation.setAccessToken((String)json.get("access_token"));
                             tokenInformation.setAccessTokenTimestamp(System.currentTimeMillis());
-                           // MainActivity.getMainActivityInstance().setAuthStatus(Constants.T_AT_NOT_EXPIRED);
                         } catch (JSONException e) {
                             //Set auth token to null/empty because it can only be used one time.
                             //If any error occures, it must be deleted.
@@ -259,7 +256,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                 }
             });
             MainActivity.getMainActivityInstance().updateUI();
-            MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
+            MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
         };
     }
 }

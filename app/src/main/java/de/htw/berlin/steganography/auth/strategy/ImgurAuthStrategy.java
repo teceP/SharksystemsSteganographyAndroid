@@ -26,6 +26,7 @@ import de.htw.berlin.steganography.R;
 import de.htw.berlin.steganography.auth.BasicAuthInterceptor;
 import de.htw.berlin.steganography.auth.constants.ImgurConstants;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
+import de.htw.berlin.steganography.auth.models.NetworkName;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -45,7 +46,6 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
     @Override
     public View.OnClickListener authorize() {
         return new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onClick(View v) {
                 TextView infoText = MainActivity.getMainActivityInstance().findViewById(R.id.infoText);
@@ -72,14 +72,12 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
 
                 web.loadUrl(url);
                 web.setWebViewClient(new WebViewClient() {
-                    @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, String url) {
                         view.loadUrl(url);
                         return true;
                     }
 
-                    @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
                     public void onPageStarted(WebView view, String url, Bitmap favicon) {
                         super.onPageStarted(view, url, favicon);
@@ -203,7 +201,7 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
             });
             Log.i("MYY", "Update UI now");
             MainActivity.getMainActivityInstance().updateUI();
-            MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
+            MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.IMGUR, Constants.ONE_HOUR_IN_MS);
         };
     }
 
@@ -266,7 +264,7 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                 }
             });
             MainActivity.getMainActivityInstance().updateUI();
-            MainActivity.getMainActivityInstance().addAutoRefreshTimer(Constants.ONE_HOUR_IN_MS);
+            MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.IMGUR, Constants.ONE_HOUR_IN_MS);
         };
     }
 }

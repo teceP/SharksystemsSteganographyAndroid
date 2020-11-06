@@ -1,6 +1,7 @@
 package de.htw.berlin.steganography.auth.strategy;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +25,11 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
     @Override
     public AuthInformation getAuthInformation() {
         return authInformation;
+    }
+
+    @Override
+    public void setAuthInformation(AuthInformation authInformation){
+        this.authInformation = authInformation;
     }
 
     @Override
@@ -65,5 +71,13 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
         context.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
                 .edit().putString(tokenInformation.getNetwork() + Constants.TOKEN_OBJ_SUFFIX, json)
                 .apply();
+        Log.i("MYY", "Alt: " + MainActivity.getMainActivityInstance().getParcelMap().get(tokenInformation.getNetwork()).getTokenInformation().toString());
+        Log.i("MYY", "Neu: " + tokenInformation.toString());
+
+        MainActivity.getMainActivityInstance().getParcelMap().get(tokenInformation.getNetwork()).setTokenInformation(tokenInformation);
+
+        if(MainActivity.getMainActivityInstance().getCurrentSelectedNetwork().getNetworkName() == tokenInformation.getNetwork()){
+            MainActivity.getMainActivityInstance().updateCurrentSelectedNetworkTokenInformation(tokenInformation);
+        }
     }
 }

@@ -1,12 +1,13 @@
 package de.htw.berlin.steganography;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -23,14 +24,14 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import apis.SocialMedia;
 import apis.Token;
@@ -42,12 +43,14 @@ import de.htw.berlin.steganography.auth.constants.Constants;
 import de.htw.berlin.steganography.auth.constants.ImgurConstants;
 import de.htw.berlin.steganography.auth.constants.RedditConstants;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
-import de.htw.berlin.steganography.auth.InformationHolder;
 import de.htw.berlin.steganography.auth.models.NetworkParcel;
-import de.htw.berlin.steganography.auth.models.Networks;
+import de.htw.berlin.steganography.auth.models.NetworkName;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
-import de.htw.berlin.steganography.auth.strategy.AuthStrategy;
-import de.htw.berlin.steganography.auth.strategy.AuthStrategyFactory;
+import de.htw.berlin.steganography.auth.strategy.ImgurAuthStrategy;
+import de.htw.berlin.steganography.auth.strategy.InstagramAuthStrategy;
+import de.htw.berlin.steganography.auth.strategy.RedditAuthStrategy;
+import de.htw.berlin.steganography.auth.strategy.TwitterAuthStrategy;
+import de.htw.berlin.steganography.auth.strategy.YoutubeAuthStrategy;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,17 +60,12 @@ public class MainActivity extends AppCompatActivity {
      * A list of all networks, which has tokens and a valid timestamp.
      * Note: Token could be expired.
      */
-    private Map<Networks, NetworkParcel> parcelMap;
-    private Map<String, SocialMedia> networks;
-    private List<TokenInformation> tokenInformationPerNetwork;
-    private Spinner spinner;
-    AuthStrategy selectedAuthStrategy;
-    Map<String, AuthStrategy> authStrategys;
-    private InformationHolder authInformationHolder;
+    private Map<String, NetworkParcel> parcelMap;
+    private List<TokenInformation> tokenInformationsRecyclerView;
+
+    Spinner spinner;
     Integer authStatus;
-    AuthInformation authInformation;
-    Button oauthBtn;
-    Button refreshTokenBtn;
+    Button oauthBtn, refreshTokenBtn;
     ProgressBar progressPnl;
 
     RecyclerView networkRecyclerView;
@@ -76,20 +74,40 @@ public class MainActivity extends AppCompatActivity {
 
     SharedPreferences pref;
     TextView infoText;
-    String chosenNetwork;
-    String latestRefreshedNetwork;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.initObjects();
+
+        /**
+         * Restore Data
+         */
+        this.restoreNetworkParcels();
+        this.updateTokenInformationForRecyclerView();
+
+        /**
+         * Recycler View
+         */
+        this.networkRecyclerView = findViewById(R.id.activeNetworksList);
+        this.networkRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(this));
+        this.networkRecyclerLayoutManager = new LinearLayoutManager(this);
+        this.networkRecyclerAdapter = new NetworkListAdapter(this.tokenInformationsRecyclerView);
+        this.networkRecyclerView.setLayoutManager(networkRecyclerLayoutManager);
+        this.networkRecyclerView.setAdapter(networkRecyclerAdapter);
+
+        /**
+         *  Update UI
+         */
+        this.updateUI();
+    }
+
+    public void initObjects(){
         instance = this;
 
-        this.networks = new HashMap<>();
-        this.tokenInformationPerNetwork = new ArrayList<>();
-        this.authStrategys = new HashMap<>();
-        this.parcelMap = new HashMap<>();
-        this.latestRefreshedNetwork = Constants.NO_RESULT;
+        this.parcelMap = new TreeMap<>();
+        this.tokenInformationsRecyclerView = new ArrayList<>();
 
         this.pref = getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE);
 
@@ -100,40 +118,45 @@ public class MainActivity extends AppCompatActivity {
         this.progressPnl = findViewById(R.id.progressPnl);
 
         this.setSpinner();
-        this.authInformationHolder = new InformationHolder();
-        this.loadSpinnerInformations();
 
         //OAuth2 Button
         this.oauthBtn = findViewById(R.id.auth);
         this.refreshTokenBtn = findViewById(R.id.refreshTokenBtn);
         this.refreshTokenBtn.setVisibility(View.GONE);
 
+
         /**
          * Initial token state
          */
         this.authStatus = new Integer(Constants.STATUS_UNCHECKED);
 
-        /**
-         * Recycler View
-         */
-        this.networkRecyclerView = findViewById(R.id.activeNetworksList);
-        this.networkRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(this));
-        this.networkRecyclerLayoutManager = new LinearLayoutManager(this);
-        this.networkRecyclerAdapter = new NetworkListAdapter(this.tokenInformationPerNetwork);
-        this.networkRecyclerView.setLayoutManager(networkRecyclerLayoutManager);
-        this.networkRecyclerView.setAdapter(networkRecyclerAdapter);
-
-        /**
-         * Update state & UI
-         */
-        //this.updateState();
-        this.restoreSocialMedias();
-        this.updateUI();
     }
 
-    public void updateSocialMediaToken(String network) {
-        TokenInformation ti = getTokenInformation(network);
-        this.networks.get(network).setToken(new Token(ti.getAccessToken(), ti.getAccessTokenTimestamp()));
+    /**
+     * Returns all TokenInformations for each Network.
+     * @return
+     */
+    public List<TokenInformation> getAllTokenInformations() {
+        List<TokenInformation> list = new ArrayList<>();
+        for(NetworkParcel parcel : this.parcelMap.values()){
+            list.add(parcel.getTokenInformation());
+        }
+        return list;
+    }
+
+    public void updateSocialMediaToken(NetworkParcel network) {
+        TokenInformation ti = getTokenInformationFromSharedPref(network.getNetworkName());
+        this.parcelMap.get(network.getNetworkName()).getTokenInformation().setAccessToken(ti.getAccessToken());
+        this.parcelMap.get(network.getNetworkName()).getTokenInformation().setAccessTokenTimestamp(ti.getAccessTokenTimestamp());
+        Log.i("MYY", ti.toString());
+    }
+
+    public NetworkParcel getCurrentSelectedNetwork(){
+        return this.parcelMap.get(spinner.getSelectedItem().toString().toLowerCase());
+    }
+
+    public void updateCurrentSelectedNetworkTokenInformation(TokenInformation tokenInformation){
+        this.getCurrentSelectedNetwork().setTokenInformation(tokenInformation);
     }
 
     /**
@@ -141,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
      *
      * @return the restored objects or in case the JSON was empty, an fresh objects.
      */
-    public TokenInformation getTokenInformation(String network) {
+    public TokenInformation getTokenInformationFromSharedPref(String network) {
         String json = pref.getString(network + Constants.TOKEN_OBJ_SUFFIX, Constants.NO_RESULT);
 
         if (!json.equals(Constants.NO_RESULT)) {
@@ -151,53 +174,6 @@ public class MainActivity extends AppCompatActivity {
         return new TokenInformation(network);
     }
 
-    public void restoreSocialMedias() {
-        List<String> networks = new ArrayList<>();
-        networks.add(Constants.REDDIT_TOKEN_OBJ);
-        networks.add(Constants.IMGUR_TOKEN_OBJ);
-        networks.add(Constants.TWITTER_TOKEN_OBJ);
-        networks.add(Constants.YOUTUBE_TOKEN_OBJ);
-        networks.add(Constants.INSTAGRAM_TOKEN_OBJ);
-
-        for (String network : networks) {
-            TokenInformation tokenInformation = getAuthInformation(network);
-
-            if (tokenInformation == null) {
-                tokenInformation = new TokenInformation(network.replace(Constants.TOKEN_OBJ_SUFFIX, ""));
-            }
-
-            switch (tokenInformation.getNetwork()) {
-                case "reddit":
-                    this.tokenInformationPerNetwork.add(tokenInformation);
-                    SocialMedia reddit = new Reddit();
-                    reddit.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
-                    this.networks.put(tokenInformation.getNetwork(), reddit);
-                    break;
-                case "imgur":
-                    this.tokenInformationPerNetwork.add(tokenInformation);
-                    SocialMedia imgur = new Imgur();
-                    imgur.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
-                    this.networks.put(tokenInformation.getNetwork(), imgur);
-                    break;
-                case "instagram":
-                    this.tokenInformationPerNetwork.add(tokenInformation);
-                    /**
-                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
-                     */
-                    break;
-                case "twitter":
-                    this.tokenInformationPerNetwork.add(tokenInformation);
-                    /**
-                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
-                     */break;
-                case "youtube":
-                    this.tokenInformationPerNetwork.add(tokenInformation);
-                    /**
-                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
-                     */break;
-            }
-        }
-    }
 
     /**
      * Checks if there is a token in the TokenInformation object and if
@@ -212,7 +188,12 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void setButtonStates() {
+    /**
+     * Updates OAUTH2-Button. Change clickable und alpha settings.
+     * Calls method for receiving Access Token if Access Token was never received.
+     */
+    public synchronized void setButtonStates() {
+        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus: " + this.authStatus);
         if (this.authStatus == Constants.T_AT_NOT_EXPIRED || this.authStatus == Constants.STATUS_UNCHECKED) {
             //Button not clickable, refresh possible
             oauthBtn.setClickable(false);
@@ -232,11 +213,11 @@ public class MainActivity extends AppCompatActivity {
             //Access token not retrieved. Call token()-method and change back to authorize
             oauthBtn.setClickable(false);
             oauthBtn.setAlpha(.2f);
-            oauthBtn.setOnClickListener(selectedAuthStrategy.token());
+            oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().token());
             oauthBtn.callOnClick();
-            this.authStatus = checkTokenExpiration();
-            oauthBtn.setOnClickListener(selectedAuthStrategy.authorize());
+            oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().authorize());
 
+            this.authStatus = checkTokenExpiration();
             refreshTokenBtn.setClickable(false);
             refreshTokenBtn.setAlpha(.2f);
         } else if (this.authStatus == Constants.AT_NEEDS_REFRESH) {
@@ -244,7 +225,10 @@ public class MainActivity extends AppCompatActivity {
             oauthBtn.setClickable(false);
             oauthBtn.setAlpha(.2f);
             refreshTokenBtn.callOnClick();
+            Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus BEFORE: " + this.authStatus);
             this.authStatus = checkTokenExpiration();
+            Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus AFTER: " + this.authStatus);
+
         }
     }
 
@@ -271,9 +255,9 @@ public class MainActivity extends AppCompatActivity {
     /**
      * @return AuthInformation for current (on spinner) selected item.
      */
-    public TokenInformation getCurrentSelectedTokenInformation() {
+    public TokenInformation getCurrentSelectedTokenInformationFromSharedPref() {
         String selectedOnSpinner = spinner.getSelectedItem().toString().trim().toLowerCase();
-        TokenInformation tokenInformation = getAuthInformation(selectedOnSpinner + Constants.TOKEN_OBJ_SUFFIX);
+        TokenInformation tokenInformation = getTokenInformationByNetworkNameFromSharedPref(selectedOnSpinner + Constants.TOKEN_OBJ_SUFFIX);
 
         if (tokenInformation != null) {
             return tokenInformation;
@@ -286,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
      * @param network: MUST be an Constant like Constants.REDDIT_TOKEN_OBJ
      * @return AuthInformation object
      */
-    public TokenInformation getAuthInformation(String network) {
+    public TokenInformation getTokenInformationByNetworkNameFromSharedPref(String network) {
         String json = pref.getString(network, Constants.NO_RESULT);
 
         if (!json.equals(Constants.NO_RESULT)) {
@@ -302,7 +286,9 @@ public class MainActivity extends AppCompatActivity {
      * @return 3 == access token is expired [AT_NEEDS_REFRESH]
      */
     public int checkTokenExpiration() {
-        TokenInformation tokenInformation = getCurrentSelectedTokenInformation();
+       //TODO das hier wird sicherlich von den cards gecalled.. die info bezieht sich in der methode aber nur auf currentselected
+        //TokenInformation tokenInformation = getCurrentSelectedTokenInformationFromSharedPref();
+        TokenInformation tokenInformation = getCurrentSelectedNetwork().getTokenInformation();
         long token = tokenInformation.getTokenTimestamp();
         long accessToken = tokenInformation.getAccessTokenTimestamp();
         String accessTokenString = tokenInformation.getAccessToken();
@@ -351,21 +337,16 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void setCurrentAuthInformations() {
-        String chosenNetwork = spinner.getSelectedItem().toString().toLowerCase();
-        authInformation = authInformationHolder.get(chosenNetwork);
-        Log.i("MYY", "Choosen Network: " + chosenNetwork);
-    }
-
     public void updateState() {
         new UpdateStateAsyncTask().execute(this);
-        //Second run shouldnt be 3
     }
 
-    public void addAutoRefreshTimer(long timer) {
+    public void addAutoRefreshTimer(String network, long timer) {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.schedule((Runnable) selectedAuthStrategy, timer, TimeUnit.MILLISECONDS);
-        Log.i("MYY", "Auto refresh was set for " + selectedAuthStrategy.getAuthInformation().getPlatform() + " in " + timer + " ms.");
+        scheduler.schedule((Runnable) getParcelMap().get(network).getAuthStrategy(), timer, TimeUnit.MILLISECONDS);
+        Log.i("MYY", "Auto refresh was set."
+                + "\nNetwork: " + network
+                + "\nMS: " + timer );
     }
 
     /**
@@ -376,9 +357,8 @@ public class MainActivity extends AppCompatActivity {
         return new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                chosenNetwork = parent.getSelectedItem().toString();
                 updateState();
-                Log.i("MYY", "Selected spinner item: " + chosenNetwork);
+                Log.i("MYY", "Selected spinner item: " + getCurrentSelectedNetwork().getNetworkName());
             }
 
             @Override
@@ -391,14 +371,15 @@ public class MainActivity extends AppCompatActivity {
     public View.OnClickListener doRefreshOnClick(String network) {
         return v -> {
             try {
-                if (!getTokenInformation(network).getToken().equals(Constants.NO_RESULT) &&
-                        (!getTokenInformation(network).getAccessToken().equals(Constants.NO_RESULT))) {
-                    refreshTokenBtn.setOnClickListener(authStrategys.get(network).refresh());
+                if (!getTokenInformationFromSharedPref(network).getToken().equals(Constants.NO_RESULT) &&
+                        (!getTokenInformationFromSharedPref(network).getAccessToken().equals(Constants.NO_RESULT))) {
+                    refreshTokenBtn.setOnClickListener(this.parcelMap.get(network).getAuthStrategy().refresh());
                     refreshTokenBtn.callOnClick();
-                    refreshTokenBtn.setOnClickListener(selectedAuthStrategy.refresh());
-                    this.latestRefreshedNetwork = network;
+
+                  //TODO  hier müsste vlt sowas wie checkTokenExpiration für ein spezielles netz
+                    refreshTokenBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().refresh());
                     updateState();
-                    networkRecyclerAdapter.notifyDataSetChanged();
+                    updateUI();
                 } else {
                     Toast.makeText(this, "Authorize first.", Toast.LENGTH_SHORT).show();
                 }
@@ -421,83 +402,197 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateUI() {
+        updateTokenInformationForRecyclerView();
         setButtonStates();
         networkRecyclerAdapter.notifyDataSetChanged();
     }
 
-    private void setSpinner() {
-        spinner = findViewById(R.id.spinner);
-        String[] items = new String[]{"Reddit", "Imgur", "Twitter", "Instagram", "YouTube"};
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>
-                (this, android.R.layout.simple_spinner_item, items);
+    /**
+     * RESTORE
+     */
 
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(spinnerAdapter);
-        spinner.setOnItemSelectedListener(spinnerOnItemClick());
+    public void updateTokenInformationForRecyclerView(){
+        this.tokenInformationsRecyclerView.clear();
+        for(TokenInformation ti : this.parcelMap.values().stream().map(NetworkParcel::getTokenInformation).collect(Collectors.toList())){
+            this.tokenInformationsRecyclerView.add(ti);
+        }
     }
 
-    private void loadSpinnerInformations() {
-        AuthInformation redditInfo = new AuthInformation.Builder()
-                .withPlatform("reddit")
-                .withAuthUrl(RedditConstants.AUTH_URI)
-                .withTokenUrl(RedditConstants.TOKEN_URI)
-                .withClientId(RedditConstants.CLIENT_ID)
-                .withClientSecret(RedditConstants.CLIENT_SECRET)
-                .withDuration(RedditConstants.DURATION_PERM)
-                .withRedirectUri(RedditConstants.REDIRECT)
-                .withScope(RedditConstants.SCOPE)
-                .withGrantType(RedditConstants.GRANT_TYPE_AUTH_CODE)
-                .withResponseType(RedditConstants.RESPONSE_TYPE)
-                .withState(UUID.randomUUID().toString())
-                .build();
-        this.authInformationHolder.put("reddit", redditInfo);
-        this.authStrategys.put("reddit", AuthStrategyFactory.getAuthStrategy(redditInfo));
+    public void restoreNetworkParcels() {
+        List<String> networks = new ArrayList<>();
+        networks.add(Constants.REDDIT_TOKEN_OBJ);
+        networks.add(Constants.IMGUR_TOKEN_OBJ);
+        networks.add(Constants.TWITTER_TOKEN_OBJ);
+        networks.add(Constants.YOUTUBE_TOKEN_OBJ);
+        networks.add(Constants.INSTAGRAM_TOKEN_OBJ);
 
-        AuthInformation imgurInfo = new AuthInformation().Builder()
-                .withPlatform("imgur")
-                .withAuthUrl(ImgurConstants.AUTH_URI)
-                .withTokenUrl(ImgurConstants.TOKEN_URI)
-                .withClientId(ImgurConstants.CLIENT_ID)
-                .withClientSecret(ImgurConstants.CLIENT_SECRET)
-                .withDuration(ImgurConstants.DURATION_PERM)
-                .withRedirectUri(ImgurConstants.REDIRECT)
-                .withScope(ImgurConstants.SCOPE)
-                .withGrantType(ImgurConstants.GRANT_TYPE_AUTH_CODE)
-                .withResponseType(ImgurConstants.RESPONSE_TYPE)
-                .withState(UUID.randomUUID().toString())
-                .build();
-        this.authInformationHolder.put("imgur", imgurInfo);
-        this.authStrategys.put("imgur", AuthStrategyFactory.getAuthStrategy(imgurInfo));
+        for (String network : networks) {
+            String networkName = null;
+            AuthInformation authInformation = null;
+            TokenInformation tokenInformation = getTokenInformationByNetworkNameFromSharedPref(network);
+            NetworkParcel np = null;
 
-        AuthInformation twitterInfo = new AuthInformation();
-        twitterInfo.setPlatform("twitter");
-        /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
-         * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
-         */
-        this.authInformationHolder.put("twitter", twitterInfo);
-        this.authStrategys.put("twitter", AuthStrategyFactory.getAuthStrategy(twitterInfo));
+            if (tokenInformation == null) {
+                tokenInformation = new TokenInformation(network.replace(Constants.TOKEN_OBJ_SUFFIX, ""));
+            }
 
-        AuthInformation youtubeInfo = new AuthInformation();
-        /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
-         * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
-         */
-        this.authInformationHolder.put("youtube", youtubeInfo);
-        youtubeInfo.setPlatform("youtube");
-        this.authStrategys.put("youtube", AuthStrategyFactory.getAuthStrategy(youtubeInfo));
+            switch (tokenInformation.getNetwork()) {
+                case NetworkName.REDDIT:
+                    SocialMedia reddit = new Reddit();
+                    reddit.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
 
-        AuthInformation instagramInfo = new AuthInformation();
-        /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
-         * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
-         */
-        this.authInformationHolder.put("instagram", instagramInfo);
-        instagramInfo.setPlatform("instagram");
-        this.authStrategys.put("instagram", AuthStrategyFactory.getAuthStrategy(instagramInfo));
+                    networkName = NetworkName.REDDIT;
+                    authInformation = getAuthInformation(networkName);
+
+                    np = new NetworkParcel.Builder()
+                            .withNetworkName(networkName)
+                            .withTokenInformation(tokenInformation)
+                            .withAuthStrategy(new RedditAuthStrategy(authInformation))
+                            .withSocialMedia(reddit)
+                            .build();
+
+                    this.parcelMap.put(np.getNetworkName(), np);
+                    break;
+                case NetworkName.IMGUR:
+                    SocialMedia imgur = new Imgur();
+                    imgur.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
+
+                    networkName = NetworkName.IMGUR;
+                    authInformation = getAuthInformation(networkName);
+
+                    np = new NetworkParcel.Builder()
+                            .withNetworkName(networkName)
+                            .withTokenInformation(tokenInformation)
+                            .withAuthStrategy(new ImgurAuthStrategy(authInformation))
+                            .withSocialMedia(imgur)
+                            .build();
+
+                    this.parcelMap.put(np.getNetworkName(), np);
+                    break;
+                case NetworkName.INSTAGRAM:
+                    /**
+                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
+                     */
+                    networkName = NetworkName.INSTAGRAM;
+                    authInformation = getAuthInformation(networkName);
+
+                    np = new NetworkParcel.Builder()
+                            .withNetworkName(networkName)
+                            .withTokenInformation(tokenInformation)
+                            .withAuthStrategy(new InstagramAuthStrategy(authInformation))
+                            //.withSocialMedia(instagram)
+                            .build();
+
+                    this.parcelMap.put(np.getNetworkName(), np);
+                    break;
+                case NetworkName.TWITTER:
+                    /**
+                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
+                     */
+
+                    networkName = NetworkName.TWITTER;
+                    authInformation = getAuthInformation(networkName);
+
+                    np = new NetworkParcel.Builder()
+                            .withNetworkName(networkName)
+                            .withTokenInformation(tokenInformation)
+                            .withAuthStrategy(new TwitterAuthStrategy(authInformation))
+                            //.withSocialMedia(twitter)
+                            .build();
+
+                    this.parcelMap.put(np.getNetworkName(), np);
+                    break;
+                case NetworkName.YOUTUBE:
+                    /**
+                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
+                     */
+
+                    networkName = NetworkName.YOUTUBE;
+                    authInformation = getAuthInformation(networkName);
+
+                    np = new NetworkParcel.Builder()
+                            .withNetworkName(networkName)
+                            .withTokenInformation(tokenInformation)
+                            .withAuthStrategy(new YoutubeAuthStrategy(authInformation))
+                            //.withSocialMedia(youtube)
+                            .build();
+
+                    this.parcelMap.put(np.getNetworkName(), np);
+                    break;
+            }
+        }
+    }
+
+    private AuthInformation getAuthInformation(String network) {
+        AuthInformation authInformation;
+        switch (network) {
+            case NetworkName.REDDIT:
+                authInformation = new AuthInformation.Builder()
+                        .withPlatform(NetworkName.REDDIT)
+                        .withAuthUrl(RedditConstants.AUTH_URI)
+                        .withTokenUrl(RedditConstants.TOKEN_URI)
+                        .withClientId(RedditConstants.CLIENT_ID)
+                        .withClientSecret(RedditConstants.CLIENT_SECRET)
+                        .withDuration(RedditConstants.DURATION_PERM)
+                        .withRedirectUri(RedditConstants.REDIRECT)
+                        .withScope(RedditConstants.SCOPE)
+                        .withGrantType(RedditConstants.GRANT_TYPE_AUTH_CODE)
+                        .withResponseType(RedditConstants.RESPONSE_TYPE)
+                        .withState(UUID.randomUUID().toString())
+                        .build();
+                return authInformation;
+            case NetworkName.IMGUR:
+                authInformation = new AuthInformation().Builder()
+                        .withPlatform(NetworkName.IMGUR)
+                        .withAuthUrl(ImgurConstants.AUTH_URI)
+                        .withTokenUrl(ImgurConstants.TOKEN_URI)
+                        .withClientId(ImgurConstants.CLIENT_ID)
+                        .withClientSecret(ImgurConstants.CLIENT_SECRET)
+                        .withDuration(ImgurConstants.DURATION_PERM)
+                        .withRedirectUri(ImgurConstants.REDIRECT)
+                        .withScope(ImgurConstants.SCOPE)
+                        .withGrantType(ImgurConstants.GRANT_TYPE_AUTH_CODE)
+                        .withResponseType(ImgurConstants.RESPONSE_TYPE)
+                        .withState(UUID.randomUUID().toString())
+                        .build();
+                return authInformation;
+            case NetworkName.INSTAGRAM:
+                /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
+                 * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
+                 */
+                authInformation = new AuthInformation.Builder()
+                        .withPlatform(NetworkName.INSTAGRAM)
+                        .build();
+                return authInformation;
+            case NetworkName.TWITTER:
+                /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
+                 * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
+                 */
+                authInformation = new AuthInformation.Builder()
+                        .withPlatform(NetworkName.TWITTER)
+                        .build();
+                return authInformation;
+            case NetworkName.YOUTUBE:
+                /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
+                 * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
+                 */
+                authInformation = new AuthInformation.Builder()
+                        .withPlatform(NetworkName.YOUTUBE)
+                        .build();
+                return authInformation;
+            default:
+                return null;
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    public Map<String, NetworkParcel> getParcelMap(){
+        return this.parcelMap;
     }
 
     @Override
@@ -507,33 +602,20 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_reset) {
             resetTokensForSelectedNetwork();
-            for(int i = 0; i < this.tokenInformationPerNetwork.size(); i++){
-                if(this.tokenInformationPerNetwork.get(i).getNetwork().equals(getCurrentSelectedTokenInformation().getNetwork())){
-                    this.tokenInformationPerNetwork.get(i).setAccessToken(Constants.NO_RESULT);
-                    this.tokenInformationPerNetwork.get(i).setAccessTokenTimestamp(-1);
-                    this.tokenInformationPerNetwork.get(i).setRefreshToken(Constants.NO_RESULT);
-                    this.tokenInformationPerNetwork.get(i).setRefreshTokenTimestamp(-1);
-                    this.tokenInformationPerNetwork.get(i).setToken(Constants.NO_RESULT);
-                    this.tokenInformationPerNetwork.get(i).setTokenTimestamp(-1);
-                }
-            }
             infoText.setText("Tokens for network " + spinner.getSelectedItem().toString() + " were reset.");
-            networkRecyclerAdapter.notifyDataSetChanged();
+            updateUI();
         } else if (id == R.id.action_update_ui) {
             updateState();
             updateUI();
-            networkRecyclerAdapter.notifyDataSetChanged();
         } else if (id == R.id.action_refresh_token) {
             refreshTokenBtn.callOnClick();
-            networkRecyclerAdapter.notifyDataSetChanged();
+            updateUI();
         }
-
-
         return super.onOptionsItemSelected(item);
     }
 
     private void resetTokensForSelectedNetwork() {
-        TokenInformation tokenInformation = getCurrentSelectedTokenInformation();
+        TokenInformation tokenInformation = getCurrentSelectedTokenInformationFromSharedPref();
         tokenInformation = new TokenInformation(tokenInformation.getNetwork());
 
         Gson gson = new Gson();
@@ -554,8 +636,28 @@ public class MainActivity extends AppCompatActivity {
      **********************************************************************************
      */
 
-    public Map<String, SocialMedia> provideActiveSocial() {
-        return this.networks;
+    public List<SocialMedia> provideActiveSocial() {
+        List<SocialMedia> list = new ArrayList<>();
+        for(NetworkParcel parcel : this.parcelMap.values()){
+            list.add(parcel.getSocialMedia());
+        }
+        return list;
     }
 
+
+    /****************************************
+     *  OTHERS: *****************************
+     ***
+     ***/
+
+    private void setSpinner() {
+        spinner = findViewById(R.id.spinner);
+        String[] items = new String[]{"Reddit", "Imgur", "Twitter", "Instagram", "YouTube"};
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>
+                (this, android.R.layout.simple_spinner_item, items);
+
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinnerAdapter);
+        spinner.setOnItemSelectedListener(spinnerOnItemClick());
+    }
 }

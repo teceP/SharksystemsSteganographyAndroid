@@ -25,6 +25,14 @@ public class TokenInformation {
         this.key = this.network + Constants.TOKEN_OBJ_SUFFIX;
     }
 
+    @Override
+    public String toString(){
+        return this.getNetwork() + " -> "
+                + "\n[Token: " + this.getToken() + "/" + this.getTokenTimestamp() + "]"
+                + "\n[Access Token: " + this.getAccessToken() + "/" + this.getAccessTokenTimestamp() + "]"
+                + "\n[Refresh Token: " + this.getAccessToken() + "/" + this.getAccessTokenTimestamp() + "]";
+    }
+
     public TokenInformation(Builder builder){
         this.network = builder.network;
         this.key = builder.key;
@@ -90,14 +98,6 @@ public class TokenInformation {
 
     public long getRefreshTokenTimestamp() {
         return refreshTokenTimestamp;
-    }
-
-    @Override
-    public String toString(){
-        return "Auth Information about '" + this.getNetwork() + ":'"
-                + "\nToken: " + this.getToken() + ", " + this.getTokenTimestamp()
-                + "\nAccess Token: " + this.getAccessToken() + ", " + this.getAccessTokenTimestamp()
-                + "\nRefresh Token: " + this.getRefreshToken() + ", " + this.getRefreshTokenTimestamp();
     }
 
     public static Builder Builder(){

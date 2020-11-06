@@ -2,10 +2,11 @@ package de.htw.berlin.steganography;
 
 
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
-import de.htw.berlin.steganography.auth.constants.Constants;
+import androidx.annotation.RequiresApi;
 
 public class UpdateStateAsyncTask extends AsyncTask<MainActivity, Void, MainActivity> {
 
@@ -19,15 +20,14 @@ public class UpdateStateAsyncTask extends AsyncTask<MainActivity, Void, MainActi
     protected synchronized MainActivity doInBackground(MainActivity... activities) {
         Log.i("MYY", "#################################################################");
         Log.i("MYY", "Update data...");
+
         MainActivity ma = activities[0];
-        ma.setCurrentAuthInformations();
-        if(!ma.latestRefreshedNetwork.equals(Constants.NO_RESULT)){
-            ma.updateSocialMediaToken(ma.latestRefreshedNetwork);
-        }
-        ma.selectedAuthStrategy = ma.authStrategys.get(ma.getCurrentSelectedTokenInformation().getNetwork());
         ma.setAuthStatus(ma.checkTokenExpiration());
-        ma.oauthBtn.setOnClickListener(ma.selectedAuthStrategy.authorize());
-        ma.refreshTokenBtn.setOnClickListener(ma.selectedAuthStrategy.refresh());
+
+        ma.oauthBtn.setOnClickListener(ma.getCurrentSelectedNetwork().getAuthStrategy().authorize());
+        ma.refreshTokenBtn.setOnClickListener(ma.getCurrentSelectedNetwork().getAuthStrategy().refresh());
+
+        ma.updateTokenInformationForRecyclerView();
         Log.i("MYY", "Update data finished.");
         Log.i("MYY", "################################################################");
 
@@ -36,11 +36,13 @@ public class UpdateStateAsyncTask extends AsyncTask<MainActivity, Void, MainActi
 
     @Override
     protected synchronized void onPostExecute(MainActivity mainActivity) {
-        Log.i("MYY", "-----------------------------------------------------------------");
         super.onPostExecute(mainActivity);
+        Log.i("MYY", "-----------------------------------------------------------------");
         Log.i("MYY", "Update UI...");
+
         MainActivity.getMainActivityInstance().setButtonStates();
         mainActivity.progressPnl.setVisibility(View.GONE);
+
         Log.i("MYY", "Update UI finished.");
         Log.i("MYY", "-------------------------------------------------------------------");
 
