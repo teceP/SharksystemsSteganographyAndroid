@@ -91,10 +91,6 @@ public class MainActivity extends AppCompatActivity {
          */
         this.restoreNetworkParcels();
 
-        for (NetworkParcel np : this.parcelMap.values()) {
-            Log.i("MYY", "ID --->" + np.getId());
-        }
-
         this.updateTokenInformationForRecyclerView();
 
         /**
@@ -203,11 +199,8 @@ public class MainActivity extends AppCompatActivity {
      * Calls method for receiving Access Token if Access Token was never received.
      */
     public synchronized void setButtonStates() {
-        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus: " + this.authStatus);
-
-        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus BEFORE: " + this.authStatus);
+        Log.i("MYY", "Authorization Status Code before setButtonState(): " + this.authStatus);
         this.authStatus = checkTokenExpiration();
-        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus AFTER: " + this.authStatus);
 
         if (this.authStatus == Constants.T_AT_NOT_EXPIRED || this.authStatus == Constants.STATUS_UNCHECKED) {
             //Button not clickable, refresh possible
@@ -243,9 +236,8 @@ public class MainActivity extends AppCompatActivity {
             this.authStatus = 0;
         }
 
-        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus BEFORE: " + this.authStatus);
         this.authStatus = checkTokenExpiration();
-        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus AFTER: " + this.authStatus);
+        Log.i("MYY", "Authorization Status Code after setButtonState(): " + this.authStatus);
     }
 
     /**
@@ -351,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void updateState() {
+    public void updateState(){
         taskRunner.executeAsync(new UpdateTask(),MainActivity::nothing);
     }
 
