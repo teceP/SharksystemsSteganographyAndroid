@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateState(){
-        taskRunner.executeAsync(new UpdateTask(),MainActivity::nothing);
+        taskRunner.executeAsync(new UpdateTask(this),MainActivity::nothing);
     }
 
     private void nothing(){
