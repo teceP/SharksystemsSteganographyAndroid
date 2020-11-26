@@ -3,6 +3,8 @@ package de.htw.berlin.steganography;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +54,7 @@ import de.htw.berlin.steganography.auth.strategy.InstagramAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.RedditAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.TwitterAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.YoutubeAuthStrategy;
+import okhttp3.internal.concurrent.Task;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     Spinner spinner;
     Integer authStatus;
     Button oauthBtn, refreshTokenBtn;
-    ProgressBar progressPnl;
 
     RecyclerView networkRecyclerView;
     RecyclerView.Adapter networkRecyclerAdapter;
@@ -74,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
 
     SharedPreferences pref;
     TextView infoText;
+
+    TaskRunner taskRunner = new TaskRunner();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
          */
         this.restoreNetworkParcels();
 
-        for(NetworkParcel np : this.parcelMap.values()){
+        for (NetworkParcel np : this.parcelMap.values()) {
             Log.i("MYY", "ID --->" + np.getId());
         }
 
@@ -108,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         this.updateUI();
     }
 
-    public void initObjects(){
+    public void initObjects() {
         instance = this;
 
         this.parcelMap = new TreeMap<>();
@@ -120,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
          * UI Elements
          */
         this.infoText = findViewById(R.id.infoText);
-        this.progressPnl = findViewById(R.id.progressPnl);
 
         this.setSpinner();
 
@@ -139,11 +143,12 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Returns all TokenInformations for each Network.
+     *
      * @return
      */
     public List<TokenInformation> getAllTokenInformations() {
         List<TokenInformation> list = new ArrayList<>();
-        for(NetworkParcel parcel : this.parcelMap.values()){
+        for (NetworkParcel parcel : this.parcelMap.values()) {
             list.add(parcel.getTokenInformation());
         }
         return list;
@@ -156,11 +161,11 @@ public class MainActivity extends AppCompatActivity {
         Log.i("MYY", ti.toString());
     }
 
-    public NetworkParcel getCurrentSelectedNetwork(){
+    public NetworkParcel getCurrentSelectedNetwork() {
         return this.parcelMap.get(spinner.getSelectedItem().toString().toLowerCase());
     }
 
-    public void updateCurrentSelectedNetworkTokenInformation(TokenInformation tokenInformation){
+    public void updateCurrentSelectedNetworkTokenInformation(TokenInformation tokenInformation) {
         this.getCurrentSelectedNetwork().setTokenInformation(tokenInformation);
     }
 
@@ -199,6 +204,11 @@ public class MainActivity extends AppCompatActivity {
      */
     public synchronized void setButtonStates() {
         Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus: " + this.authStatus);
+
+        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus BEFORE: " + this.authStatus);
+        this.authStatus = checkTokenExpiration();
+        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus AFTER: " + this.authStatus);
+
         if (this.authStatus == Constants.T_AT_NOT_EXPIRED || this.authStatus == Constants.STATUS_UNCHECKED) {
             //Button not clickable, refresh possible
             oauthBtn.setClickable(false);
@@ -222,19 +232,20 @@ public class MainActivity extends AppCompatActivity {
             oauthBtn.callOnClick();
             oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().authorize());
 
-            this.authStatus = checkTokenExpiration();
             refreshTokenBtn.setClickable(false);
             refreshTokenBtn.setAlpha(.2f);
         } else if (this.authStatus == Constants.AT_NEEDS_REFRESH) {
             //Only refresh possible. Will be called automatically
             oauthBtn.setClickable(false);
             oauthBtn.setAlpha(.2f);
-            refreshTokenBtn.callOnClick();
-            Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus BEFORE: " + this.authStatus);
-            this.authStatus = checkTokenExpiration();
-            Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus AFTER: " + this.authStatus);
 
+            refreshTokenBtn.callOnClick();
+            this.authStatus = 0;
         }
+
+        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus BEFORE: " + this.authStatus);
+        this.authStatus = checkTokenExpiration();
+        Log.i("MYY", "~~~~~~~~~~~~~~~~~~~~~~~~~ authstatus AFTER: " + this.authStatus);
     }
 
     /**
@@ -291,8 +302,6 @@ public class MainActivity extends AppCompatActivity {
      * @return 3 == access token is expired [AT_NEEDS_REFRESH]
      */
     public int checkTokenExpiration() {
-       //TODO das hier wird sicherlich von den cards gecalled.. die info bezieht sich in der methode aber nur auf currentselected
-        //TokenInformation tokenInformation = getCurrentSelectedTokenInformationFromSharedPref();
         TokenInformation tokenInformation = getCurrentSelectedNetwork().getTokenInformation();
         long token = tokenInformation.getTokenTimestamp();
         long accessToken = tokenInformation.getAccessTokenTimestamp();
@@ -343,7 +352,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateState() {
-        new UpdateStateAsyncTask().execute(this);
+        taskRunner.executeAsync(new UpdateTask(),MainActivity::nothing);
+    }
+
+    private void nothing(){
     }
 
     public void addAutoRefreshTimer(String network, long timer) {
@@ -351,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
         scheduler.schedule((Runnable) getParcelMap().get(network).getAuthStrategy(), timer, TimeUnit.MILLISECONDS);
         Log.i("MYY", "Auto refresh was set."
                 + "\nNetwork: " + network
-                + "\nMS: " + timer );
+                + "\nMS: " + timer);
     }
 
     /**
@@ -363,6 +375,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 updateState();
+                updateUI();
                 Log.i("MYY", "Selected spinner item: " + getCurrentSelectedNetwork().getNetworkName());
             }
 
@@ -380,8 +393,6 @@ public class MainActivity extends AppCompatActivity {
                         (!getTokenInformationFromSharedPref(network).getAccessToken().equals(Constants.NO_RESULT))) {
                     refreshTokenBtn.setOnClickListener(this.parcelMap.get(network).getAuthStrategy().refresh());
                     refreshTokenBtn.callOnClick();
-
-                  //TODO  hier müsste vlt sowas wie checkTokenExpiration für ein spezielles netz
                     refreshTokenBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().refresh());
                     updateState();
                     updateUI();
@@ -416,9 +427,9 @@ public class MainActivity extends AppCompatActivity {
      * RESTORE
      */
 
-    public void updateTokenInformationForRecyclerView(){
+    public void updateTokenInformationForRecyclerView() {
         this.tokenInformationsRecyclerView.clear();
-        for(TokenInformation ti : this.parcelMap.values().stream().map(NetworkParcel::getTokenInformation).collect(Collectors.toList())){
+        for (TokenInformation ti : this.parcelMap.values().stream().map(NetworkParcel::getTokenInformation).collect(Collectors.toList())) {
             this.tokenInformationsRecyclerView.add(ti);
         }
     }
@@ -596,7 +607,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public Map<String, NetworkParcel> getParcelMap(){
+    public Map<String, NetworkParcel> getParcelMap() {
         return this.parcelMap;
     }
 
@@ -643,7 +654,7 @@ public class MainActivity extends AppCompatActivity {
 
     public List<SocialMedia> provideActiveSocial() {
         List<SocialMedia> list = new ArrayList<>();
-        for(NetworkParcel parcel : this.parcelMap.values()){
+        for (NetworkParcel parcel : this.parcelMap.values()) {
             list.add(parcel.getSocialMedia());
         }
         return list;
