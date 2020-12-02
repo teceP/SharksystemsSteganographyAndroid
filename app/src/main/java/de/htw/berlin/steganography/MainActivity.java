@@ -150,11 +150,13 @@ public class MainActivity extends AppCompatActivity {
         return list;
     }
 
-    public void updateSocialMediaToken(NetworkParcel network) {
-        TokenInformation ti = getTokenInformationFromSharedPref(network.getNetworkName());
-        this.parcelMap.get(network.getNetworkName()).getTokenInformation().setAccessToken(ti.getAccessToken());
-        this.parcelMap.get(network.getNetworkName()).getTokenInformation().setAccessTokenTimestamp(ti.getAccessTokenTimestamp());
-        Log.i("MYY", ti.toString());
+    public void updateSocialMediaTokens() {
+        for(NetworkParcel np : this.parcelMap.values()){
+            TokenInformation ti = getTokenInformationFromSharedPref(np.getNetworkName());
+            this.parcelMap.get(np.getNetworkName()).getTokenInformation().setAccessToken(ti.getAccessToken());
+            this.parcelMap.get(np.getNetworkName()).getTokenInformation().setAccessTokenTimestamp(ti.getAccessTokenTimestamp());
+            Log.i("MYY", ti.toString());
+        }
     }
 
     public NetworkParcel getCurrentSelectedNetwork() {
@@ -344,7 +346,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateState(){
-        taskRunner.executeAsync(new UpdateTask(this),MainActivity::nothing);
+        runOnUiThread(() -> {
+            Log.i("MYY", "Update data...");
+            setAuthStatus(checkTokenExpiration());
+            oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().authorize());
+            refreshTokenBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().refresh());
+            updateSocialMediaTokens();
+            updateUI();
+            Log.i("MYY", "Update data finished.");
+        });
+        //taskRunner.executeAsync(new UpdateTask(this),MainActivity::nothing);
     }
 
     private void nothing(){
@@ -367,7 +378,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 updateState();
-                updateUI();
                 Log.i("MYY", "Selected spinner item: " + getCurrentSelectedNetwork().getNetworkName());
             }
 
@@ -387,7 +397,6 @@ public class MainActivity extends AppCompatActivity {
                     refreshTokenBtn.callOnClick();
                     refreshTokenBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().refresh());
                     updateState();
-                    updateUI();
                 } else {
                     Toast.makeText(this, "Authorize first.", Toast.LENGTH_SHORT).show();
                 }
@@ -611,13 +620,12 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_reset) {
             resetTokensForSelectedNetwork();
             infoText.setText("Tokens for network " + spinner.getSelectedItem().toString() + " were reset.");
-            updateUI();
+            updateState();
         } else if (id == R.id.action_update_ui) {
             updateState();
-            updateUI();
         } else if (id == R.id.action_refresh_token) {
             refreshTokenBtn.callOnClick();
-            updateUI();
+            updateState();
         }
         return super.onOptionsItemSelected(item);
     }

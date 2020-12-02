@@ -123,8 +123,6 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                         }
                     }
                 });
-
-                MainActivity.getMainActivityInstance().updateState();
                 authDialog.show();
                 authDialog.setTitle("Authorize");
                 authDialog.setCancelable(true);
@@ -199,8 +197,6 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            Log.i("MYY", "Update UI now");
-            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.IMGUR, Constants.ONE_HOUR_IN_MS);
         };
     }
@@ -263,7 +259,6 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.IMGUR, Constants.ONE_HOUR_IN_MS);
         };
     }

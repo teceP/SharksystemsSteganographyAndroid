@@ -123,8 +123,6 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                         }
                     }
                 });
-
-                MainActivity.getMainActivityInstance().updateState();
                 authDialog.show();
                 authDialog.setTitle("Authorize");
                 authDialog.setCancelable(true);
@@ -196,9 +194,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
-
         };
     }
 
@@ -255,7 +251,6 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                     applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().updateUI();
             MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
         };
     }

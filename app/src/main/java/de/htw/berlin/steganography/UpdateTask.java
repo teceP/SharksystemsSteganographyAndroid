@@ -19,8 +19,8 @@ public class UpdateTask implements Callable<MainActivity> {
         ma.setAuthStatus(ma.checkTokenExpiration());
         ma.oauthBtn.setOnClickListener(ma.getCurrentSelectedNetwork().getAuthStrategy().authorize());
         ma.refreshTokenBtn.setOnClickListener(ma.getCurrentSelectedNetwork().getAuthStrategy().refresh());
-        ma.updateTokenInformationForRecyclerView();
-        ma.setButtonStates();
+        ma.updateSocialMediaTokens();
+        ma.updateUI();
         Log.i("MYY", "Update data finished.");
         return ma;
     }
