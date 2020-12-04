@@ -1,5 +1,9 @@
 package de.htw.berlin.steganography.auth.models;
 
+/**
+ * @author Mario Teklic
+ */
+
 public class AuthInformation {
 
     private String platform;

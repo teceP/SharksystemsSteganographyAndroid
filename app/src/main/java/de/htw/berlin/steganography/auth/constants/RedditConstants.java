@@ -1,5 +1,9 @@
 package de.htw.berlin.steganography.auth.constants;
 
+/**
+ * @author Mario Teklic
+ */
+
 public interface RedditConstants {
     String APP_NAME = "SharksystemsStegaMobile";
 

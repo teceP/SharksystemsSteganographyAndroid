@@ -3,7 +3,6 @@ package de.htw.berlin.steganography.auth.strategy;
 import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -12,8 +11,6 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
-
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,7 +18,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 import de.htw.berlin.steganography.auth.constants.Constants;
-import de.htw.berlin.steganography.MainActivity;
+import de.htw.berlin.steganography.OAuthMainActivity;
 import de.htw.berlin.steganography.R;
 import de.htw.berlin.steganography.auth.BasicAuthInterceptor;
 import de.htw.berlin.steganography.auth.constants.RedditConstants;
@@ -37,6 +34,10 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+/**
+ * @author Mario Teklic
+ */
+
 public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
     public RedditAuthStrategy(AuthInformation authInformation) {
@@ -48,13 +49,13 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Button oauthBtn = MainActivity.getMainActivityInstance().findViewById(R.id.auth);
-                TextView infoText = MainActivity.getMainActivityInstance().findViewById(R.id.infoText);
+                Button oauthBtn = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.auth);
+                TextView infoText = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.infoText);
 
                 oauthBtn.setClickable(false);
                 oauthBtn.setAlpha(.2f);
 
-                Dialog authDialog = new Dialog(MainActivity.getMainActivityInstance());
+                Dialog authDialog = new Dialog(OAuthMainActivity.getMainActivityInstance());
                 authDialog.setContentView(R.layout.auth_dialog);
 
                 WebView web = authDialog.findViewById(R.id.webv);
@@ -89,7 +90,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                     @Override
                     public void onPageFinished(WebView view, String url) {
                         super.onPageFinished(view, url);
-                        TokenInformation tokenInformation = getTokenInformation(MainActivity.getMainActivityInstance(), "reddit");
+                        TokenInformation tokenInformation = getTokenInformation(OAuthMainActivity.getMainActivityInstance(), "reddit");
                         boolean granted = false;
                         if (url.contains("?code=") || url.contains("&code=")) {
                             Uri uri = Uri.parse(url);
@@ -112,9 +113,9 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                             authDialog.dismiss();
                             infoText.setText("Auth token was not granted. Check your credentials or try later again.");
                         }
-                        applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
+                        applyTokenInformation(OAuthMainActivity.getMainActivityInstance(), tokenInformation);
                         if(granted){
-                            Button b = MainActivity.getMainActivityInstance().findViewById(R.id.dummyBtn);
+                            Button b = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.dummyBtn);
                             b.setOnClickListener(token());
                             b.callOnClick();
                         }else{
@@ -133,8 +134,8 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
     @Override
     public View.OnClickListener token() {
         return v -> {
-            TextView infoText = MainActivity.getMainActivityInstance().findViewById(R.id.infoText);
-            TokenInformation tokenInformation = getTokenInformation(MainActivity.getMainActivityInstance(), "reddit");
+            TextView infoText = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.infoText);
+            TokenInformation tokenInformation = getTokenInformation(OAuthMainActivity.getMainActivityInstance(), "reddit");
 
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(new BasicAuthInterceptor(RedditConstants.CLIENT_ID, RedditConstants.CLIENT_SECRET))
@@ -186,22 +187,22 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                             tokenInformation.setTokenTimestamp(System.currentTimeMillis());
                             e.printStackTrace();
                             infoText.setText("Access denied.");
-                            Button oauthBtn = MainActivity.getMainActivityInstance().findViewById(R.id.auth);
+                            Button oauthBtn = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.auth);
                             oauthBtn.setClickable(true);
                             oauthBtn.setAlpha(1.0f);
                         }
                     }
-                    applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
+                    applyTokenInformation(OAuthMainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
+            OAuthMainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
         };
     }
 
     @Override
     public View.OnClickListener refresh() {
         return v -> {
-            TokenInformation tokenInformation = getTokenInformation(MainActivity.getMainActivityInstance(), "reddit");
+            TokenInformation tokenInformation = getTokenInformation(OAuthMainActivity.getMainActivityInstance(), "reddit");
             OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new BasicAuthInterceptor(RedditConstants.CLIENT_ID, RedditConstants.CLIENT_SECRET)).build();
 
             RequestBody body = new FormBody.Builder()
@@ -240,18 +241,18 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                             //If any error occures, it must be deleted.
                             tokenInformation.setToken(Constants.NO_RESULT);
                             tokenInformation.setTokenTimestamp(-1);
-                            TextView infoText = MainActivity.getMainActivityInstance().findViewById(R.id.infoText);
+                            TextView infoText = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.infoText);
                             infoText.setText("Refreshing failed.");
                             Log.i("MYY", "Error during refreshing: " + e.getMessage());
-                            Button oauthBtn = MainActivity.getMainActivityInstance().findViewById(R.id.auth);
+                            Button oauthBtn = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.auth);
                             oauthBtn.setClickable(true);
                             oauthBtn.setAlpha(1.0f);
                         }
                     }
-                    applyTokenInformation(MainActivity.getMainActivityInstance(), tokenInformation);
+                    applyTokenInformation(OAuthMainActivity.getMainActivityInstance(), tokenInformation);
                 }
             });
-            MainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
+            OAuthMainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
         };
     }
 }

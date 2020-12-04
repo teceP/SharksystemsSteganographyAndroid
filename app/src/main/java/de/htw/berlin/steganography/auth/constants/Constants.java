@@ -1,5 +1,9 @@
 package de.htw.berlin.steganography.auth.constants;
 
+/**
+ * @author Mario Teklic
+ */
+
 public interface Constants {
 
     int ONE_HOUR_IN_MINS = 60;

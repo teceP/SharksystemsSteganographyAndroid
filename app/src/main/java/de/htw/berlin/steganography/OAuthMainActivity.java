@@ -1,15 +1,11 @@
 package de.htw.berlin.steganography;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -18,7 +14,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,15 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import apis.SocialMedia;
-import apis.Token;
 import apis.imgur.Imgur;
+import apis.models.Token;
 import apis.reddit.Reddit;
 import de.htw.berlin.steganography.adapters.NetworkListAdapter;
 import de.htw.berlin.steganography.adapters.SimpleDividerItemDecoration;
@@ -54,11 +48,15 @@ import de.htw.berlin.steganography.auth.strategy.InstagramAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.RedditAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.TwitterAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.YoutubeAuthStrategy;
-import okhttp3.internal.concurrent.Task;
+import persistence.JSONPersistentManager;
 
-public class MainActivity extends AppCompatActivity {
+/**
+ * @author Mario Teklic
+ */
 
-    private static MainActivity instance;
+public class OAuthMainActivity extends AppCompatActivity {
+
+    private static OAuthMainActivity instance;
 
     /**
      * A list of all networks, which has tokens and a valid timestamp.
@@ -78,12 +76,14 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences pref;
     TextView infoText;
 
-    TaskRunner taskRunner = new TaskRunner();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.oauth_activity_main);
+
+        JSONPersistentWriter writer = new JSONPersistentWriter(this);
+        JSONPersistentManager.getInstance().setJsonPersistentHelper(writer);
+
         this.initObjects();
 
         /**
@@ -642,7 +642,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    public static MainActivity getMainActivityInstance() {
+    public static OAuthMainActivity getMainActivityInstance() {
         return instance;
     }
 
@@ -652,12 +652,8 @@ public class MainActivity extends AppCompatActivity {
      **********************************************************************************
      */
 
-    public List<SocialMedia> provideActiveSocial() {
-        List<SocialMedia> list = new ArrayList<>();
-        for (NetworkParcel parcel : this.parcelMap.values()) {
-            list.add(parcel.getSocialMedia());
-        }
-        return list;
+    public String provideToken(String network) {
+        return this.parcelMap.get(network).getTokenInformation().getAccessToken();
     }
 
 

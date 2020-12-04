@@ -7,10 +7,10 @@
     android:layout_height="345dp"
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".MainActivity"
+    tools:context=".OAuthMainActivity"
     android:padding="10dip"
     android:elevation="10dp"
-    tools:showIn="@layout/activity_main">
+    tools:showIn="@layout/oauth_activity_main">
 
     <TextView
         android:layout_marginTop="40dp"

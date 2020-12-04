@@ -7,6 +7,10 @@ import android.widget.TextView;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
 
+/**
+ * @author Mario Teklic
+ */
+
 public interface AuthStrategy {
 
     /**

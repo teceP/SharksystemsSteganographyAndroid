@@ -4,6 +4,10 @@ import java.util.HashMap;
 
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 
+/**
+ * @author Mario Teklic
+ */
+
 public class InformationHolder {
 
     private HashMap<String, AuthInformation> map;

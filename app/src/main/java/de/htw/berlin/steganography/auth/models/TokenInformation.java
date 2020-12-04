@@ -2,6 +2,10 @@ package de.htw.berlin.steganography.auth.models;
 
 import de.htw.berlin.steganography.auth.constants.Constants;
 
+/**
+ * @author Mario Teklic
+ */
+
 public class TokenInformation {
 
     private transient static final long serialVersionUID = 1L;

@@ -10,6 +10,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import de.htw.berlin.steganography.R;
 
+/**
+ * @author Mario Teklic
+ */
+
 public class SimpleDividerItemDecoration extends RecyclerView.ItemDecoration {
     private Drawable mDivider;
 

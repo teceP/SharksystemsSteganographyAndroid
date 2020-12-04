@@ -13,10 +13,14 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
-import de.htw.berlin.steganography.MainActivity;
+import de.htw.berlin.steganography.OAuthMainActivity;
 import de.htw.berlin.steganography.auth.constants.Constants;
 import de.htw.berlin.steganography.R;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
+
+/**
+ * @author Mario Teklic
+ */
 
 public class NetworkListAdapter extends RecyclerView.Adapter<NetworkListAdapter.ViewHolder> {
 
@@ -69,7 +73,7 @@ public class NetworkListAdapter extends RecyclerView.Adapter<NetworkListAdapter.
         }
         this.setTextView(curr, holder);
         this.setRefreshButton(curr.getNetwork(), holder);
-        holder.refreshBtn.setOnClickListener(MainActivity.getMainActivityInstance().doRefreshOnClick(curr.getNetwork().toLowerCase()));
+        holder.refreshBtn.setOnClickListener(OAuthMainActivity.getMainActivityInstance().doRefreshOnClick(curr.getNetwork().toLowerCase()));
     }
 
     @Override
@@ -78,7 +82,7 @@ public class NetworkListAdapter extends RecyclerView.Adapter<NetworkListAdapter.
     }
 
     private void setRefreshButton(String network, ViewHolder holder){
-        holder.refreshBtn.setOnClickListener(MainActivity.getMainActivityInstance().doRefreshOnClick(network));
+        holder.refreshBtn.setOnClickListener(OAuthMainActivity.getMainActivityInstance().doRefreshOnClick(network));
     }
 
     private void setTextView(TokenInformation curr, ViewHolder holder) {

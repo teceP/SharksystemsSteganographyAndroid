@@ -1,5 +1,9 @@
 package de.htw.berlin.steganography.auth.constants;
 
+/**
+ * @author Mario Teklic
+ */
+
 public interface ImgurConstants {
 
     String AUTH_URI = "https://api.imgur.com/oauth2/authorize?";

@@ -1,20 +1,22 @@
 package de.htw.berlin.steganography;
 
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 
 import java.util.concurrent.Callable;
 
-public class UpdateTask implements Callable<MainActivity> {
-    private MainActivity ma;
+/**
+ * @author Mario Teklic
+ */
 
-    public UpdateTask(MainActivity ma){
+public class UpdateTask implements Callable<OAuthMainActivity> {
+    private OAuthMainActivity ma;
+
+    public UpdateTask(OAuthMainActivity ma){
         this.ma = ma;
     }
 
     @Override
-    public MainActivity call() {
+    public OAuthMainActivity call() {
         Log.i("MYY", "Update data...");
         ma.setAuthStatus(ma.checkTokenExpiration());
         ma.oauthBtn.setOnClickListener(ma.getCurrentSelectedNetwork().getAuthStrategy().authorize());

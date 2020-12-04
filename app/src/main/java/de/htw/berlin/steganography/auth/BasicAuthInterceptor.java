@@ -11,6 +11,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okio.Buffer;
 
+/**
+ * @author Mario Teklic
+ */
+
 public class BasicAuthInterceptor implements Interceptor {
 
     private String credentials;

@@ -8,11 +8,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 
-import de.htw.berlin.steganography.MainActivity;
+import de.htw.berlin.steganography.OAuthMainActivity;
 import de.htw.berlin.steganography.R;
 import de.htw.berlin.steganography.auth.constants.Constants;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
+
+/**
+ * @author Mario Teklic
+ */
 
 public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implements AuthStrategy, Runnable {
 
@@ -43,7 +47,7 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
 
     @Override
     public void run() {
-        View v = MainActivity.getMainActivityInstance().findViewById(R.id.dummyBtn);
+        View v = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.dummyBtn);
         v.setOnClickListener(this.refresh());
         v.callOnClick();
     }
@@ -71,13 +75,13 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
         context.getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
                 .edit().putString(tokenInformation.getNetwork() + Constants.TOKEN_OBJ_SUFFIX, json)
                 .apply();
-        Log.i("MYY", "Alt: " + MainActivity.getMainActivityInstance().getParcelMap().get(tokenInformation.getNetwork()).getTokenInformation().toString());
+        Log.i("MYY", "Alt: " + OAuthMainActivity.getMainActivityInstance().getParcelMap().get(tokenInformation.getNetwork()).getTokenInformation().toString());
         Log.i("MYY", "Neu: " + tokenInformation.toString());
 
-        MainActivity.getMainActivityInstance().getParcelMap().get(tokenInformation.getNetwork()).setTokenInformation(tokenInformation);
+        OAuthMainActivity.getMainActivityInstance().getParcelMap().get(tokenInformation.getNetwork()).setTokenInformation(tokenInformation);
 
-        if(MainActivity.getMainActivityInstance().getCurrentSelectedNetwork().getNetworkName() == tokenInformation.getNetwork()){
-            MainActivity.getMainActivityInstance().updateCurrentSelectedNetworkTokenInformation(tokenInformation);
+        if(OAuthMainActivity.getMainActivityInstance().getCurrentSelectedNetwork().getNetworkName() == tokenInformation.getNetwork()){
+            OAuthMainActivity.getMainActivityInstance().updateCurrentSelectedNetworkTokenInformation(tokenInformation);
         }
     }
 }

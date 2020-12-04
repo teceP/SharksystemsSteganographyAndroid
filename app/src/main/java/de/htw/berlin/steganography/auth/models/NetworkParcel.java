@@ -5,6 +5,10 @@ import android.util.Log;
 import apis.SocialMedia;
 import de.htw.berlin.steganography.auth.strategy.AuthStrategy;
 
+/**
+ * @author Mario Teklic
+ */
+
 public class NetworkParcel implements Comparable<NetworkParcel>{
 
     /**
