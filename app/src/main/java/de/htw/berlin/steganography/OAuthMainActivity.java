@@ -56,6 +56,10 @@ import persistence.JSONPersistentManager;
 
 public class OAuthMainActivity extends AppCompatActivity {
 
+    /**
+     * Build with: gradlew assemble
+     */
+
     private static OAuthMainActivity instance;
 
     /**
