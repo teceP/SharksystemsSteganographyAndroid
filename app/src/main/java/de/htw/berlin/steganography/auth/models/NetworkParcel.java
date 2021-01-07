@@ -2,7 +2,7 @@ package de.htw.berlin.steganography.auth.models;
 
 import android.util.Log;
 
-import apis.SocialMedia;
+import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.auth.strategy.AuthStrategy;
 
 /**

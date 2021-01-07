@@ -1,21 +1,14 @@
-package de.htw.berlin.steganography;
+package de.htw.berlin.steganography.persistence;
 
 import android.content.Context;
 import android.util.Log;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.logging.Logger;
-
-import persistence.JSONPersistentHelper;
-import persistence.PersistenceDummy;
 
 public class JSONPersistentWriter implements JSONPersistentHelper {
     Context context;
@@ -24,8 +17,6 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
     public JSONPersistentWriter(Context context){
         this.context = context;
     }
-
-
 
     @Override
     public void writeToJsonFile(String s) throws IOException {
@@ -42,6 +33,7 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
     @Override
     public String readFromJsonFile() throws IOException {
         String ret = "";
+
         try {
             InputStream inputStream = context.openFileInput(FILE_NAME);
 
@@ -57,11 +49,9 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
 
                 inputStream.close();
                 ret = stringBuilder.toString();
-                Log.e("File jsonfile found","jsonpersistentfile found");
             }
         }
         catch (FileNotFoundException e) {
-
             Log.e("login activity", "File not found: " + e.toString());
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());

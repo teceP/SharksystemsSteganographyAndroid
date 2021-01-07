@@ -32,11 +32,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import apis.SocialMedia;
-import apis.imgur.Imgur;
-import apis.models.APINames;
-import apis.models.Token;
-import apis.reddit.Reddit;
+import de.htw.berlin.steganography.apis.SocialMedia;
+import de.htw.berlin.steganography.apis.imgur.Imgur;
+import de.htw.berlin.steganography.apis.models.APINames;
+import de.htw.berlin.steganography.apis.models.Token;
+import de.htw.berlin.steganography.apis.reddit.Reddit;
 import de.htw.berlin.steganography.adapters.NetworkListAdapter;
 import de.htw.berlin.steganography.adapters.SimpleDividerItemDecoration;
 import de.htw.berlin.steganography.auth.constants.Constants;
@@ -51,7 +51,8 @@ import de.htw.berlin.steganography.auth.strategy.InstagramAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.RedditAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.TwitterAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.YoutubeAuthStrategy;
-import persistence.JSONPersistentManager;
+import de.htw.berlin.steganography.persistence.JSONPersistentManager;
+import de.htw.berlin.steganography.persistence.JSONPersistentWriter;
 
 import static java.lang.Thread.sleep;
 
