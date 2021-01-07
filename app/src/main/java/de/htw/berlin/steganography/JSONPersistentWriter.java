@@ -25,6 +25,8 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
         this.context = context;
     }
 
+
+
     @Override
     public void writeToJsonFile(String s) throws IOException {
         try {
@@ -40,7 +42,6 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
     @Override
     public String readFromJsonFile() throws IOException {
         String ret = "";
-
         try {
             InputStream inputStream = context.openFileInput(FILE_NAME);
 
@@ -56,9 +57,11 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
 
                 inputStream.close();
                 ret = stringBuilder.toString();
+                Log.e("File jsonfile found","jsonpersistentfile found");
             }
         }
         catch (FileNotFoundException e) {
+
             Log.e("login activity", "File not found: " + e.toString());
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());

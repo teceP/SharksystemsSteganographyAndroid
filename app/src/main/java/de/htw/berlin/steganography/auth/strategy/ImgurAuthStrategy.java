@@ -40,8 +40,8 @@ import okhttp3.Response;
 
 public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
 
-    public ImgurAuthStrategy(AuthInformation authInformation){
-        super(authInformation);
+    public ImgurAuthStrategy(OAuthMainActivity context, AuthInformation authInformation) {
+        super(context, authInformation);
     }
 
     @Override
@@ -104,6 +104,11 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
                             authDialog.dismiss();
                             infoText.setText("Auth token granted. Get your access token now.");
                             granted = true;
+                            try {
+                                contextActivity.openPassedActivity(contextActivity.getPassedActivityString(), tokenInformation.getAccessToken());
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
                         } else if (url.contains("error=access_denied")) {
                             Log.i("MYY", "Error, access denied.");
 
