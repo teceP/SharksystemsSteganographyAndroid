@@ -79,13 +79,13 @@ public class RedditUtil extends BaseUtil {
         try{
             RedditGetResponse responseArray = new Gson().fromJson(responseString, RedditGetResponse.class);
 
-        for(RedditGetResponse.ResponseChildData child : responseArray.getData().getChildren()){
-            if(child != null && !this.hasNullObjects(child)){
-                postEntries.add(new PostEntry(this.decodeUrl(this.getUrl(child)), this.getTimestamp(child), ".png"));
+            for(RedditGetResponse.ResponseChildData child : responseArray.getData().getChildren()){
+                if(child != null && !this.hasNullObjects(child)){
+                    postEntries.add(new PostEntry(this.decodeUrl(this.getUrl(child)), this.getTimestamp(child), ".png"));
+                }
             }
-        }
 
-        //postEntries.stream().forEach(postEntry -> System.out.println(postEntry.toString()));
+            //postEntries.stream().forEach(postEntry -> System.out.println(postEntry.toString()));
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -135,7 +135,9 @@ public class RedditUtil extends BaseUtil {
      * @return true if is allowed.
      */
     public boolean isImageUploadAllowed(String subreddit){
-        try {
+        //key allows_images isnt supported anymore
+        return true;
+        /*try {
             URL url = new URL(RedditConstants.BASE +
                     RedditConstants.SUBREDDIT_PREFIX + subreddit +
                     "/about" + RedditConstants.AS_JSON);
@@ -164,6 +166,6 @@ public class RedditUtil extends BaseUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
+        return false;*/
     }
 }

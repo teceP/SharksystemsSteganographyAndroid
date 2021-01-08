@@ -117,7 +117,7 @@ public class Imgur extends SocialMedia {
         try {
             body = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
-                    .addFormDataPart("image", filename, RequestBody.create(BlobConverterImpl.byteToFile(media, "tmp.png"), MediaType.parse("image/*")))
+                    .addFormDataPart("image", filename, RequestBody.create(media, MediaType.parse("image/*")))
                     .addFormDataPart("title", keyword)
                     .addFormDataPart("description", "Hello World!")
                     .build();
@@ -203,7 +203,7 @@ public class Imgur extends SocialMedia {
         try {
             body = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
-                    .addFormDataPart("image", filename, RequestBody.create(BlobConverterImpl.byteToFile(media, "tmp.png"), MediaType.parse("image/*")))
+                    .addFormDataPart("image", filename, RequestBody.create(media, MediaType.parse("image/*")))
                     .addFormDataPart("title", keyword)
                     .addFormDataPart("description", "Hello World!")
                     .build();

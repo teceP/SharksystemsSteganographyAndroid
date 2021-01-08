@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.utils;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.*;
 import java.net.URL;
 
@@ -35,17 +37,11 @@ public class BlobConverterImpl {
      * @throws IOException
      */
     public static byte[] downloadToByte(String downloadLink) {
-        return null;
-    }
-
-    /**
-     * Converts an bytearray to a file
-     * @param data Media
-     * @param filename Storatelocation
-     * @throws IOException
-     * @return Created file
-     */
-    public static File byteToFile(byte[] data, String filename) throws IOException {
-        return null;
+        try {
+            return IOUtils.toByteArray(new URL(downloadLink).openStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
