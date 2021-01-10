@@ -18,6 +18,7 @@
 
 package de.htw.berlin.steganography.apis.imgur;
 
+import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.imgur.models.ImgurGetResponse;
 import de.htw.berlin.steganography.apis.models.PostEntry;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
@@ -40,6 +41,10 @@ import java.util.logging.StreamHandler;
 public class ImgurUtil extends BaseUtil {
 
     private static final Logger logger = Logger.getLogger(ImgurUtil.class.getName());
+
+    public ImgurUtil(SocialMedia socialMedia) {
+        super(socialMedia);
+    }
 
     /**
      * Converts a response String in json-format from an Imgur Response, to PostEntry-Objects

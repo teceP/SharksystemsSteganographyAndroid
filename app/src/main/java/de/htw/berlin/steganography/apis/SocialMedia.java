@@ -25,10 +25,12 @@ import java.util.List;
 
 
 public abstract class SocialMedia {
-    private List<String> message;
+    protected List<String> allSubscribedKeywords = new ArrayList<>();
+    protected long lastTimeChecked;
+    protected List<String> message;
     public static final Integer DEFAULT_INTERVALL = 5;
 
-    List<SocialMediaListener> socialMediaListeners = new ArrayList<SocialMediaListener>();
+    protected List<SocialMediaListener> socialMediaListeners = new ArrayList<SocialMediaListener>();
 
     public void addAsListener(SocialMediaListener socialMediaListener){
         socialMediaListeners.add(socialMediaListener);
@@ -41,6 +43,7 @@ public abstract class SocialMedia {
     private void updateListeners(){
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
             socialMediaListener.updateSocialMediaMessage(message);
+            socialMediaListener.updateSocialMediaLastTimeChecked(lastTimeChecked);
         }
     }
 
@@ -62,7 +65,15 @@ public abstract class SocialMedia {
      * @param keyword keyword to subscribe to
      * @return true if successful
      */
-    public abstract boolean subscribeToKeyword(String keyword);
+    public boolean subscribeToKeyword(String keyword){
+        if(!allSubscribedKeywords.contains(keyword)){
+            this.allSubscribedKeywords.add(keyword);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     public abstract boolean unsubscribeKeyword(String keyword);
 
@@ -81,7 +92,24 @@ public abstract class SocialMedia {
 
     public abstract String getApiName();
 
-    public abstract List<String> getAllSubscribedKeywords();
+    public List<String> getAllSubscribedKeywords(){
+        return allSubscribedKeywords;
+    }
+
+    public void setAllSubscribedKeywords(List<String> keywords){
+        this.allSubscribedKeywords = keywords;
+    }
+
+    public void setLastTimeChecked(long lastTimeChecked){
+        this.lastTimeChecked = lastTimeChecked;
+        for (SocialMediaListener socialMediaListener: socialMediaListeners){
+            socialMediaListener.updateSocialMediaLastTimeChecked(lastTimeChecked);
+        }
+    }
+
+    public long getLastTimeChecked(){
+        return lastTimeChecked;
+    }
 
     public abstract void setBlogName(String blogname);
 }

@@ -18,6 +18,7 @@
 
 package de.htw.berlin.steganography.apis.reddit;
 
+import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.SubscriptionDeamon;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
 import de.htw.berlin.steganography.apis.models.PostEntry;
@@ -65,8 +66,8 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     /**
      * Subcription for a Keyword in a Social Media
      */
-    public RedditSubscriptionDeamon() {
-        this.redditUtil = new RedditUtil();
+    public RedditSubscriptionDeamon(SocialMedia socialMedia) {
+        this.redditUtil = new RedditUtil(socialMedia);
     }
 
     @Override
@@ -83,7 +84,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
      *                        restored and for earch keyword will be searched in the network.
      */
     public List<PostEntry> getRecentMedia(String onceUsedKeyword) {
-        List<String> keywords = redditUtil.getKeywordList(REDDIT, onceUsedKeyword);
+        List<String> keywords = redditUtil.getKeywordList(onceUsedKeyword);
 
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
@@ -136,7 +137,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
         if (tmp != null) {
             BaseUtil.sortPostEntries(tmp);
-            tmp = redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(REDDIT), tmp);
+            tmp = redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(), tmp);
             logger.info((tmp.size()) + " postentries found after eliminate old entries.");
 
             if (tmp.size() > 0) {

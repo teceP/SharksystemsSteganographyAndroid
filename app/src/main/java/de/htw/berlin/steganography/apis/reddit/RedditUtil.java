@@ -18,6 +18,7 @@
 
 package de.htw.berlin.steganography.apis.reddit;
 
+import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.models.PostEntry;
 import de.htw.berlin.steganography.apis.reddit.models.RedditAboutResponse;
@@ -44,6 +45,10 @@ import java.util.stream.Collectors;
 public class RedditUtil extends BaseUtil {
 
     private final static Logger logger = Logger.getLogger(Reddit.class.getName());
+
+    public RedditUtil(SocialMedia socialMedia) {
+        super(socialMedia);
+    }
 
     /**
      * Returns the downloadable and decoded URL of an image from a reddit post

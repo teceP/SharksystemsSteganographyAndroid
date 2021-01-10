@@ -18,10 +18,10 @@
 
 package de.htw.berlin.steganography.apis.utils;
 
+import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.APINames;
 import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.models.PostEntry;
-import de.htw.berlin.steganography.persistence.JSONPersistentManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,7 +39,11 @@ import java.util.stream.Collectors;
  */
 public class BaseUtil {
     private static final Logger logger = Logger.getLogger(BaseUtil.class.getName());
+    private SocialMedia socialMedia;
 
+    public BaseUtil(SocialMedia socialMedia){
+        this.socialMedia = socialMedia;
+    }
     /**
      * Sorts a list of post entries, based on their timestamp
      * @param postEntries
@@ -56,11 +60,8 @@ public class BaseUtil {
      */
     public void setLatestPostTimestamp(APINames network, MyDate latestPostTimestamp) {
         logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
-        try{
-            JSONPersistentManager.getInstance().setLastTimeCheckedForAPI(network, latestPostTimestamp.getTime());
-        }catch (Exception e){
-            logger.info("No timestamp was set. Exception was: " + e.getClass().getSimpleName());
-        }
+        socialMedia.setLastTimeChecked(latestPostTimestamp.getTime());
+
     }
 
     /**
@@ -70,11 +71,11 @@ public class BaseUtil {
      *         or the timestamp was stored wrong e.g. with an character for an example 'k' within the stored value like
      *         '1231k512'.
      */
-    public MyDate getLatestStoredTimestamp(APINames network) {
+    public MyDate getLatestStoredTimestamp() {
         MyDate oldPostTimestamp = null;
 
         try {
-            String oldPostTimestampString = JSONPersistentManager.getInstance().getLastTimeCheckedForAPI(network);
+            String oldPostTimestampString = String.valueOf(socialMedia.getLastTimeChecked());
             oldPostTimestamp = new MyDate(new Date(Long.valueOf(oldPostTimestampString)));
         } catch (Exception e) {
             logger.info("Exception was thrown, while retrieving latest stored timestamp. Default value for latest timestamp is 'new Date(0)'.");
@@ -87,20 +88,19 @@ public class BaseUtil {
     /**
      * Generates the keyword list, which has to be processed by the subscription deamons.
      *
-     * @param network Networkname
      * @param onceUsedKeyword If keyword is NOT null AND the length is NOT 0, a list with just and only this keyword gets returned.
      *                        If the keyword is null or the length is 0, a keywordlist will be restored by the JSONPersistentManager.
      *                        All empty occuring keywords will be removed from the list.
      * @return the list of keywords, or if no keywords were found, an empty list.
      */
-    public List<String> getKeywordList(APINames network, String onceUsedKeyword){
+    public List<String> getKeywordList(String onceUsedKeyword){
         List<String> keywords = new ArrayList<>();
 
         if(onceUsedKeyword != null && onceUsedKeyword.length() > 0){
             keywords.add(onceUsedKeyword);
         }else{
             try {
-                keywords = JSONPersistentManager.getInstance().getKeywordListForAPI(network);
+                keywords = socialMedia.getAllSubscribedKeywords();
                 keywords.removeIf(String::isEmpty);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -113,21 +113,7 @@ public class BaseUtil {
         return keywords;
     }
 
-    /**
-     * Stores a keyword for a network
-     * @param network
-     * @param keyword
-     * @return true if ok, false if exception occured.
-     */
-    public boolean storeKeyword(APINames network, String keyword){
-        try{
-            JSONPersistentManager.getInstance().addKeywordForAPI(network, keyword);
-            return true;
-        }catch (Exception e){
-            logger.info("Keyword '" + keyword + "' could not be stored for network '" + network.getValue() + "'.");
-            return false;
-        }
-    }
+
 
     /**
      * Returns a timestamp for a String of info which represents the time as ms.

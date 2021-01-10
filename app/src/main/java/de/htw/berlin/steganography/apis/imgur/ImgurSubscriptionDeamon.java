@@ -18,6 +18,7 @@
 
 package de.htw.berlin.steganography.apis.imgur;
 
+import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.SubscriptionDeamon;
 import de.htw.berlin.steganography.apis.reddit.RedditConstants;
 import de.htw.berlin.steganography.apis.models.PostEntry;
@@ -66,8 +67,8 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
     /**
      * Subcription for a Keyword in a Social Media
      */
-    public ImgurSubscriptionDeamon() {
-        this.imgurUtil = new ImgurUtil();
+    public ImgurSubscriptionDeamon(SocialMedia socialMedia) {
+        this.imgurUtil = new ImgurUtil(socialMedia);
     }
 
     public void injectImgurUtil(ImgurUtil util){
@@ -88,7 +89,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
      *                        restored and for earch keyword will be searched in the network.
      */
     public List<PostEntry> getRecentMedia(String onceUsedKeyword) {
-        List<String> keywords = imgurUtil.getKeywordList(IMGUR, onceUsedKeyword);
+        List<String> keywords = imgurUtil.getKeywordList(onceUsedKeyword);
 
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
@@ -140,7 +141,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
 
         if (tmp != null) {
             BaseUtil.sortPostEntries(tmp);
-            tmp = imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(IMGUR), tmp);
+            tmp = imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(), tmp);
             if (tmp.size() > 0) {
                 newPostAvailable = true;
 

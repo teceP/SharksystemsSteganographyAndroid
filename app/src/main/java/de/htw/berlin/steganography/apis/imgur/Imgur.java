@@ -19,7 +19,6 @@
 package de.htw.berlin.steganography.apis.imgur;
 
 import de.htw.berlin.steganography.apis.SocialMedia;
-import de.htw.berlin.steganography.apis.models.APINames;
 import de.htw.berlin.steganography.apis.models.Token;
 import de.htw.berlin.steganography.apis.imgur.models.ImgurPostResponse;
 import de.htw.berlin.steganography.apis.interceptors.BearerInterceptor;
@@ -27,8 +26,6 @@ import de.htw.berlin.steganography.apis.utils.BaseUtil;
 import de.htw.berlin.steganography.apis.utils.BlobConverterImpl;
 import com.google.gson.Gson;
 import okhttp3.*;
-import de.htw.berlin.steganography.persistence.JSONPersistentHelper;
-import de.htw.berlin.steganography.persistence.JSONPersistentManager;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -42,7 +39,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static de.htw.berlin.steganography.apis.models.APINames.IMGUR;
-import static de.htw.berlin.steganography.apis.models.APINames.REDDIT;
 
 /**
  * @author Mario Teklic
@@ -90,8 +86,8 @@ public class Imgur extends SocialMedia {
      * Standard constructor prepares the Subscriptiondeamon but does not start it
      */
     public Imgur() {
-        imgurUtil = new ImgurUtil();
-        imgurSubscriptionDeamon = new ImgurSubscriptionDeamon();
+        imgurUtil = new ImgurUtil(this);
+        imgurSubscriptionDeamon = new ImgurSubscriptionDeamon(this);
         executor = Executors.newScheduledThreadPool(1);
     }
 
@@ -260,10 +256,7 @@ public class Imgur extends SocialMedia {
         return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();
     }
 
-    @Override
-    public boolean subscribeToKeyword(String keyword) {
-        return this.imgurUtil.storeKeyword(IMGUR, keyword);
-    }
+
 
     @Override
     public List<byte[]> getRecentMediaForKeyword(String keyword) {
@@ -292,7 +285,7 @@ public class Imgur extends SocialMedia {
     @Override
     public List<String> getAllSubscribedKeywords() {
         try{
-            return JSONPersistentManager.getInstance().getKeywordListForAPI(IMGUR);
+            return this.allSubscribedKeywords;
         } catch (Exception e) {
             return Collections.emptyList();
         }
@@ -325,22 +318,31 @@ public class Imgur extends SocialMedia {
 
     @Override
     public boolean unsubscribeKeyword(String keyword) {
-        if(isSchedulerRunning())
-            stopSearch();
-
-        try{
-            if(JSONPersistentManager.getInstance().getKeywordListForAPI(IMGUR).stream().anyMatch(s -> s.equals(keyword))){
-                JSONPersistentManager.getInstance().removeKeywordForAPI(IMGUR, keyword);
+        if (scheduledFuture == null) {
+            if (allSubscribedKeywords.stream().anyMatch(s -> s.equals(keyword))) {
+                allSubscribedKeywords.remove(keyword);
                 logger.info("Removed keyword '" + keyword + "' from Imgur.");
+                return true;
             }
-        }catch (Exception e){
-            logger.info(keyword + " was not found in keywordlist.");
-            return false;
+        } else {
+            if (isSchedulerRunning())
+                stopSearch();
+
+            try {
+                if (getAllSubscribedKeywords().stream().anyMatch(s -> s.equals(keyword))) {
+                    unsubscribeKeyword(keyword);
+                    logger.info("Removed keyword '" + keyword + "' from Imgur.");
+                    return true;
+                }
+            } catch (Exception e) {
+                logger.info(keyword + " was not found in keywordlist.");
+
+            }
+
+            if (isSchedulerRunning())
+                startSearch();
+
         }
-
-        if(isSchedulerRunning())
-            startSearch();
-
-        return true;
+        return false;
     }
 }
