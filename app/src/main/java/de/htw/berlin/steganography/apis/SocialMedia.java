@@ -26,8 +26,8 @@ import java.util.List;
 
 public abstract class SocialMedia {
     protected List<String> allSubscribedKeywords = new ArrayList<>();
-    protected long lastTimeChecked;
-    protected List<String> message;
+    protected long lastTimeChecked = 0;
+    protected List<String> message = new ArrayList<>();
     public static final Integer DEFAULT_INTERVALL = 5;
 
     protected List<SocialMediaListener> socialMediaListeners = new ArrayList<SocialMediaListener>();
