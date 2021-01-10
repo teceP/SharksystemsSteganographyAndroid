@@ -42,13 +42,13 @@ public abstract class SocialMedia {
 
     private void updateListenersMessages(){
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
-            socialMediaListener.updateSocialMediaMessage(message);
+            socialMediaListener.updateSocialMediaMessage(message, this.getApiName());
         }
     }
 
     private void updateListenersLastTimeChecked(){
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
-            socialMediaListener.updateSocialMediaLastTimeChecked(lastTimeChecked);
+            socialMediaListener.updateSocialMediaLastTimeChecked(lastTimeChecked,this.getApiName());
         }
     }
 
