@@ -27,6 +27,7 @@ import java.util.List;
 
 
 public abstract class SocialMedia {
+    private List<String> encodedMessage = new ArrayList<>();
     protected List<String> allSubscribedKeywords = new ArrayList<>();
     protected long lastTimeChecked = 0;
     protected List<String> message = new ArrayList<>();
@@ -60,6 +61,11 @@ public abstract class SocialMedia {
     public void setMessage(List<String> messageList){
         this.message = messageList;
         updateListenersMessages();
+    }
+
+
+    public List<String> getEncodedMessage(){
+        return encodedMessage;
     }
 
     public List<String> getMessage(){

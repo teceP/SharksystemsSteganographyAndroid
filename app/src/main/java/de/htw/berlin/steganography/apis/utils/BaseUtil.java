@@ -24,7 +24,13 @@ import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.APINames;
 import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.models.PostEntry;
+import de.htw.berlin.steganography.steganography.Steganography;
+import de.htw.berlin.steganography.steganography.exceptions.MediaNotFoundException;
+import de.htw.berlin.steganography.steganography.exceptions.UnknownStegFormatException;
+import de.htw.berlin.steganography.steganography.exceptions.UnsupportedMediaTypeException;
+import de.htw.berlin.steganography.steganography.image.ImageSteg;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -55,8 +61,47 @@ public class BaseUtil {
         return socialMedia;
     }
 
-    public void updateListeners(List<String> msgList){
-        this.socialMedia.setMessage(msgList);
+    public void updateListeners(List<String> msgList) {
+        class AndroidDownloadTask implements Runnable{
+            SocialMedia socialMediaTask;
+            List<String> msgListTask;
+            AndroidDownloadTask(SocialMedia socialMedia, List<String> msgList) { this.socialMediaTask = socialMedia; this.msgListTask = msgList;}
+            @Override
+            public void run() {
+                Log.i("BaseUtil updateListeners", "called");
+                Steganography steganography = new ImageSteg();
+                List<String> decodedMessageString = new ArrayList<>();
+                List<byte[]> encodedByteArray = new ArrayList<>();
+                Log.i("BaseUtil updateListeners", "starting to download...");
+                for (String link : msgList) {
+                    Log.i("BaseUtil updateListeners", "begin download of new file...");
+                    encodedByteArray.add(BlobConverterImpl.downloadToByte(link));
+                    Log.i("BaseUtil updateListeners", "finished downloading file...");
+                }
+                Log.i("BaseUtil updateListeners", "finished downloading all files");
+                Log.i("BaseUtil updateListeners", "starting to decode files");
+                for (byte[] encodedByte : encodedByteArray) {
+                    try {
+                        Log.i("BaseUtil updateListeners", "started decoding file...");
+                        decodedMessageString.add(new String(steganography.decode(encodedByte)));
+                        Log.i("BaseUtil updateListeners", "decoded file...");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (MediaNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (UnsupportedMediaTypeException e) {
+                        e.printStackTrace();
+                    } catch (UnknownStegFormatException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.i("BaseUtil updateListeners", "finished decoding all files");
+                this.socialMediaTask.setMessage(decodedMessageString);
+            }
+        };
+        Thread t = new Thread(new AndroidDownloadTask(this.socialMedia, msgList));
+        t.start();
+
     }
 
     /**
