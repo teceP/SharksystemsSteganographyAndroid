@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.imgur;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.SubscriptionDeamon;
 import de.htw.berlin.steganography.apis.reddit.RedditConstants;
@@ -151,6 +153,8 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
                 latestPostEntries = tmp;
                 logger.info("New media found.");
                 this.imgurUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+                Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size() ));
+
                 return latestPostEntries;
             }
         }

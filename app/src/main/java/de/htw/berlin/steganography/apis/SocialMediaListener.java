@@ -22,5 +22,5 @@ import java.util.List;
 
 public interface SocialMediaListener {
     public void updateSocialMediaMessage(List<String> messages, String apiName);
-    public long updateSocialMediaLastTimeChecked(long lastTimeChecked, String apiName);
+    public void updateSocialMediaLastTimeChecked(long lastTimeChecked, String apiName);
 }

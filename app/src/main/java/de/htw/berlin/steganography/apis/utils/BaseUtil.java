@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.utils;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.APINames;
 import de.htw.berlin.steganography.apis.models.MyDate;
@@ -45,6 +47,13 @@ public class BaseUtil {
         this.socialMedia = socialMedia;
     }
 
+    public void setSocialMedia(SocialMedia socialMedia) {
+        this.socialMedia = socialMedia;
+    }
+
+    public SocialMedia getSocialMedia(){
+        return socialMedia;
+    }
 
     public void updateListeners(List<String> msgList){
         this.socialMedia.setMessage(msgList);
@@ -66,6 +75,7 @@ public class BaseUtil {
     public void setLatestPostTimestamp(MyDate latestPostTimestamp) {
         logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
         socialMedia.setLastTimeChecked(latestPostTimestamp.getTime());
+        Log.i("called social media setLatest", "called social media setLatest");
 
     }
 

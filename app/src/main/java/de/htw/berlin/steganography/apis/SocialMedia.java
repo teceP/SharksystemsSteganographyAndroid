@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.models.Token;
 
 import java.util.ArrayList;
@@ -47,9 +49,12 @@ public abstract class SocialMedia {
     }
 
     private void updateListenersLastTimeChecked(){
+        Log.i("called updateListenersLastTimeChecked()", "did nt enter for loop yet");
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
+            Log.i("called updateListenersLastTimeChecked()", "entered for loop");
             socialMediaListener.updateSocialMediaLastTimeChecked(lastTimeChecked,this.getApiName());
         }
+        Log.i("called lasttimecheckedupdate", "called last time checked update");
     }
 
     public void setMessage(List<String> messageList){
@@ -114,6 +119,8 @@ public abstract class SocialMedia {
     }
 
     public void setLastTimeChecked(long lastTimeChecked){
+
+        Log.i("called last tie checked", "called last time checked");
         this.lastTimeChecked = lastTimeChecked;
         updateListenersLastTimeChecked();
     }

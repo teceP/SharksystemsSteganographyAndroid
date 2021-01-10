@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.reddit;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.SubscriptionDeamon;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
@@ -138,18 +140,25 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         if (tmp != null) {
             BaseUtil.sortPostEntries(tmp);
             tmp = redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(), tmp);
-            logger.info((tmp.size()) + " postentries found after eliminate old entries.");
+            logger.info((tmp.size()) + " postentries found after eliminate old entries INFO.");
+            int i = tmp.size();
+            Log.i("tmpsizeint1",  String.valueOf(tmp.size()));
 
-            if (tmp.size() > 0) {
+            if (i > 0) {
                 newPostAvailable = true;
-
+                Log.i("tmpsizeint2",  String.valueOf(tmp.size()));
                 /**
                  * TODO 0 oder letztes element.
                  */
                 redditUtil.setLatestPostTimestamp(tmp.get(tmp.size()-1).getDate());
+
+
+                Log.i("new media found", "New media found.");
                 latestPostEntries = tmp;
-                logger.info("New media found.");
+
                 redditUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+                Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size() ));
+
                 return latestPostEntries;
             }
         }
