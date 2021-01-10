@@ -40,13 +40,26 @@ public abstract class SocialMedia {
         socialMediaListeners.remove(socialMediaListener);
     }
 
-    private void updateListeners(){
+    private void updateListenersMessages(){
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
             socialMediaListener.updateSocialMediaMessage(message);
+        }
+    }
+
+    private void updateListenersLastTimeChecked(){
+        for(SocialMediaListener socialMediaListener : socialMediaListeners){
             socialMediaListener.updateSocialMediaLastTimeChecked(lastTimeChecked);
         }
     }
 
+    public void setMessage(List<String> messageList){
+        this.message = messageList;
+        updateListenersMessages();
+    }
+
+    public List<String> getMessage(){
+        return message;
+    }
 
     public abstract Token getToken();
 
@@ -102,9 +115,7 @@ public abstract class SocialMedia {
 
     public void setLastTimeChecked(long lastTimeChecked){
         this.lastTimeChecked = lastTimeChecked;
-        for (SocialMediaListener socialMediaListener: socialMediaListeners){
-            socialMediaListener.updateSocialMediaLastTimeChecked(lastTimeChecked);
-        }
+        updateListenersLastTimeChecked();
     }
 
     public long getLastTimeChecked(){

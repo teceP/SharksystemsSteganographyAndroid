@@ -88,7 +88,7 @@ public class Reddit extends SocialMedia {
      */
     public Reddit() {
         this.redditUtil = new RedditUtil(this);
-        this.redditSubscriptionDeamon = new RedditSubscriptionDeamon(this);
+        this.redditSubscriptionDeamon = new RedditSubscriptionDeamon(redditUtil);
         executor = Executors.newScheduledThreadPool(1);
     }
 

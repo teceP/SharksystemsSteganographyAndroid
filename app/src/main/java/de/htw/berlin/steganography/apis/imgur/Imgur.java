@@ -87,7 +87,7 @@ public class Imgur extends SocialMedia {
      */
     public Imgur() {
         imgurUtil = new ImgurUtil(this);
-        imgurSubscriptionDeamon = new ImgurSubscriptionDeamon(this);
+        imgurSubscriptionDeamon = new ImgurSubscriptionDeamon(imgurUtil);
         executor = Executors.newScheduledThreadPool(1);
     }
 

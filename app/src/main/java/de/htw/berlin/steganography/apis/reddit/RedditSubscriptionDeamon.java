@@ -66,8 +66,8 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     /**
      * Subcription for a Keyword in a Social Media
      */
-    public RedditSubscriptionDeamon(SocialMedia socialMedia) {
-        this.redditUtil = new RedditUtil(socialMedia);
+    public RedditSubscriptionDeamon(RedditUtil redditUtil) {
+        this.redditUtil = redditUtil;
     }
 
     @Override
@@ -146,10 +146,11 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                 /**
                  * TODO 0 oder letztes element.
                  */
-                redditUtil.setLatestPostTimestamp(REDDIT, tmp.get(tmp.size()-1).getDate());
+                redditUtil.setLatestPostTimestamp(tmp.get(tmp.size()-1).getDate());
                 latestPostEntries = tmp;
                 logger.info("New media found.");
-                return tmp;
+                redditUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+                return latestPostEntries;
             }
         }
 

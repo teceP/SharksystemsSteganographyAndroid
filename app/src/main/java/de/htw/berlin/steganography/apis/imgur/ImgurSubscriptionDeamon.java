@@ -67,13 +67,11 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
     /**
      * Subcription for a Keyword in a Social Media
      */
-    public ImgurSubscriptionDeamon(SocialMedia socialMedia) {
-        this.imgurUtil = new ImgurUtil(socialMedia);
+    public ImgurSubscriptionDeamon(ImgurUtil imgurUtil) {
+        this.imgurUtil = imgurUtil;
     }
 
-    public void injectImgurUtil(ImgurUtil util){
-        this.imgurUtil = util;
-    }
+
 
     @Override
     public void run() {
@@ -149,10 +147,11 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
                  * TODO 0 oder letztes element.
                  */
 
-                imgurUtil.setLatestPostTimestamp(IMGUR, tmp.get(tmp.size()-1).getDate());
+                imgurUtil.setLatestPostTimestamp(tmp.get(tmp.size()-1).getDate());
                 latestPostEntries = tmp;
                 logger.info("New media found.");
-                return tmp;
+                this.imgurUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+                return latestPostEntries;
             }
         }
 

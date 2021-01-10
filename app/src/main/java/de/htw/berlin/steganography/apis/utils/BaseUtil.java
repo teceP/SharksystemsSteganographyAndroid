@@ -44,6 +44,12 @@ public class BaseUtil {
     public BaseUtil(SocialMedia socialMedia){
         this.socialMedia = socialMedia;
     }
+
+
+    public void updateListeners(List<String> msgList){
+        this.socialMedia.setMessage(msgList);
+    }
+
     /**
      * Sorts a list of post entries, based on their timestamp
      * @param postEntries
@@ -55,10 +61,9 @@ public class BaseUtil {
     /**
      * Calls the JSONPersistentManager singleton and stores a (the latest timestamp of the postenty-list)
      * according to a specific network.
-     * @param network the specific network
      * @param latestPostTimestamp
      */
-    public void setLatestPostTimestamp(APINames network, MyDate latestPostTimestamp) {
+    public void setLatestPostTimestamp(MyDate latestPostTimestamp) {
         logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
         socialMedia.setLastTimeChecked(latestPostTimestamp.getTime());
 
@@ -66,7 +71,6 @@ public class BaseUtil {
 
     /**
      * Restores the latest stored timestamp with the JSONPersistentManager.
-     * @param network Name of the network
      * @return MyDate(0) if an exception was thrown. Happens if there is no stored timestamp found,
      *         or the timestamp was stored wrong e.g. with an character for an example 'k' within the stored value like
      *         '1231k512'.
