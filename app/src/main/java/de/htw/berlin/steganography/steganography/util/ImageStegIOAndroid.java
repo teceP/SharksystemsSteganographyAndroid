@@ -60,15 +60,12 @@ public class ImageStegIOAndroid implements ImageStegIO{
         );
         */
 
-        // TODO: Probably not necessary -> would only be compressed to PNG
-        BitmapFactory.Options options = new BitmapFactory.Options();
 
+        BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
 
-        this.format = options.outMimeType;
-        //////////////////////////////////////////////////////////////////
-
         this.bitmap = BitmapFactory.decodeByteArray(carrier, 0, carrier.length, options);
+        this.format = options.outMimeType;
 
         // TODO: Probably not necessary -> would only be compressed to PNG
         if (this.format == null)
