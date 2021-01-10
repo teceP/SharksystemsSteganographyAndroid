@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.steganography.image;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,6 +32,7 @@ import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityE
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageWritingException;
 import de.htw.berlin.steganography.steganography.image.exceptions.NoImageException;
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
+import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.util.ImageStegIO;
 import de.htw.berlin.steganography.steganography.util.ImageStegIOAndroid;
 
@@ -101,7 +104,7 @@ public class ImageSteg implements Steganography {
     @Override
     public byte[] encode(byte[] carrier, byte[] payload)
             throws IOException, UnsupportedImageTypeException, NoImageException,
-                    ImageWritingException, ImageCapacityException {
+            ImageWritingException, ImageCapacityException, BitmapInaccuracyException {
 
         return encode(carrier, payload, DEFAULT_SEED);
     }
@@ -109,7 +112,7 @@ public class ImageSteg implements Steganography {
     @Override
     public byte[] encode(byte[] carrier, byte[] payload, long seed)
             throws IOException, NoImageException, UnsupportedImageTypeException,
-                    ImageWritingException, ImageCapacityException {
+            ImageWritingException, ImageCapacityException, BitmapInaccuracyException {
 
         if (carrier == null)
             throw new NullPointerException("Parameter 'carrier' must not be null");
@@ -120,11 +123,19 @@ public class ImageSteg implements Steganography {
 
         BuffImgEncoder encoder = imageStegIO.getEncoder(seed);
 
+        Log.i("ImageSteg", "encode: useDefaultHeader: " + this.useDefaultHeader);
+
         if (this.useDefaultHeader) {
             encoder.encode(int2bytes(HEADER_SIGNATURE));
             encoder.encode(int2bytes(payload.length));
         }
         encoder.encode(payload);
+
+        //////////////////////////TEST//////////////////////////////////
+        /*BuffImgEncoder decoder = imageStegIO.getEncoder(seed);
+        decoder.decode(8);
+        byte[] test = decoder.decode(payload.length);
+        Log.i("ImageSteg", "encode: test is: " + new String(test));*/
 
         return imageStegIO.getImageAsByteArray();
     }

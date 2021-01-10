@@ -2,6 +2,8 @@ package de.htw.berlin.steganography.steganography.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ColorSpace;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -63,14 +65,15 @@ public class ImageStegIOAndroid implements ImageStegIO{
         );
         */
 
-        // TODO: Probably not necessary -> would only be compressed to PNG
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
-        //////////////////////////////////////////////////////////////////
 
         this.bitmap = BitmapFactory.decodeByteArray(carrier, 0, carrier.length, options);
         this.format = options.outMimeType;
         Log.i(TAG, "image format: " + this.format);
+
+        // logging and possible setting of ColorSpace to make algorithm work
+        setColorSpace();
 
         // TODO: Probably not necessary -> would only be compressed to PNG
         if (this.format == null) {
@@ -86,6 +89,21 @@ public class ImageStegIOAndroid implements ImageStegIO{
                             ") is not supported."
             );
         //////////////////////////////////////////////////////////////////
+    }
+
+    private void setColorSpace() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.i(TAG, "processImage: bitmaps ColorSpace: " + this.bitmap.getColorSpace());
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                this.bitmap.setColorSpace(ColorSpace.get(ColorSpace.Named.SRGB));
+            } else {
+                Log.i(TAG, "processImage: AndroidVersion too low to try setting ColorSpace:" +
+                        " is: " + Build.VERSION.SDK_INT +
+                        " // " +
+                        " needed: " + Build.VERSION_CODES.Q);
+            }
+        }
     }
 
     private boolean isFormatSupported(String formatName) {

@@ -20,6 +20,8 @@ package de.htw.berlin.steganography.steganography.image.overlays;
 
 import java.util.NoSuchElementException;
 
+import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
+
 /**
  * Classes that implement this interface should be able to return pixels of a
  * given BufferedImage in an order independent from the coordinate system
@@ -41,7 +43,7 @@ public interface BufferedImageCoordinateOverlay {
      * @throws NoSuchElementException if setPixel() is called before the first call to next().
      * Or if setPixel() is called after the last call to next() produced a NoSuchElementException
      */
-    void setPixel(int value) throws NoSuchElementException;
+    void setPixel(int value) throws NoSuchElementException, BitmapInaccuracyException;
 
     /**
      * Returns the number of remaining pixels (not yet returned by next())

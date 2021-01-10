@@ -20,6 +20,7 @@ package de.htw.berlin.steganography.steganography.image.overlays;
 
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -28,6 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
 
 public class SerialOverlay implements BufferedImageCoordinateOverlay {
@@ -46,7 +48,6 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
             throw new UnsupportedImageTypeException("This overlay doesn't support images of type " + type);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public SerialOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
         this(bitmap);
         createOverlay();
@@ -56,7 +57,6 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
         return type == Bitmap.Config.ARGB_8888;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     protected void createOverlay() {
         if (this.pixelOrder == null) {
             this.pixelOrder =
@@ -77,11 +77,37 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
     }
 
     @Override
-    public void setPixel(int value) {
+    public void setPixel(int value) throws BitmapInaccuracyException {
         if (currentPosition < 0 || this.currentPosition >= this.pixelOrder.size())
             throw new IndexOutOfBoundsException("No pixel at current position.");
-        int getColor = (this.bitmap.getPixel(this.currentX, this.currentY));
-        this.bitmap.setPixel(this.currentX, this.currentY, (value));
+
+        int before = this.bitmap.getPixel(this.currentX, this.currentY);
+
+        this.bitmap.setPixel(this.currentX, this.currentY, value);
+        int changedTo = this.bitmap.getPixel(this.currentX, this.currentY);
+
+        if (value != changedTo) {
+            Log.i("Overlay", "-------------Bitmap Pixel Error------------------");
+            Log.i("Overlay", "before   :" +
+                    " Alpha=" + ((before >> 24) & 0xff) +
+                    " Red=" + ((before >> 16) & 0xff) +
+                    " Green=" + ((before >> 8) & 0xff) +
+                    " Blue=" + (before & 0xff));
+            Log.i("Overlay", "should be:" +
+                    " Alpha=" + ((value >> 24) & 0xff) +
+                    " Red=" + ((value >> 16) & 0xff) +
+                    " Green=" + ((value >> 8) & 0xff) +
+                    " Blue=" + (value & 0xff));
+            Log.i("Overlay", "but is   :" +
+                    " Alpha=" + ((changedTo >> 24) & 0xff) +
+                    " Red=" + ((changedTo >> 16) & 0xff) +
+                    " Green=" + ((changedTo >> 8) & 0xff) +
+                    " Blue=" + (changedTo & 0xff));
+            Log.i("Overlay", "-------------------------------------------------");
+
+            throw new BitmapInaccuracyException("This image cannot be used for encoding, " +
+                    "because Androids Bitmap will not change colors correctly.");
+        }
     }
 
     @Override
