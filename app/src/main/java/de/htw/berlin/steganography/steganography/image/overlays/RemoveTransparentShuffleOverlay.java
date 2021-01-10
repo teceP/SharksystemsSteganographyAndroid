@@ -19,12 +19,15 @@
 package de.htw.berlin.steganography.steganography.image.overlays;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
 
 public class RemoveTransparentShuffleOverlay extends ShuffleOverlay {
+
+    public static final String TAG = "RTSOverlay";
 
     protected RemoveTransparentShuffleOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
         super(bitmap);
@@ -40,7 +43,7 @@ public class RemoveTransparentShuffleOverlay extends ShuffleOverlay {
         for(int y = 0; y < this.bitmap.getHeight(); y++) {
             for (int x = 0; x < this.bitmap.getWidth(); x++) {
                 int pixel = this.bitmap.getPixel(x, y);
-                if(((pixel >> 24) & 0xff) != 0)
+                if(((pixel >> 24) & 0xff) == 0xff)
                     this.pixelOrder.add(x + (y * this.bitmap.getWidth()));
             }
         }

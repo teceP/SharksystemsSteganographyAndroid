@@ -2,6 +2,7 @@ package de.htw.berlin.steganography.steganography.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,6 +27,8 @@ public class ImageStegIOAndroid implements ImageStegIO{
     private Bitmap bitmap;
 
     private String format;
+
+    private static final String TAG = "ImageStegIOAndroid";
 
     private static final Set<String> SUPPORTED_FORMATS = new HashSet<>(
             Arrays.asList("image/bmp", "image/gif", "image/png")
@@ -62,17 +65,19 @@ public class ImageStegIOAndroid implements ImageStegIO{
 
         // TODO: Probably not necessary -> would only be compressed to PNG
         BitmapFactory.Options options = new BitmapFactory.Options();
-        options.outMimeType = this.format;
         options.inMutable = true;
         //////////////////////////////////////////////////////////////////
 
         this.bitmap = BitmapFactory.decodeByteArray(carrier, 0, carrier.length, options);
+        this.format = options.outMimeType;
+        Log.i(TAG, "image format: " + this.format);
 
         // TODO: Probably not necessary -> would only be compressed to PNG
-        if (this.format == null)
+        if (this.format == null) {
             throw new UnsupportedImageTypeException(
                     "The Image format is unknown and cannot be supported."
             );
+        }
 
         if (!isFormatSupported(this.format))
             throw new UnsupportedImageTypeException(
