@@ -21,6 +21,6 @@ package de.htw.berlin.steganography.apis;
 import java.util.List;
 
 public interface SocialMediaListener {
-    public void updateSocialMediaMessage(List<String> messages);
-    public long updateSocialMediaLastTimeChecked(long lastTimeChecked);
+    public void updateSocialMediaMessage(List<String> messages, String apiName);
+    public long updateSocialMediaLastTimeChecked(long lastTimeChecked, String apiName);
 }
