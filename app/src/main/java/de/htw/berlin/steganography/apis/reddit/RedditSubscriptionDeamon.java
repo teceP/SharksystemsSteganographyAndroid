@@ -141,12 +141,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
             BaseUtil.sortPostEntries(tmp);
             tmp = redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(), tmp);
             logger.info((tmp.size()) + " postentries found after eliminate old entries INFO.");
-            int i = tmp.size();
-            Log.i("tmpsizeint1",  String.valueOf(tmp.size()));
 
-            if (i > 0) {
+            if (tmp.size() > 0) {
                 newPostAvailable = true;
-                Log.i("tmpsizeint2",  String.valueOf(tmp.size()));
                 /**
                  * TODO 0 oder letztes element.
                  */
