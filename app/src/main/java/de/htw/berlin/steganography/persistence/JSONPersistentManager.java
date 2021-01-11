@@ -51,13 +51,9 @@ public class JSONPersistentManager {
         }
     }
 
-    public Map<String, Map<String, List<String>>> getJsonMap()throws Exception{
-        try {
-            return jsonMap;
-        } catch (NullPointerException ne){
-            ne.printStackTrace();
-            throw new Exception("jsonMap is null",ne);
-        }
+    public Map<String, Map<String, List<String>>> getJsonMap(){
+        return jsonMap;
+
     }
 
     public void addKeywordForAPI(APINames apiName, String keyword){
@@ -96,17 +92,17 @@ public class JSONPersistentManager {
         }
     }
 
-    public List<String> getKeywordListForAPI(APINames apiName) throws Exception{
+    public List<String> getKeywordListForAPI(APINames apiName){
         try {
             Map<String, List<String>> specificAPIMap = jsonMap.get(apiName.getValue());
             return specificAPIMap.get("keywords");
         } catch (NullPointerException ne){
             ne.printStackTrace();
-            throw new Exception("No entry for API: "+apiName.getValue(),ne);
+            return new ArrayList<>();
         }
     }
 
-    public void setLastTimeCheckedForAPI(APINames apiName, long lastTimeCheckedSystemTimeMillis){
+    public void setLastTimeCheckedForAPI(APINames apiName, long lastTimeChecked){
         if(!jsonMap.containsKey(apiName.getValue())){
             jsonMap.put(apiName.getValue(),new HashMap<String, List<String>>());
         }
@@ -114,7 +110,7 @@ public class JSONPersistentManager {
             jsonMap.get(apiName.getValue()).put("last-checked", Arrays.asList(new String[1]));
         }
 
-        jsonMap.get(apiName.getValue()).get("last-checked").set(0, Long.toString(lastTimeCheckedSystemTimeMillis));
+        jsonMap.get(apiName.getValue()).get("last-checked").set(0, Long.toString(lastTimeChecked));
 
         try {
             jsonPersistentHelper.writeToJsonFile(jsonMapToJsonString());
@@ -123,12 +119,12 @@ public class JSONPersistentManager {
         }
     }
 
-    public String getLastTimeCheckedForAPI(APINames apiName) throws Exception{
+    public long getLastTimeCheckedForAPI(APINames apiName){
         try {
-            return  jsonMap.get(apiName.getValue()).get("last-checked").get(0);
+            return Long.parseLong(jsonMap.get(apiName.getValue()).get("last-checked").get(0));
         } catch (NullPointerException ne){
             ne.printStackTrace();
-            throw new Exception("No entry for API: "+apiName.getValue(),ne);
+            return 0;
         }
     }
 
