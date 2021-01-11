@@ -74,7 +74,7 @@ public class BaseUtil {
                 List<byte[]> encodedByteArray = new ArrayList<>();
                 Log.i("BaseUtil updateListeners", "starting to download...");
                 for (String link : msgList) {
-                    Log.i("BaseUtil updateListeners", "begin download of new file...");
+                    Log.i("BaseUtil updateListeners", "begin download of new file... Link:" + link);
                     encodedByteArray.add(BlobConverterImpl.downloadToByte(link));
                     Log.i("BaseUtil updateListeners", "finished downloading file...");
                 }
