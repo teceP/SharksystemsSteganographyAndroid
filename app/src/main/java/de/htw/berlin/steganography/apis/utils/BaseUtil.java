@@ -80,6 +80,7 @@ public class BaseUtil {
                 }
                 Log.i("BaseUtil updateListeners", "finished downloading all files");
                 Log.i("BaseUtil updateListeners", "starting to decode files");
+                Log.i("BaseUtil updateListeners encodedByteArray size", String.valueOf(encodedByteArray.size()));
                 for (byte[] encodedByte : encodedByteArray) {
                     try {
                         Log.i("BaseUtil updateListeners", "started decoding file...");
