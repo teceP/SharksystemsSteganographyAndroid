@@ -67,14 +67,9 @@ public class JSONPersistentManager {
         if(!jsonMap.get(apiName.getValue()).containsKey("keywords")){
             jsonMap.get(apiName.getValue()).put("keywords", new ArrayList<String>());
         }
-        Map<String, List<String>> specificAPIMap =  jsonMap.get(apiName.getValue());
-        List<String> specificKeywordList =  specificAPIMap.get("keywords");
-        if(!specificKeywordList.contains(keyword)) {
-            specificKeywordList.add(keyword);
+        if(!jsonMap.get(apiName.getValue()).get("keywords").contains(keyword)) {
+            jsonMap.get(apiName.getValue()).get("keywords").add(keyword);
         }
-        specificAPIMap.put("keywords",specificKeywordList);
-        jsonMap.put(apiName.getValue(),specificAPIMap);
-
         try {
             jsonPersistentHelper.writeToJsonFile(jsonMapToJsonString());
         } catch (IOException e) {
@@ -89,13 +84,10 @@ public class JSONPersistentManager {
         if(!jsonMap.get(apiName.getValue()).containsKey("keywords")){
             jsonMap.get(apiName.getValue()).put("keywords", new ArrayList<String>());
         }
-        Map<String, List<String>> specificAPIMap =  jsonMap.get(apiName.getValue());
-        List<String> specificKeywordList =   specificAPIMap.get("keywords");
-        if(specificKeywordList.contains(keyword)) {
-            specificKeywordList.remove(keyword);
+
+        if(jsonMap.get(apiName.getValue()).get("keywords").contains(keyword)) {
+            jsonMap.get(apiName.getValue()).get("keywords").remove(keyword);
         }
-        specificAPIMap.put("keywords",specificKeywordList);
-        jsonMap.put(apiName.getValue(),specificAPIMap);
 
         try {
             jsonPersistentHelper.writeToJsonFile(jsonMapToJsonString());
@@ -121,11 +113,8 @@ public class JSONPersistentManager {
         if(!jsonMap.get(apiName.getValue()).containsKey("last-checked")){
             jsonMap.get(apiName.getValue()).put("last-checked", Arrays.asList(new String[1]));
         }
-        Map<String, List<String>> specificAPIMap = specificAPIMap = jsonMap.get(apiName.getValue());;
-        List<String> specificLastCheckedList = specificLastCheckedList = specificAPIMap.get("last-checked");
-        specificLastCheckedList.set(0, Long.toString(lastTimeCheckedSystemTimeMillis));
-        specificAPIMap.put("last-checked",specificLastCheckedList);
-        jsonMap.put(apiName.getValue(),specificAPIMap);
+
+        jsonMap.get(apiName.getValue()).get("last-checked").set(0, Long.toString(lastTimeCheckedSystemTimeMillis));
 
         try {
             jsonPersistentHelper.writeToJsonFile(jsonMapToJsonString());
@@ -136,8 +125,7 @@ public class JSONPersistentManager {
 
     public String getLastTimeCheckedForAPI(APINames apiName) throws Exception{
         try {
-            Map<String, List<String>> specificAPIMap = jsonMap.get(apiName.getValue());
-            return specificAPIMap.get("last-checked").get(0);
+            return  jsonMap.get(apiName.getValue()).get("last-checked").get(0);
         } catch (NullPointerException ne){
             ne.printStackTrace();
             throw new Exception("No entry for API: "+apiName.getValue(),ne);
