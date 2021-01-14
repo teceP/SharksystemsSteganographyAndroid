@@ -155,6 +155,8 @@ public class BaseUtil {
      * @return the list of keywords, or if no keywords were found, an empty list.
      */
     public Map<String, Long> getKeywordAndLastTimeCheckedMap(String onceUsedKeyword){
+        Log.i("call from subscription deamon reddit in redditutil", "getKeywordAndLastTimeCheckedMap:  ");
+
         Map<String, Long> keywords = new HashMap<>();
 
         if(onceUsedKeyword != null && onceUsedKeyword.length() > 0){
@@ -172,6 +174,8 @@ public class BaseUtil {
         }
 
         if (onceUsedKeyword == null && keywords == null || keywords.size() == 0) {
+            Log.i("got keywordanncheckmap call from subscription deamon reddit in redditutil", "getKeywordAndLastTimeCheckedMap: empty ");
+
             return Collections.emptyMap();
         }
         return keywords;

@@ -76,7 +76,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
     @Override
     public void run() {
-        logger.info("Run subs.deamon reddit");
+        logger.info("Run subs.deamon reddit 111111");
         this.latestPostEntries = this.getRecentMediaForSubscribedKeywords(null);
     }
 
@@ -88,6 +88,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
      *                        restored and for earch keyword will be searched in the network.
      */
     public Map<String, List<PostEntry>> getRecentMedia(String onceUsedKeyword) {
+        Log.i("reddit util getRecentMedia", "getRecentMedia: ");
         Map<String,Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(onceUsedKeyword);
         Log.i("reddit util getRecentMedia", "getRecentMedia: ");
         if (keywords == null || keywords.size() == 0) {
@@ -140,10 +141,11 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     @Override
     public List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword) {
         Log.i("RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords", keyword);
+        Log.i("RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords", "keyword");
         Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
-        List<PostEntry> latestPostEntries = new ArrayList<>();
         Log.i("RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords", keyword);
 
+        List<PostEntry> latestPostEntries = new ArrayList<>();
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
 

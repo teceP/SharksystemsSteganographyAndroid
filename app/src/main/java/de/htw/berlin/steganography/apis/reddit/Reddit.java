@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.reddit;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.MediaType;
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.Token;
@@ -229,9 +231,11 @@ public class Reddit extends SocialMedia {
         if (interval == null) {
             System.out.println(executor);
             scheduledFuture = executor.scheduleAtFixedRate(this.redditSubscriptionDeamon,0, DEFAULT_INTERVALL, TimeUnit.MINUTES);
+            Log.i("startsaerch","Start search was executed if.");
             System.out.println(executor);
 
         } else {
+            Log.i("startsaerch","Start search was executed else.");
             scheduledFuture = executor.schedule(this.redditSubscriptionDeamon, interval, TimeUnit.MINUTES);
         }
     }
