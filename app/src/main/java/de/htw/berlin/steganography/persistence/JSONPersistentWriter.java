@@ -12,7 +12,7 @@ import java.io.OutputStreamWriter;
 
 public class JSONPersistentWriter implements JSONPersistentHelper {
     Context context;
-    private final String FILE_NAME ="JSONPersistentManagerFile.json";
+    private final String FILE_NAME ="JSONPersistentManagerFile2.json";
 
     public JSONPersistentWriter(Context context){
         this.context = context;

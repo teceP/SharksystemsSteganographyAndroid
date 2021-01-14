@@ -18,7 +18,12 @@
 
 package de.htw.berlin.steganography.persistence;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.models.APINames;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -122,15 +127,41 @@ public class JSONPersistentManager {
             return null;
         }
     }
-
+/*
     private String jsonMapToJsonString(){
         Gson gson = new Gson();
         String json = gson.toJson(jsonMap);
+        Log.i("JSONPersistentManager jsonMapToJsonString", json);
         return  json;
     }
 
     private void jsonStringToJsonMap(String jsonString){
+        Log.i("JSONPersistentManager jsonStringToJsonMap", jsonString);
         Gson gson = new Gson();
         jsonMap = gson.fromJson(jsonString, Map.class);
+    }*/
+
+    private String jsonMapToJsonString(){
+
+        try {
+            String json = new String();
+            ObjectMapper objectMapper = new ObjectMapper();
+            json = objectMapper.writeValueAsString(jsonMap);
+            Log.i("JSONPersistentManager jsonMapToJsonString", json);
+            return json;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void jsonStringToJsonMap(String jsonString){
+        Log.i("JSONPersistentManager jsonStringToJsonMap", jsonString);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonMap = objectMapper.readValue(jsonString, Map.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 }

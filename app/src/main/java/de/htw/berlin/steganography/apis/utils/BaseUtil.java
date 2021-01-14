@@ -158,7 +158,7 @@ public class BaseUtil {
      * @return the list of keywords, or if no keywords were found, an empty list.
      */
     public Map<String, Long> getKeywordAndLastTimeCheckedMap(String onceUsedKeyword){
-        Log.i("4. BaseUtil called getKeywordAndLastTimeCheckedMap with onceUsedKeyword", onceUsedKeyword );
+        Log.i("4. BaseUtil called getKeywordAndLastTimeCheckedMap with onceUsedKeyword", onceUsedKeyword + String.valueOf(socialMedia.getLastTimeCheckedForKeyword("test")) );
 
         Map<String, Long> keywords = new HashMap<>();
 
