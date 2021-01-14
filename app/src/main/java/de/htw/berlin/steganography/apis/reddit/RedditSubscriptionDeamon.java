@@ -77,7 +77,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     @Override
     public void run() {
         logger.info("Run subs.deamon reddit 111111");
-        this.latestPostEntries = this.getRecentMediaForSubscribedKeywords(null);
+        this.latestPostEntries = this.getRecentMediaForSubscribedKeywords("test");
         Log.i("RedditSubscriptionDeamon run", "finished");
     }
 

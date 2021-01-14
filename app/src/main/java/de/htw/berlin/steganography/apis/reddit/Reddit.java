@@ -229,7 +229,6 @@ public class Reddit extends SocialMedia {
     public void startSearch() {
         logger.info("Start search was executed.");
         if (interval == null) {
-            System.out.println(executor);
             scheduledFuture = executor.scheduleAtFixedRate(this.redditSubscriptionDeamon,0, DEFAULT_INTERVALL, TimeUnit.MINUTES);
             Log.i("startsaerch","Start search was executed if.");
             System.out.println(executor);
