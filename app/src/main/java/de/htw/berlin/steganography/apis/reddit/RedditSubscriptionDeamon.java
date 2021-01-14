@@ -89,7 +89,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
      */
     public Map<String, List<PostEntry>> getRecentMedia(String onceUsedKeyword) {
         Map<String,Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(onceUsedKeyword);
-
+        Log.i("reddit util getRecentMedia", "getRecentMedia: ");
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
             return null;
@@ -122,7 +122,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                 }
 
                 logger.info(String.valueOf(con.getURL()));
+
                 resultMap.put(key, this.redditUtil.getPosts(responseString));
+                logger.info((resultMap.get(key).size()) + " entries found in getRecentMedia for keyword "+ key);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -130,15 +132,17 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
             }
         }
 
-        //logger.info((resultList.size()) + " postentries found.");
+        logger.info((resultMap.size()) + " keys searched." + resultMap.get("test").size());
         //resultList.stream().forEach(postEntry -> logger.info(postEntry.toString()));
         return resultMap;
     }
 
     @Override
     public List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword) {
+        Log.i("RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords", keyword);
         Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
         List<PostEntry> latestPostEntries = new ArrayList<>();
+        Log.i("RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords", keyword);
 
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
@@ -160,7 +164,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                     redditUtil.setLatestPostTimestamp(entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
 
-                    Log.i("new media found", "New media found.");
+                    Log.i("new media found for", entry.getKey());
                     for(PostEntry postEntry: entry.getValue()) {
                         latestPostEntries.add(postEntry);
                     }

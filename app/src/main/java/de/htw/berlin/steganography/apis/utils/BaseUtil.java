@@ -162,6 +162,9 @@ public class BaseUtil {
         }else{
             try {
                 keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
+                Log.i("got checkmap in redditutil", "getKeywordAndLastTimeCheckedMap: ");
+
+
                 //keywords.removeIf(String::isEmpty);
             } catch (Exception e) {
                 e.printStackTrace();
