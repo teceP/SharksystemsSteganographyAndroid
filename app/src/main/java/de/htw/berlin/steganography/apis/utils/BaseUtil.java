@@ -133,10 +133,13 @@ public class BaseUtil {
      *         '1231k512'.
      */
     public MyDate getLatestStoredTimestamp(String keyword) {
+        Log.i("15. BaseUtil getLatestStoredTimestamp called for keyword:", keyword);
         MyDate oldPostTimestamp = null;
+        Log.i("15.2 BaseUtil getLatestStoredTimestamp SocialMedia eintrag for keyword: "+keyword+" lastTimeChecked",String.valueOf( socialMedia.getLastTimeCheckedForKeyword(keyword)));
 
         try {
             String oldPostTimestampString = String.valueOf(socialMedia.getLastTimeCheckedForKeyword(keyword));
+            Log.i("16. BaseUtil getLatestStoredTimestamp keyword: " + keyword+" oldPostTimestampString:", oldPostTimestampString);
             oldPostTimestamp = new MyDate(new Date(Long.valueOf(oldPostTimestampString)));
         } catch (Exception e) {
             logger.info("Exception was thrown, while retrieving latest stored timestamp. Default value for latest timestamp is 'new Date(0)'.");
@@ -155,20 +158,20 @@ public class BaseUtil {
      * @return the list of keywords, or if no keywords were found, an empty list.
      */
     public Map<String, Long> getKeywordAndLastTimeCheckedMap(String onceUsedKeyword){
-        Log.i("call from subscription deamon reddit in redditutil", "getKeywordAndLastTimeCheckedMap:  ");
+        Log.i("4. BaseUtil called getKeywordAndLastTimeCheckedMap with onceUsedKeyword", onceUsedKeyword );
 
         Map<String, Long> keywords = new HashMap<>();
 
         //FIX FOR NOT NULL
         if(onceUsedKeyword != null && onceUsedKeyword.length() > 0){
             keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
-            Log.i("BaseUtil getKeywordAndLastTimeCheckedMap", "getKeywordAndLastTimeCheckedMap size:  "+ keywords.size());
+            Log.i("5. BaseUtil getKeywordAndLastTimeCheckedMap onceUsedKeyword!=null keywords Map size", String.valueOf(keywords.size()));
 
             //keywords.put(onceUsedKeyword, new Long(0));
         }else{
             try {
                 keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
-                Log.i("got checkmap in redditutil", "getKeywordAndLastTimeCheckedMap: ");
+                Log.i("5. BaseUtil getKeywordAndLastTimeCheckedMap onceUsedKeyword==null keywords Map size", String.valueOf(keywords.size()));
 
 
                 //keywords.removeIf(String::isEmpty);
@@ -178,7 +181,7 @@ public class BaseUtil {
         }
 
         if (onceUsedKeyword == null && keywords == null || keywords.size() == 0) {
-            Log.i("got keywordanncheckmap call from subscription deamon reddit in redditutil", "getKeywordAndLastTimeCheckedMap: empty ");
+            Log.i("5. got keywordanncheckmap call from subscription deamon reddit in redditutil", "getKeywordAndLastTimeCheckedMap: empty ");
 
             return Collections.emptyMap();
         }
@@ -218,6 +221,7 @@ public class BaseUtil {
      */
     public List<PostEntry> elimateOldPostEntries(MyDate latestStoredTimestamp, List<PostEntry> postEntries){
         //If current postEntry's timestamp is not newer than latestStored, filter it.
+        Log.i("17. BaseUtil eliminateOldPostEntries called with latestStoredTimestamp"+ String.valueOf(latestStoredTimestamp.getTime())+"and postEntries List size:", String.valueOf(postEntries.size()));
         return postEntries
                 .stream()
                 .filter(postEntry -> latestStoredTimestamp.compareTo(postEntry.getDate()) < 0)

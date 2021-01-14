@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.reddit;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.models.PostEntry;
@@ -80,6 +82,7 @@ public class RedditUtil extends BaseUtil {
      * @return Returns a sorted list of Postentries (downloadlinks and timestamps) from a json-String
      */
     public List<PostEntry> getPosts(String responseString){
+        Log.i("9. RedditUtil getPosts called with URL String", responseString);
         List<PostEntry> postEntries = new ArrayList<>();
         try{
             RedditGetResponse responseArray = new Gson().fromJson(responseString, RedditGetResponse.class);
@@ -94,6 +97,7 @@ public class RedditUtil extends BaseUtil {
         }catch (Exception e){
             e.printStackTrace();
         }
+        Log.i("10. RedditUtil getPosts return postEntries size", String.valueOf(postEntries.size()));
         return postEntries;
     }
 

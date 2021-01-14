@@ -117,7 +117,18 @@ public abstract class SocialMedia {
     }
 
     public Long getLastTimeCheckedForKeyword(String keyword){
-        return allSubscribedKeywordsAndLastTimeChecked.get(keyword);
+        if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)) {
+            Log.i("SocialMedia getLastTimeCheckedForKeyword map contains keyword: ", keyword);
+            if(allSubscribedKeywordsAndLastTimeChecked.get(keyword)!=null) {
+                Log.i("SocialMedia getLastTimeCheckedForKeyword keyword: "+ keyword+ " lastTimeChecked", String.valueOf(allSubscribedKeywordsAndLastTimeChecked.get(keyword)));
+                return allSubscribedKeywordsAndLastTimeChecked.get(keyword);
+            }
+            else{
+                return new Long(0);
+            }
+
+        }
+        return null;
     }
 
 
