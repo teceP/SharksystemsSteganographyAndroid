@@ -236,7 +236,7 @@ public class Reddit extends SocialMedia {
 
         } else {
             Log.i("startsaerch","Start search was executed else.");
-            scheduledFuture = executor.schedule(this.redditSubscriptionDeamon, interval, TimeUnit.MINUTES);
+            scheduledFuture = executor.scheduleAtFixedRate(this.redditSubscriptionDeamon, 0, interval, TimeUnit.MINUTES);
         }
     }
 

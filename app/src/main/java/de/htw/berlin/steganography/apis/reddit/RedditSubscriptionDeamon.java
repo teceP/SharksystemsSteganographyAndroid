@@ -78,6 +78,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     public void run() {
         logger.info("Run subs.deamon reddit 111111");
         this.latestPostEntries = this.getRecentMediaForSubscribedKeywords(null);
+        Log.i("RedditSubscriptionDeamon run", "finished");
     }
 
     /**
