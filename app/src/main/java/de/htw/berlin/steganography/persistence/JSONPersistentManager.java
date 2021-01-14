@@ -96,7 +96,12 @@ public class JSONPersistentManager {
     }
 
     public Map<String, Long> getKeywordAndLastTimeCheckedMapForAPI(APINames apiName){
-        return jsonMap.get(apiName.getValue());
+        if(jsonMap.containsKey(apiName.getValue())) {
+            return jsonMap.get(apiName.getValue());
+        }
+        else{
+            return new HashMap<>();
+        }
 
     }
 
@@ -109,8 +114,13 @@ public class JSONPersistentManager {
         }
     }
 
-    public long getLastTimeCheckedForKeywordForAPI(APINames apiName, String keyword){
-        return jsonMap.get(apiName.getValue()).get(keyword);
+    public Long getLastTimeCheckedForKeywordForAPI(APINames apiName, String keyword){
+        if(!jsonMap.containsKey(apiName.getValue()) && jsonMap.get(apiName.getValue()).containsKey(apiName.getValue())){
+            return jsonMap.get(apiName.getValue()).get(keyword);
+        }
+        else{
+            return null;
+        }
     }
 
     private String jsonMapToJsonString(){

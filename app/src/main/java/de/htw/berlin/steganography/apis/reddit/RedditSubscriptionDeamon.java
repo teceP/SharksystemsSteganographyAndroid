@@ -156,6 +156,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                      */
                     ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
                     BaseUtil.sortPostEntries(entry.getValue());
+                    Log.i("RedditSubscriptionDeamon called redditUitl.setLatestPostTiestamp with:", entry.getKey() +" "+entry.getValue().size());
                     redditUtil.setLatestPostTimestamp(entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
 

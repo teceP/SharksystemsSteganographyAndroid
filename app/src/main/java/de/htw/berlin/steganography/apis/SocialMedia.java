@@ -108,6 +108,7 @@ public abstract class SocialMedia {
     public boolean setLastTimeCheckedForKeyword(String keyword, Long lastTimeChecked){
         if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
             allSubscribedKeywordsAndLastTimeChecked.put(keyword, lastTimeChecked);
+            this.updateListenersLastTimeChecked(keyword);
             return true;
         }
         else{
