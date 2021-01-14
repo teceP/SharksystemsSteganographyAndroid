@@ -33,7 +33,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -85,21 +87,21 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
      *                        If this param is null or has 0 characters, the stored keywordlist will be
      *                        restored and for earch keyword will be searched in the network.
      */
-    public List<PostEntry> getRecentMedia(String onceUsedKeyword) {
-        List<String> keywords = redditUtil.getKeywordList(onceUsedKeyword);
+    public Map<String, List<PostEntry>> getRecentMedia(String onceUsedKeyword) {
+        Map<String,Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(onceUsedKeyword);
 
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
             return null;
         }
 
-        List<PostEntry> resultList = new ArrayList<>();
+        Map<String, List<PostEntry>> resultMap = new HashMap<>();
 
-        for (String keyword : keywords) {
+        for (String key : keywords.keySet()) {
             try {
                 URL url = new URL(
                         RedditConstants.BASE +
-                                RedditConstants.SUBREDDIT_PREFIX + keyword +
+                                RedditConstants.SUBREDDIT_PREFIX + key +
                                 "/new/" +
                                 RedditConstants.AS_JSON +
                                 "?count=20");
@@ -120,7 +122,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                 }
 
                 logger.info(String.valueOf(con.getURL()));
-                resultList.addAll(this.redditUtil.getPosts(responseString));
+                resultMap.put(key, this.redditUtil.getPosts(responseString));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -130,34 +132,46 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
         //logger.info((resultList.size()) + " postentries found.");
         //resultList.stream().forEach(postEntry -> logger.info(postEntry.toString()));
-        return resultList;
+        return resultMap;
     }
 
     @Override
     public List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword) {
-        List<PostEntry> tmp = this.getRecentMedia(keyword);
+        Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
+        List<PostEntry> latestPostEntries = new ArrayList<>();
 
         if (tmp != null) {
-            BaseUtil.sortPostEntries(tmp);
-            tmp = redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(), tmp);
-            logger.info((tmp.size()) + " postentries found after eliminate old entries INFO.");
-
-            if (tmp.size() > 0) {
-                newPostAvailable = true;
-                /**
-                 * TODO 0 oder letztes element.
-                 */
-                redditUtil.setLatestPostTimestamp(tmp.get(tmp.size()-1).getDate());
+            for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
 
 
-                Log.i("new media found", "New media found.");
-                latestPostEntries = tmp;
+                //NEED SORT TO UPDATE TIMESTAMP
+                //BaseUtil.sortPostEntries(tmp);
+                entry.setValue(redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(entry.getKey()), entry.getValue()));
+                logger.info((entry.getValue().size()) + " postentries found after eliminate old entries INFO.");
 
-                redditUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
-                Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size() ));
+                if (entry.getValue().size() > 0) {
+                    newPostAvailable = true;
+                    /**
+                     * TODO 0 oder letztes element.
+                     */
+                    ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
+                    BaseUtil.sortPostEntries(entry.getValue());
+                    redditUtil.setLatestPostTimestamp(entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
-                return latestPostEntries;
+
+                    Log.i("new media found", "New media found.");
+                    for(PostEntry postEntry: entry.getValue()) {
+                        latestPostEntries.add(postEntry);
+                    }
+
+
+
+                }
             }
+            redditUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+            Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size()));
+
+            return latestPostEntries;
         }
 
         logger.info("No new media found.");

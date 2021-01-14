@@ -88,22 +88,22 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
      *                        If this param is null or has 0 characters, the stored keywordlist will be
      *                        restored and for earch keyword will be searched in the network.
      */
-    public List<PostEntry> getRecentMedia(String onceUsedKeyword) {
-        List<String> keywords = imgurUtil.getKeywordList(onceUsedKeyword);
+     public Map<String, List<PostEntry>> getRecentMedia(String onceUsedKeyword) {
+        Map<String,Long> keywords = imgurUtil.getKeywordAndLastTimeCheckedMap(onceUsedKeyword);
 
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
             return null;
         }
 
-        List<PostEntry> resultList = new ArrayList<>();
+        Map<String, List<PostEntry>> resultMap = new HashMap<>();
 
-        for (String keyword : keywords) {
-            logger.info("Check for new post entries for keyword '" + keyword + "' ...");
+        for (String key : keywords.keySet()) {
+            logger.info("Check for new post entries for keyword '" + key + "' ...");
 
             try {
                 URL url = new URL(
-                        BASE_URI + SEARCH_URI + keyword);
+                        BASE_URI + SEARCH_URI + key);
 
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod(RedditConstants.GET);
@@ -122,41 +122,58 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
                 }
 
                 logger.info(String.valueOf(con.getURL()));
-                resultList.addAll(this.imgurUtil.getPosts(responseString));
+                resultMap.put(key, this.imgurUtil.getPosts(responseString));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+
         }
 
         //logger.info((resultList.size()) + " postentries found.");
         //resultList.stream().forEach(postEntry -> logger.info(postEntry.toString()));
-        return resultList;
+        return resultMap;
     }
 
     @Override
     public List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword) {
-        List<PostEntry> tmp = getRecentMedia(keyword);
+        Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
+        List<PostEntry> latestPostEntries = new ArrayList<>();
 
         if (tmp != null) {
-            BaseUtil.sortPostEntries(tmp);
-            tmp = imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(), tmp);
-            if (tmp.size() > 0) {
-                newPostAvailable = true;
+            for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
 
-                /**
-                 * TODO 0 oder letztes element.
-                 */
 
-                imgurUtil.setLatestPostTimestamp(tmp.get(tmp.size()-1).getDate());
-                latestPostEntries = tmp;
-                logger.info("New media found.");
-                this.imgurUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
-                Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size() ));
+                //NEED SORT TO UPDATE TIMESTAMP
+                //BaseUtil.sortPostEntries(tmp);
+                entry.setValue(imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(entry.getKey()), entry.getValue()));
+                logger.info((entry.getValue().size()) + " postentries found after eliminate old entries INFO.");
 
-                return latestPostEntries;
+                if (entry.getValue().size() > 0) {
+                    newPostAvailable = true;
+                    /**
+                     * TODO 0 oder letztes element.
+                     */
+                    ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
+                    BaseUtil.sortPostEntries(entry.getValue());
+                    imgurUtil.setLatestPostTimestamp(entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
+
+
+                    Log.i("new media found", "New media found.");
+                    for(PostEntry postEntry: entry.getValue()) {
+                        latestPostEntries.add(postEntry);
+                    }
+
+
+
+                }
             }
+            imgurUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+            Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size()));
+
+            return latestPostEntries;
         }
 
         logger.info("No new media found.");

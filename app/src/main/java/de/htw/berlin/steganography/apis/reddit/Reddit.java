@@ -31,6 +31,7 @@ import okhttp3.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -202,11 +203,11 @@ public class Reddit extends SocialMedia {
     }
 
     @Override
-    public List<String> getAllSubscribedKeywords() {
+    public Map<String, Long> getAllSubscribedKeywordsAndLastTimeChecked() {
         try{
-            return allSubscribedKeywords;
+            return allSubscribedKeywordsAndLastTimeChecked;
         } catch (Exception e) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
     }
 
@@ -238,21 +239,26 @@ public class Reddit extends SocialMedia {
     @Override
     public boolean unsubscribeKeyword(String keyword) {
         if (scheduledFuture == null) {
-            if (allSubscribedKeywords.stream().anyMatch(s -> s.equals(keyword))) {
-                allSubscribedKeywords.remove(keyword);
+            if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
+                allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
                 logger.info("Removed keyword '" + keyword + "' from Reddit.");
                 return true;
             }
-        } else {
+            else {
+                return false;
+            }
+        }
+        else {
             if (isSchedulerRunning())
                 stopSearch();
 
             try {
-                if (allSubscribedKeywords.stream().anyMatch(s -> s.equals(keyword))) {
-                    allSubscribedKeywords.remove(keyword);
+                if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
+                    allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
                     logger.info("Removed keyword '" + keyword + "' from Reddit.");
                     return true;
                 }
+
             } catch (Exception e) {
                 logger.info(keyword + " was not found in keywordlist.");
             }

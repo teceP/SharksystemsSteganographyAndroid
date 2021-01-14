@@ -12,7 +12,7 @@ import java.io.OutputStreamWriter;
 
 public class JSONPersistentWriter implements JSONPersistentHelper {
     Context context;
-    private final String FILE_NAME ="JSONPersistentFile.json";
+    private final String FILE_NAME ="JSONPersistentManagerFile.json";
 
     public JSONPersistentWriter(Context context){
         this.context = context;
@@ -26,7 +26,7 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
             outputStreamWriter.close();
         }
         catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
+            Log.e("JSONPersistentManager", "File write failed: " + e.toString());
         }
     }
 
@@ -52,9 +52,9 @@ public class JSONPersistentWriter implements JSONPersistentHelper {
             }
         }
         catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
+            Log.e("JSONPersistentWriter", "File not found: " + e.toString());
         } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
+            Log.e("JSONPersistentWriter", "Can not read file: " + e.toString());
         }
 
         return ret;

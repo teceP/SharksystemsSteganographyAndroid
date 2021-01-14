@@ -21,7 +21,6 @@ package de.htw.berlin.steganography.apis.utils;
 import android.util.Log;
 
 import de.htw.berlin.steganography.apis.SocialMedia;
-import de.htw.berlin.steganography.apis.models.APINames;
 import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.models.PostEntry;
 import de.htw.berlin.steganography.steganography.Steganography;
@@ -34,7 +33,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -118,9 +119,9 @@ public class BaseUtil {
      * according to a specific network.
      * @param latestPostTimestamp
      */
-    public void setLatestPostTimestamp(MyDate latestPostTimestamp) {
+    public void setLatestPostTimestamp(String keyword, MyDate latestPostTimestamp) {
         logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
-        socialMedia.setLastTimeChecked(latestPostTimestamp.getTime());
+        socialMedia.setLastTimeCheckedForKeyword(keyword, latestPostTimestamp.getTime());
         Log.i("called social media setLatest", "called social media setLatest");
 
     }
@@ -131,11 +132,11 @@ public class BaseUtil {
      *         or the timestamp was stored wrong e.g. with an character for an example 'k' within the stored value like
      *         '1231k512'.
      */
-    public MyDate getLatestStoredTimestamp() {
+    public MyDate getLatestStoredTimestamp(String keyword) {
         MyDate oldPostTimestamp = null;
 
         try {
-            String oldPostTimestampString = String.valueOf(socialMedia.getLastTimeChecked());
+            String oldPostTimestampString = String.valueOf(socialMedia.getLastTimeCheckedForKeyword(keyword));
             oldPostTimestamp = new MyDate(new Date(Long.valueOf(oldPostTimestampString)));
         } catch (Exception e) {
             logger.info("Exception was thrown, while retrieving latest stored timestamp. Default value for latest timestamp is 'new Date(0)'.");
@@ -153,22 +154,22 @@ public class BaseUtil {
      *                        All empty occuring keywords will be removed from the list.
      * @return the list of keywords, or if no keywords were found, an empty list.
      */
-    public List<String> getKeywordList(String onceUsedKeyword){
-        List<String> keywords = new ArrayList<>();
+    public Map<String, Long> getKeywordAndLastTimeCheckedMap(String onceUsedKeyword){
+        Map<String, Long> keywords = new HashMap<>();
 
         if(onceUsedKeyword != null && onceUsedKeyword.length() > 0){
-            keywords.add(onceUsedKeyword);
+            keywords.put(onceUsedKeyword, new Long(0));
         }else{
             try {
-                keywords = socialMedia.getAllSubscribedKeywords();
-                keywords.removeIf(String::isEmpty);
+                keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
+                //keywords.removeIf(String::isEmpty);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         if (onceUsedKeyword == null && keywords == null || keywords.size() == 0) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
         return keywords;
     }
