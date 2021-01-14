@@ -161,13 +161,13 @@ public class Reddit extends SocialMedia {
      */
     @Override
     public void changeSchedulerPeriod(Integer interval) {
-        if(isSchedulerRunning())
+        if(isSchedulerRunning()) {
             stopSearch();
-
+            this.interval = interval;
+            startSearch();
+        }
         this.interval = interval;
 
-        if(isSchedulerRunning())
-            startSearch();
     }
 
     /**
@@ -222,7 +222,7 @@ public class Reddit extends SocialMedia {
     public void stopSearch() {
         logger.info("Stop searched was executed.");
         if (scheduledFuture != null && !scheduledFuture.isCancelled())
-            scheduledFuture.cancel(false);
+            scheduledFuture.cancel(true);
     }
 
     @Override

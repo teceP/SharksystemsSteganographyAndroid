@@ -94,7 +94,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         Log.i("reddit util getRecentMedia", "getRecentMedia: ");
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
-            return null;
+            return Collections.emptyMap();
         }
 
         Map<String, List<PostEntry>> resultMap = new HashMap<>();
