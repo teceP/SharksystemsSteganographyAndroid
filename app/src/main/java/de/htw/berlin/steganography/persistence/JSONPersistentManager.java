@@ -23,6 +23,7 @@ import android.util.Log;
 import de.htw.berlin.steganography.apis.models.APINames;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
@@ -159,6 +160,7 @@ public class JSONPersistentManager {
         Log.i("JSONPersistentManager jsonStringToJsonMap", jsonString);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.enable(DeserializationFeature.USE_LONG_FOR_INTS);
             jsonMap = objectMapper.readValue(jsonString, Map.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();

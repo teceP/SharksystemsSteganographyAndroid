@@ -148,7 +148,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         Log.i("2. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords called with keyword", keyword);
         Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
         Log.i("13 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp.get(\"test\").size", String.valueOf(tmp.get("test").size()));
-        Log.i("13.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp size", String.valueOf(tmp.size()));
+        Log.i("13.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp.get(\"hallo\").size", String.valueOf(tmp.get("test").size()));
+
+        Log.i("13.3 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp size", String.valueOf(tmp.size()));
 
         List<PostEntry> latestPostEntries = new ArrayList<>();
         if (tmp != null) {
