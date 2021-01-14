@@ -22,6 +22,7 @@ import android.util.Log;
 
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.SubscriptionDeamon;
+import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
 import de.htw.berlin.steganography.apis.models.PostEntry;
 
@@ -33,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +92,10 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
      */
     public Map<String, List<PostEntry>> getRecentMedia(String onceUsedKeyword) {
         Log.i("reddit util getRecentMedia", "getRecentMedia: ");
+        //Currently fix for not null
         Map<String,Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(onceUsedKeyword);
-        Log.i("reddit util getRecentMedia", "getRecentMedia: ");
+
+        Log.i("reddit util keywords size", String.valueOf(keywords.size()));
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
             return Collections.emptyMap();
@@ -145,16 +149,15 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         Log.i("RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords", "keyword");
         Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
         Log.i("RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords", keyword);
-
+        Log.i("RedditSubscriptionDeamon tmp size", String.valueOf(tmp.size()));
         List<PostEntry> latestPostEntries = new ArrayList<>();
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
 
 
-                //NEED SORT TO UPDATE TIMESTAMP
-                //BaseUtil.sortPostEntries(tmp);
+                //remove old posts
                 entry.setValue(redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(entry.getKey()), entry.getValue()));
-                logger.info((entry.getValue().size()) + " postentries found after eliminate old entries INFO.");
+                logger.info((entry.getValue().size()) + " postentries found after eliminate old entries for keyword: "+ entry.getKey());
 
                 if (entry.getValue().size() > 0) {
                     newPostAvailable = true;
@@ -173,6 +176,12 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                     }
 
 
+
+                }
+
+                //wenn keine neuen postentries vorhanden call setLatestPostTimestamp auf den gespeicherten timestamp
+                else{
+                    redditUtil.setLatestPostTimestamp(entry.getKey(), new MyDate( new Date(redditUtil.getSocialMedia().getLastTimeCheckedForKeyword(entry.getKey()))));
 
                 }
             }

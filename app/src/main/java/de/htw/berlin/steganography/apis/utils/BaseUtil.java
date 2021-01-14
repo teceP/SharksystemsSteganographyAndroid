@@ -159,8 +159,12 @@ public class BaseUtil {
 
         Map<String, Long> keywords = new HashMap<>();
 
+        //FIX FOR NOT NULL
         if(onceUsedKeyword != null && onceUsedKeyword.length() > 0){
-            keywords.put(onceUsedKeyword, new Long(0));
+            keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
+            Log.i("BaseUtil getKeywordAndLastTimeCheckedMap", "getKeywordAndLastTimeCheckedMap size:  "+ keywords.size());
+
+            //keywords.put(onceUsedKeyword, new Long(0));
         }else{
             try {
                 keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
@@ -229,6 +233,7 @@ public class BaseUtil {
     public static String decodeUrl(String url){
         return url.replace("amp;", "");
     }
+
 
 
 }
