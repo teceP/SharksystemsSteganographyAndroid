@@ -175,7 +175,10 @@ public class Reddit extends SocialMedia {
      * @return
      */
     public boolean isSchedulerRunning(){
-        return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();
+        if(scheduledFuture!=null){
+        return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();}
+        else{ return false;
+        }
     }
 
 

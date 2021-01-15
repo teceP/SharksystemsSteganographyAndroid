@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -147,8 +148,6 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     public List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword) {
         Log.i("2. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords called with keyword", keyword);
         Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
-        Log.i("13 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp.get(\"test\").size", String.valueOf(tmp.get("test").size()));
-        Log.i("13.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp.get(\"hallo\").size", String.valueOf(tmp.get("test").size()));
 
         Log.i("13.3 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp size", String.valueOf(tmp.size()));
 
@@ -156,9 +155,10 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
                 Log.i("14. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords iterate through tmp.entrySet for keyword:"+entry.getKey()+" postEntires List size:", String.valueOf(entry.getValue().size()) );
-
+                Log.i("14.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords last checked for keyword "+entry.getKey() , String.valueOf(redditUtil.getLatestStoredTimestamp(entry.getKey()).getTime())  );
                 //remove old posts
-                entry.setValue(redditUtil.elimateOldPostEntries(redditUtil.getLatestStoredTimestamp(entry.getKey()), entry.getValue()));
+                MyDate myDate= redditUtil.getLatestStoredTimestamp(entry.getKey());
+                entry.setValue(redditUtil.elimateOldPostEntries(myDate,entry.getValue()));
                 Log.i("18. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords eliminated old postEntires for keyword: "+entry.getKey()+", remaining postEntries", String.valueOf(entry.getValue().size()));
                 //logger.info((entry.getValue().size()) + " postentries found after eliminate old entries for keyword: "+ entry.getKey());
 
@@ -180,6 +180,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
 
 
+                }
+                else{
+                    redditUtil.setLatestPostTimestamp(entry.getKey(), redditUtil.getLatestStoredTimestamp(entry.getKey()));
                 }
 
 
