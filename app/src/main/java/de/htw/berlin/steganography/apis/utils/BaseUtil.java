@@ -48,21 +48,13 @@ import java.util.stream.Collectors;
  */
 public class BaseUtil {
     private static final Logger logger = Logger.getLogger(BaseUtil.class.getName());
-    private SocialMedia socialMedia;
 
-    public BaseUtil(SocialMedia socialMedia){
-        this.socialMedia = socialMedia;
+
+    public BaseUtil(){
+
     }
 
-    public void setSocialMedia(SocialMedia socialMedia) {
-        this.socialMedia = socialMedia;
-    }
-
-    public SocialMedia getSocialMedia(){
-        return socialMedia;
-    }
-
-    public void updateListeners(List<String> msgList) {
+    public void updateListeners(SocialMedia socialMedia, List<String> msgList) {
         class AndroidDownloadTask implements Runnable{
             SocialMedia socialMediaTask;
             List<String> msgListTask;
@@ -101,7 +93,7 @@ public class BaseUtil {
                 this.socialMediaTask.setMessage(decodedMessageString);
             }
         };
-        Thread t = new Thread(new AndroidDownloadTask(this.socialMedia, msgList));
+        Thread t = new Thread(new AndroidDownloadTask(socialMedia, msgList));
         t.start();
 
     }
@@ -119,7 +111,7 @@ public class BaseUtil {
      * according to a specific network.
      * @param latestPostTimestamp
      */
-    public void setLatestPostTimestamp(String keyword, MyDate latestPostTimestamp) {
+    public void setLatestPostTimestamp(SocialMedia socialMedia, String keyword, MyDate latestPostTimestamp) {
         logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
         socialMedia.setLastTimeCheckedForKeyword(keyword, latestPostTimestamp.getTime());
         Log.i("called social media setLatest", "called social media setLatest");
@@ -132,7 +124,7 @@ public class BaseUtil {
      *         or the timestamp was stored wrong e.g. with an character for an example 'k' within the stored value like
      *         '1231k512'.
      */
-    public MyDate getLatestStoredTimestamp(String keyword) {
+    public MyDate getLatestStoredTimestamp(SocialMedia socialMedia, String keyword) {
         Log.i("15. BaseUtil getLatestStoredTimestamp called for keyword:", keyword);
         MyDate oldPostTimestamp = null;
         Log.i("15.2 BaseUtil getLatestStoredTimestamp SocialMedia eintrag for keyword: "+keyword+" lastTimeChecked",String.valueOf( socialMedia.getLastTimeCheckedForKeyword(keyword)));
@@ -151,40 +143,18 @@ public class BaseUtil {
 
     /**
      * Generates the keyword list, which has to be processed by the subscription deamons.
-     *
-     * @param onceUsedKeyword If keyword is NOT null AND the length is NOT 0, a list with just and only this keyword gets returned.
-     *                        If the keyword is null or the length is 0, a keywordlist will be restored by the JSONPersistentManager.
-     *                        All empty occuring keywords will be removed from the list.
+
      * @return the list of keywords, or if no keywords were found, an empty list.
      */
-    public Map<String, Long> getKeywordAndLastTimeCheckedMap(String onceUsedKeyword){
-        Log.i("4. BaseUtil called getKeywordAndLastTimeCheckedMap with onceUsedKeyword", onceUsedKeyword );
-        Log.i("checking that lastTimeChecked now is actually Long and accesing it doesnt crash the app and value is correct", " last time checked: test : " +socialMedia.getLastTimeCheckedForKeyword("test"));
+    public Map<String, Long> getKeywordAndLastTimeCheckedMap(SocialMedia socialMedia){
+        Log.i("4. BaseUtil called getKeywordAndLastTimeCheckedMap for socialMedia", socialMedia.getApiName() );
+
         Map<String, Long> keywords = new HashMap<>();
 
-        //FIX FOR NOT NULL
-        if(onceUsedKeyword != null && onceUsedKeyword.length() > 0){
-            keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
-            Log.i("5. BaseUtil getKeywordAndLastTimeCheckedMap onceUsedKeyword!=null keywords Map size", String.valueOf(keywords.size()));
-
-            //keywords.put(onceUsedKeyword, new Long(0));
-        }else{
-            try {
-                keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
-                Log.i("5. BaseUtil getKeywordAndLastTimeCheckedMap onceUsedKeyword==null keywords Map size", String.valueOf(keywords.size()));
+        keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
+        Log.i("5. BaseUtil getKeywordAndLastTimeCheckedMap keywords Map size", String.valueOf(keywords.size()));
 
 
-                //keywords.removeIf(String::isEmpty);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (onceUsedKeyword == null && keywords == null || keywords.size() == 0) {
-            Log.i("5. got keywordanncheckmap call from subscription deamon reddit in redditutil", "getKeywordAndLastTimeCheckedMap: empty ");
-
-            return Collections.emptyMap();
-        }
         return keywords;
     }
 

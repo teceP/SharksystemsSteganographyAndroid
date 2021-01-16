@@ -48,8 +48,7 @@ public class RedditUtil extends BaseUtil {
 
     private final static Logger logger = Logger.getLogger(Reddit.class.getName());
 
-    public RedditUtil(SocialMedia socialMedia) {
-        super(socialMedia);
+    public RedditUtil() {
     }
 
     /**

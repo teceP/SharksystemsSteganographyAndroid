@@ -59,6 +59,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
      * Utilities for processing the search
      */
     private RedditUtil redditUtil;
+    private SocialMedia socialMedia;
 
     /**
      * Represents if there were post entries found in the last search
@@ -73,28 +74,25 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     /**
      * Subcription for a Keyword in a Social Media
      */
-    public RedditSubscriptionDeamon(RedditUtil redditUtil) {
+    public RedditSubscriptionDeamon(SocialMedia socialMedia, RedditUtil redditUtil) {
         this.redditUtil = redditUtil;
+        this.socialMedia = socialMedia;
     }
 
     @Override
     public void run() {
         Log.i("1. RedditSubscriptionDeamon run","started");
-        this.latestPostEntries = this.getRecentMediaForSubscribedKeywords("DUMMYKEYWORD");
+        this.latestPostEntries = this.getRecentMediaForSubscribedKeywords();
         Log.i("RedditSubscriptionDeamon run","finished");
     }
 
     /**
      * Searches for the latest upload medias in this social media network for the given keyword.
-     * @param onceUsedKeyword If this String is not null and has more characters than 0, the method will
-     *                        search only for this keyword.
-     *                        If this param is null or has 0 characters, the stored keywordlist will be
-     *                        restored and for earch keyword will be searched in the network.
      */
-    public Map<String, List<PostEntry>> getRecentMedia(String onceUsedKeyword) {
-        Log.i("3. RedditSubscriptionDeamon getRecentMedia called with onceUsedKeyword", onceUsedKeyword);
+    public Map<String, List<PostEntry>> getRecentMedia() {
+        Log.i("3. RedditSubscriptionDeamon getRecentMedia called", "true");
         //Currently fix for not null
-        Map<String,Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(onceUsedKeyword);
+        Map<String,Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(socialMedia);
 
         Log.i("6. RedditSubscriptionDeamon getRecentMedia keywords map size", String.valueOf(keywords.size()));
         if (keywords == null || keywords.size() == 0) {
@@ -145,9 +143,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     }
 
     @Override
-    public List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword) {
-        Log.i("2. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords called with keyword", keyword);
-        Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
+    public List<PostEntry> getRecentMediaForSubscribedKeywords() {
+        Log.i("2. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords called ", "true");
+        Map<String, List<PostEntry>> tmp = this.getRecentMedia();
 
         Log.i("13.3 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp size", String.valueOf(tmp.size()));
 
@@ -155,9 +153,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
                 Log.i("14. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords iterate through tmp.entrySet for keyword:"+entry.getKey()+" postEntires List size:", String.valueOf(entry.getValue().size()) );
-                Log.i("14.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords last checked for keyword "+entry.getKey() , String.valueOf(redditUtil.getLatestStoredTimestamp(entry.getKey()).getTime())  );
+                Log.i("14.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords last checked for keyword "+entry.getKey() , String.valueOf(redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()).getTime())  );
                 //remove old posts
-                MyDate myDate= redditUtil.getLatestStoredTimestamp(entry.getKey());
+                MyDate myDate= redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey());
                 entry.setValue(redditUtil.elimateOldPostEntries(myDate,entry.getValue()));
                 Log.i("18. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords eliminated old postEntires for keyword: "+entry.getKey()+", remaining postEntries", String.valueOf(entry.getValue().size()));
                 //logger.info((entry.getValue().size()) + " postentries found after eliminate old entries for keyword: "+ entry.getKey());
@@ -170,7 +168,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                     ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
                     BaseUtil.sortPostEntries(entry.getValue());
                     Log.i("19. RedditSubscriptionDeamon called redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() +" and postEntries List size: "+entry.getValue().size());
-                    redditUtil.setLatestPostTimestamp(entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
+                    redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
 
                     Log.i("new media found for", entry.getKey());
@@ -182,12 +180,12 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
                 }
                 else{
-                    redditUtil.setLatestPostTimestamp(entry.getKey(), redditUtil.getLatestStoredTimestamp(entry.getKey()));
+                    redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()));
                 }
 
 
             }
-            redditUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+            redditUtil.updateListeners(socialMedia, latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
             Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size()));
 
             return latestPostEntries;

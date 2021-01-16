@@ -163,7 +163,7 @@ public abstract class SocialMedia {
      * @param keyword hashtag
      * @return true if successful
      */
-    public abstract List<byte[]> getRecentMediaForKeyword(String keyword);
+    public abstract List<byte[]> getRecentMediaForKeyword();
 
     public abstract void stopSearch();
 

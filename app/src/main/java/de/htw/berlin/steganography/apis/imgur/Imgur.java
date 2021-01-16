@@ -87,8 +87,8 @@ public class Imgur extends SocialMedia {
      * Standard constructor prepares the Subscriptiondeamon but does not start it
      */
     public Imgur() {
-        imgurUtil = new ImgurUtil(this);
-        imgurSubscriptionDeamon = new ImgurSubscriptionDeamon(imgurUtil);
+        imgurUtil = new ImgurUtil();
+        imgurSubscriptionDeamon = new ImgurSubscriptionDeamon(this, imgurUtil);
         executor = Executors.newScheduledThreadPool(1);
     }
 
@@ -251,8 +251,8 @@ public class Imgur extends SocialMedia {
 
 
     @Override
-    public List<byte[]> getRecentMediaForKeyword(String keyword) {
-        return Optional.ofNullable(this.imgurSubscriptionDeamon.getRecentMediaForSubscribedKeywords(keyword))
+    public List<byte[]> getRecentMediaForKeyword() {
+        return Optional.ofNullable(this.imgurSubscriptionDeamon.getRecentMediaForSubscribedKeywords())
                 .orElseGet(Collections::emptyList)
                 .stream()
                 .map(entry -> BlobConverterImpl.downloadToByte(entry.getUrl()))

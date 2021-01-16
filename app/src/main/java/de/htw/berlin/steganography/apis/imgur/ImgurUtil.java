@@ -42,8 +42,8 @@ public class ImgurUtil extends BaseUtil {
 
     private static final Logger logger = Logger.getLogger(ImgurUtil.class.getName());
 
-    public ImgurUtil(SocialMedia socialMedia) {
-        super(socialMedia);
+    public ImgurUtil() {
+
     }
 
     /**

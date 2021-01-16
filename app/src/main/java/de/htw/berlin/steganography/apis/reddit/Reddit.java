@@ -90,8 +90,8 @@ public class Reddit extends SocialMedia {
      * Default constructor. Prepares the subscription deamon, utils and the executor.
      */
     public Reddit() {
-        this.redditUtil = new RedditUtil(this);
-        this.redditSubscriptionDeamon = new RedditSubscriptionDeamon(redditUtil);
+        this.redditUtil = new RedditUtil();
+        this.redditSubscriptionDeamon = new RedditSubscriptionDeamon(this,redditUtil);
         executor = Executors.newScheduledThreadPool(1);
     }
 
@@ -184,8 +184,8 @@ public class Reddit extends SocialMedia {
 
 
     @Override
-    public List<byte[]> getRecentMediaForKeyword(String keyword) {
-        return Optional.ofNullable(this.redditSubscriptionDeamon.getRecentMediaForSubscribedKeywords(keyword))
+    public List<byte[]> getRecentMediaForKeyword() {
+        return Optional.ofNullable(this.redditSubscriptionDeamon.getRecentMediaForSubscribedKeywords())
                 .orElseGet(Collections::emptyList)
                 .stream()
                 .map(entry -> BlobConverterImpl.downloadToByte(entry.getUrl()))

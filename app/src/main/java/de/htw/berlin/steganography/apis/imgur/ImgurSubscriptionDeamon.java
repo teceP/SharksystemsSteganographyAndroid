@@ -56,6 +56,8 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
      */
     private ImgurUtil imgurUtil;
 
+    private SocialMedia socialMedia;
+
     /**
      * Represents if there were post entries found in the last search
      */
@@ -69,8 +71,9 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
     /**
      * Subcription for a Keyword in a Social Media
      */
-    public ImgurSubscriptionDeamon(ImgurUtil imgurUtil) {
+    public ImgurSubscriptionDeamon(SocialMedia socialMedia, ImgurUtil imgurUtil) {
         this.imgurUtil = imgurUtil;
+        this.socialMedia = socialMedia;
     }
 
 
@@ -78,18 +81,14 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
     @Override
     public void run() {
         //bool newPostAvailable will be setted in getRecentMediaForSubscribedKeywords()
-        this.latestPostEntries = this.getRecentMediaForSubscribedKeywords(null);
+        this.latestPostEntries = this.getRecentMediaForSubscribedKeywords();
     }
 
     /**
      * Searches for the latest upload medias in this social media network for the given keyword.
-     * @param onceUsedKeyword If this String is not null and has more characters than 0, the method will
-     *                        search only for this keyword.
-     *                        If this param is null or has 0 characters, the stored keywordlist will be
-     *                        restored and for earch keyword will be searched in the network.
      */
-     public Map<String, List<PostEntry>> getRecentMedia(String onceUsedKeyword) {
-        Map<String,Long> keywords = imgurUtil.getKeywordAndLastTimeCheckedMap(onceUsedKeyword);
+     public Map<String, List<PostEntry>> getRecentMedia() {
+        Map<String,Long> keywords = imgurUtil.getKeywordAndLastTimeCheckedMap(socialMedia);
 
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
@@ -138,8 +137,8 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
     }
 
     @Override
-    public List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword) {
-        Map<String, List<PostEntry>> tmp = this.getRecentMedia(keyword);
+    public List<PostEntry> getRecentMediaForSubscribedKeywords() {
+        Map<String, List<PostEntry>> tmp = this.getRecentMedia();
         List<PostEntry> latestPostEntries = new ArrayList<>();
 
         if (tmp != null) {
@@ -148,7 +147,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
 
                 //NEED SORT TO UPDATE TIMESTAMP
                 //BaseUtil.sortPostEntries(tmp);
-                entry.setValue(imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(entry.getKey()), entry.getValue()));
+                entry.setValue(imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(socialMedia,entry.getKey()), entry.getValue()));
                 logger.info((entry.getValue().size()) + " postentries found after eliminate old entries INFO.");
 
                 if (entry.getValue().size() > 0) {
@@ -158,7 +157,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
                      */
                     ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
                     BaseUtil.sortPostEntries(entry.getValue());
-                    imgurUtil.setLatestPostTimestamp(entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
+                    imgurUtil.setLatestPostTimestamp(socialMedia,entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
 
                     Log.i("new media found", "New media found.");
@@ -170,7 +169,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
 
                 }
             }
-            imgurUtil.updateListeners(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+            imgurUtil.updateListeners(socialMedia,latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
             Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size()));
 
             return latestPostEntries;

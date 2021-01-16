@@ -31,10 +31,10 @@ public interface SubscriptionDeamon extends Runnable {
     /**
      * Searches for new post entries for a specific keyword, or for all stored keywords.
      *
-     * @param keyword If onceUsedKeyword is null, every stored keyword will be processed.
+
      * @return
      */
-    List<PostEntry> getRecentMediaForSubscribedKeywords(String keyword);
+    List<PostEntry> getRecentMediaForSubscribedKeywords();
 
     /**
      * Getter & Setter
