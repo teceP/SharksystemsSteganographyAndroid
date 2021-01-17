@@ -90,7 +90,7 @@ public class BaseUtil {
                     }
                 }
                 Log.i("BaseUtil updateListeners", "finished decoding all files");
-                this.socialMediaTask.setMessage(decodedMessageString);
+                this.socialMediaTask.addMessages(decodedMessageString);
             }
         };
         Thread t = new Thread(new AndroidDownloadTask(socialMedia, msgList));

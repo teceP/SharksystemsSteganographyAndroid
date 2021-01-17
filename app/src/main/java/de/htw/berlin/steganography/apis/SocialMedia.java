@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -59,11 +60,17 @@ public abstract class SocialMedia {
         Log.i("SocialMedia updateListenersLastTimeChecked", "finished");
     }
 
-    public void setMessage(List<String> messageList){
+    public void setMessages(List<String> messageList){
         this.message = messageList;
         updateListenersMessages();
     }
 
+    public void addMessages(List<String> messageList){
+        for(String string: messageList){
+            this.message.add(string);
+        }
+        updateListenersMessages();
+    }
 
     public List<String> getEncodedMessage(){
         return encodedMessage;
@@ -160,7 +167,7 @@ public abstract class SocialMedia {
 
     /**
      * Get Medias posted under keyword
-     * @param keyword hashtag
+
      * @return true if successful
      */
     public abstract List<byte[]> getRecentMediaForKeyword();
