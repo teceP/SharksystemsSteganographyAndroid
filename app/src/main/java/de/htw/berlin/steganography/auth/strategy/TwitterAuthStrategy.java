@@ -5,9 +5,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import de.htw.berlin.steganography.OAuthMainActivity;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class TwitterAuthStrategy  extends BasicAbstractAuthStrategy{
+    public TwitterAuthStrategy(OAuthMainActivity context, AuthInformation authInformation) {
+        super(context, authInformation);
+    }
 
     /*TODO implement methods and do following:
      Am Ende jeder Methode muss folgende Methode aufgerufen werden:
@@ -19,9 +23,9 @@ public class TwitterAuthStrategy  extends BasicAbstractAuthStrategy{
    */
 
 
-    public TwitterAuthStrategy(AuthInformation authInformation) {
+    /*public TwitterAuthStrategy(AuthInformation authInformation) {
         super(authInformation);
-    }
+    }*/
 
     @Override
     public View.OnClickListener authorize() {

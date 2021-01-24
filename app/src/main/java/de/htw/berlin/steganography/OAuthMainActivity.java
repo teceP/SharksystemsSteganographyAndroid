@@ -5,8 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,10 +32,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import apis.SocialMedia;
-import apis.imgur.Imgur;
-import apis.models.Token;
-import apis.reddit.Reddit;
+import de.htw.berlin.steganography.apis.SocialMedia;
+import de.htw.berlin.steganography.apis.imgur.Imgur;
+import de.htw.berlin.steganography.apis.models.APINames;
+import de.htw.berlin.steganography.apis.models.Token;
+import de.htw.berlin.steganography.apis.reddit.Reddit;
 import de.htw.berlin.steganography.adapters.NetworkListAdapter;
 import de.htw.berlin.steganography.adapters.SimpleDividerItemDecoration;
 import de.htw.berlin.steganography.auth.constants.Constants;
@@ -48,7 +51,10 @@ import de.htw.berlin.steganography.auth.strategy.InstagramAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.RedditAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.TwitterAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.YoutubeAuthStrategy;
-import persistence.JSONPersistentManager;
+import de.htw.berlin.steganography.persistence.JSONPersistentManager;
+import de.htw.berlin.steganography.persistence.JSONPersistentWriter;
+
+import static java.lang.Thread.sleep;
 
 /**
  * @author Mario Teklic
@@ -56,9 +62,7 @@ import persistence.JSONPersistentManager;
 
 public class OAuthMainActivity extends AppCompatActivity {
 
-    /**
-     * Build with: gradlew assemble
-     */
+    TextView somethingWentWrong;
 
     private static OAuthMainActivity instance;
 
@@ -68,6 +72,8 @@ public class OAuthMainActivity extends AppCompatActivity {
      */
     private Map<String, NetworkParcel> parcelMap;
     private List<TokenInformation> tokenInformationsRecyclerView;
+
+    String currentSelectedNetworkString;
 
     Spinner spinner;
     Integer authStatus;
@@ -79,11 +85,35 @@ public class OAuthMainActivity extends AppCompatActivity {
 
     SharedPreferences pref;
     TextView infoText;
+    private String passedActivityString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.oauth_activity_main);
+
+        //example: "reddit", "imgur", "youtube"
+        currentSelectedNetworkString = getIntent().getStringExtra("selectedNetwork");
+
+        passedActivityString = getIntent().getStringExtra("activityToCall");
+
+        somethingWentWrong = (TextView) findViewById(R.id.somethingWentWrongId);
+        somethingWentWrong.setVisibility(View.INVISIBLE);
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                // Hide your View after 3 seconds
+                somethingWentWrong.setVisibility(View.VISIBLE);
+            }
+        }, 3000);
+
+        try {
+            validatePassedNetwork();
+
+
 
         JSONPersistentWriter writer = new JSONPersistentWriter(this);
         JSONPersistentManager.getInstance().setJsonPersistentHelper(writer);
@@ -96,6 +126,7 @@ public class OAuthMainActivity extends AppCompatActivity {
         this.restoreNetworkParcels();
 
         this.updateTokenInformationForRecyclerView();
+
 
         /**
          * Recycler View
@@ -111,6 +142,41 @@ public class OAuthMainActivity extends AppCompatActivity {
          *  Update UI
          */
         this.updateUI();
+
+
+        /*
+        String passedActivityString = "com.example.stegaexampleapp.FileUploadedTestActivity";
+        openPassedActivity(passedActivityString);*/
+
+
+
+        oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().token());
+        oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().authorize());
+        oauthBtn.callOnClick();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    public String getPassedActivityString(){
+        return passedActivityString;
+    }
+
+    public void openPassedActivity(String passedActivityString, String accesToken)throws ClassNotFoundException {
+        try {
+            Intent intent = new Intent(this , Class.forName(passedActivityString));
+            intent.putExtra("selectedNetwork", currentSelectedNetworkString);
+            intent.putExtra("accesToken", accesToken);
+           // intent.putExtra("tokenOAuth",toDo);
+            startActivity(intent);
+
+        } catch (ClassNotFoundException e) {
+
+            e.printStackTrace();
+            throw new ClassNotFoundException("Did not pass full package String to OAuthMainActivity or Class does not exist. Add intent.putExtra(\"activityToCall\",\"package.path.to.Activity\" .");
+        }
     }
 
     public void initObjects() {
@@ -127,9 +193,12 @@ public class OAuthMainActivity extends AppCompatActivity {
         this.infoText = findViewById(R.id.infoText);
 
         this.setSpinner();
+        spinner.setEnabled(false);
 
         //OAuth2 Button
         this.oauthBtn = findViewById(R.id.auth);
+        oauthBtn.setVisibility(View.GONE);
+
         this.refreshTokenBtn = findViewById(R.id.refreshTokenBtn);
         this.refreshTokenBtn.setVisibility(View.GONE);
 
@@ -164,7 +233,11 @@ public class OAuthMainActivity extends AppCompatActivity {
     }
 
     public NetworkParcel getCurrentSelectedNetwork() {
-        return this.parcelMap.get(spinner.getSelectedItem().toString().toLowerCase());
+
+        Log.i("spinner string for parcelMap.get",spinner.getSelectedItem().toString().toLowerCase());
+        NetworkParcel returnParcel = this.parcelMap.get(currentSelectedNetworkString);
+        return returnParcel;
+        //return this.parcelMap.get(spinner.getSelectedItem().toString().toLowerCase());
     }
 
     public void updateCurrentSelectedNetworkTokenInformation(TokenInformation tokenInformation) {
@@ -230,6 +303,7 @@ public class OAuthMainActivity extends AppCompatActivity {
             oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().token());
             oauthBtn.callOnClick();
             oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().authorize());
+            Log.i("reddit TokenInformation", getCurrentSelectedNetwork().getTokenInformation().toString());
 
             refreshTokenBtn.setClickable(false);
             refreshTokenBtn.setAlpha(.2f);
@@ -354,6 +428,8 @@ public class OAuthMainActivity extends AppCompatActivity {
             Log.i("MYY", "Update data...");
             setAuthStatus(checkTokenExpiration());
             oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().authorize());
+            Log.i("reddit TokenInformation", getCurrentSelectedNetwork().getTokenInformation().toString());
+
             refreshTokenBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().refresh());
             updateSocialMediaTokens();
             updateUI();
@@ -383,6 +459,7 @@ public class OAuthMainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 updateState();
                 Log.i("MYY", "Selected spinner item: " + getCurrentSelectedNetwork().getNetworkName());
+
             }
 
             @Override
@@ -435,6 +512,7 @@ public class OAuthMainActivity extends AppCompatActivity {
     public void updateTokenInformationForRecyclerView() {
         this.tokenInformationsRecyclerView.clear();
         for (TokenInformation ti : this.parcelMap.values().stream().map(NetworkParcel::getTokenInformation).collect(Collectors.toList())) {
+            Log.i("reddit TokenInformation", ti.toString());
             this.tokenInformationsRecyclerView.add(ti);
         }
     }
@@ -465,11 +543,12 @@ public class OAuthMainActivity extends AppCompatActivity {
                     networkName = NetworkName.REDDIT;
                     authInformation = getAuthInformation(networkName);
 
-                    np = new NetworkParcel.Builder()
-                            .withNetworkName(networkName)
-                            .withTokenInformation(tokenInformation)
-                            .withAuthStrategy(new RedditAuthStrategy(authInformation))
-                            .withSocialMedia(reddit)
+                    NetworkParcel.Builder builder = new NetworkParcel.Builder();
+                    builder.withNetworkName(networkName);
+                    builder.withTokenInformation(tokenInformation);
+                    builder.withAuthStrategy(new RedditAuthStrategy(this,authInformation));
+                    builder.withSocialMedia(reddit);
+                    np = builder
                             .build();
 
                     this.parcelMap.put(np.getNetworkName(), np);
@@ -484,7 +563,7 @@ public class OAuthMainActivity extends AppCompatActivity {
                     np = new NetworkParcel.Builder()
                             .withNetworkName(networkName)
                             .withTokenInformation(tokenInformation)
-                            .withAuthStrategy(new ImgurAuthStrategy(authInformation))
+                            .withAuthStrategy(new ImgurAuthStrategy(this, authInformation))
                             .withSocialMedia(imgur)
                             .build();
 
@@ -500,7 +579,7 @@ public class OAuthMainActivity extends AppCompatActivity {
                     np = new NetworkParcel.Builder()
                             .withNetworkName(networkName)
                             .withTokenInformation(tokenInformation)
-                            .withAuthStrategy(new InstagramAuthStrategy(authInformation))
+                            .withAuthStrategy(new InstagramAuthStrategy(this, authInformation))
                             //.withSocialMedia(instagram)
                             .build();
 
@@ -517,7 +596,7 @@ public class OAuthMainActivity extends AppCompatActivity {
                     np = new NetworkParcel.Builder()
                             .withNetworkName(networkName)
                             .withTokenInformation(tokenInformation)
-                            .withAuthStrategy(new TwitterAuthStrategy(authInformation))
+                            .withAuthStrategy(new TwitterAuthStrategy(this, authInformation))
                             //.withSocialMedia(twitter)
                             .build();
 
@@ -534,7 +613,7 @@ public class OAuthMainActivity extends AppCompatActivity {
                     np = new NetworkParcel.Builder()
                             .withNetworkName(networkName)
                             .withTokenInformation(tokenInformation)
-                            .withAuthStrategy(new YoutubeAuthStrategy(authInformation))
+                            .withAuthStrategy(new YoutubeAuthStrategy(this, authInformation))
                             //.withSocialMedia(youtube)
                             .build();
 
@@ -676,4 +755,21 @@ public class OAuthMainActivity extends AppCompatActivity {
         spinner.setAdapter(spinnerAdapter);
         spinner.setOnItemSelectedListener(spinnerOnItemClick());
     }
+
+
+    boolean validatePassedNetwork()throws ClassNotFoundException{
+        if(this.currentSelectedNetworkString==null){
+            throw new ClassNotFoundException("Did not pass network String to OAuthMainActivity or network does not exist. Add intent.putExtra(\"selectedNetwork\",\"networkName\" .Check Enum APINames for correct notation.");
+        }
+        try {
+            APINames.valueOf(currentSelectedNetworkString.toUpperCase());
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw new ClassNotFoundException("Did not pass network String to OAuthMainActivity or network does not exist. Add intent.putExtra(\"selectedNetwork\",\"networkName\" .Check Enum APINames for correct notation.");
+
+        }
+        return true;
+    }
+
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
+import de.htw.berlin.steganography.OAuthMainActivity;
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 
 public class YoutubeAuthStrategy extends BasicAbstractAuthStrategy{
@@ -17,9 +18,10 @@ public class YoutubeAuthStrategy extends BasicAbstractAuthStrategy{
      bearbeitet einfach die AuthInformation-Klasse. Aber bitte keine Attribute entfernen.
    */
 
-    public YoutubeAuthStrategy(AuthInformation authInformation) {
-        super(authInformation);
+    public YoutubeAuthStrategy(OAuthMainActivity context, AuthInformation authInformation) {
+        super(context, authInformation);
     }
+
 
     @Override
     public View.OnClickListener authorize() {

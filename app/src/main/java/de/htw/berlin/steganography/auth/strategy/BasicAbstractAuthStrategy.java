@@ -21,9 +21,11 @@ import de.htw.berlin.steganography.auth.models.TokenInformation;
 public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implements AuthStrategy, Runnable {
 
     private AuthInformation authInformation;
+    protected OAuthMainActivity contextActivity;
 
-    public BasicAbstractAuthStrategy(AuthInformation authInformation){
+    public BasicAbstractAuthStrategy(OAuthMainActivity context, AuthInformation authInformation){
         this.authInformation = authInformation;
+        contextActivity = context;
     }
 
     @Override
@@ -84,4 +86,5 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
             OAuthMainActivity.getMainActivityInstance().updateCurrentSelectedNetworkTokenInformation(tokenInformation);
         }
     }
+
 }

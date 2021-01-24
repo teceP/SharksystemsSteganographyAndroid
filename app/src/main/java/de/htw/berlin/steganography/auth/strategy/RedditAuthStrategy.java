@@ -1,6 +1,8 @@
 package de.htw.berlin.steganography.auth.strategy;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
@@ -40,8 +42,10 @@ import okhttp3.Response;
 
 public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
-    public RedditAuthStrategy(AuthInformation authInformation) {
-        super(authInformation);
+
+
+    public RedditAuthStrategy(OAuthMainActivity context, AuthInformation authInformation) {
+        super(context, authInformation);
     }
 
     @Override
@@ -104,6 +108,12 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
                             authDialog.dismiss();
                             infoText.setText("Auth token granted. Access token will be retrieved now.");
                             granted = true;
+
+                            try {
+                                contextActivity.openPassedActivity(contextActivity.getPassedActivityString(),tokenInformation.getAccessToken());
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
                         } else if (url.contains("error=access_denied")) {
                             Log.i("MYY", "Error, access denied.");
 
@@ -255,4 +265,5 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
             OAuthMainActivity.getMainActivityInstance().addAutoRefreshTimer(NetworkName.REDDIT, Constants.ONE_HOUR_IN_MS);
         };
     }
+
 }

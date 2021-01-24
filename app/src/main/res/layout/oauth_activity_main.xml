@@ -4,11 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:theme="@android:style/Theme.NoDisplay"
     tools:context=".OAuthMainActivity">
 
     <com.google.android.material.appbar.AppBarLayout android:layout_height="wrap_content"
         android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay"/>
 
+
+    <TextView
+        android:id="@+id/somethingWentWrongId"
+        android:layout_width="370dp"
+        android:layout_height="172dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="19dp"
+        android:layout_marginTop="242dp"
+        android:layout_marginEnd="21dp"
+        android:text="                 Ups! \n  Something went wrong!"
+        android:textSize="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <RelativeLayout
         android:id="@+id/loadingPanel"
@@ -36,23 +55,26 @@
         android:layout_marginStart="35dp"
         android:layout_marginLeft="35dp"
         android:layout_marginEnd="35dp"
-        android:layout_marginRight="35dp" />
+        android:layout_marginRight="35dp"
+        android:visibility="invisible" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/activeNetworksList"
-        android:layout_width="wrap_content"
-        android:layout_height="398dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="-32dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="0dp" />
+        android:layout_marginEnd="9dp"
+        android:layout_marginRight="9dp"
+        android:layout_marginBottom="106dp"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/dummyBtn"
