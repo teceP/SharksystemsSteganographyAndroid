@@ -109,13 +109,14 @@ public class BaseUtil {
     /**
      * Calls the JSONPersistentManager singleton and stores a (the latest timestamp of the postenty-list)
      * according to a specific network.
+     *
+     * - 600.000 (Ten minutes) to avoid post-time-upload-problem
      * @param latestPostTimestamp
      */
     public void setLatestPostTimestamp(SocialMedia socialMedia, String keyword, MyDate latestPostTimestamp) {
         logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
-        socialMedia.setLastTimeCheckedForKeyword(keyword, latestPostTimestamp.getTime());
+        socialMedia.setLastTimeCheckedForKeyword(keyword, (latestPostTimestamp.getTime() - 600000));
         Log.i("called social media setLatest", "called social media setLatest");
-
     }
 
     /**

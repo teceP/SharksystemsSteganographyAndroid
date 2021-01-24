@@ -100,9 +100,6 @@ public class Reddit extends SocialMedia {
         if (this.token == null) {
             logger.info("User not logged in.");
             return false;
-        }else if(!this.redditUtil.isImageUploadAllowed(hashtag)){
-            logger.info("Subreddit '" + hashtag + "' does not allow to upload images.");
-            return false;
         }
 
         OkHttpClient client = new OkHttpClient.Builder()
@@ -119,9 +116,9 @@ public class Reddit extends SocialMedia {
 
             mBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
-                    .addFormDataPart("title", "Hello World")
+                    .addFormDataPart("title", hashtag)
                     .addFormDataPart("kind", "image")
-                    .addFormDataPart("text", "Baby Yoda.")
+                    .addFormDataPart("text", hashtag)
                     .addFormDataPart("sr", hashtag)
                     .addFormDataPart("resubmit", "true")
                     .addFormDataPart("send_replies", "true")

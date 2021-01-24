@@ -193,7 +193,7 @@ public class Imgur extends SocialMedia {
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("image", filename, RequestBody.create(media, MediaType.parse("image/*")))
                     .addFormDataPart("title", keyword)
-                    .addFormDataPart("description", "Hello World!")
+                    .addFormDataPart("description", keyword)
                     .build();
 
             Request request = new Request.Builder()

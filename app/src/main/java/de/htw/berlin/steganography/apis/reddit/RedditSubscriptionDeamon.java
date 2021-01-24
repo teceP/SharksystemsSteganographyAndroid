@@ -81,9 +81,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
     @Override
     public void run() {
-        Log.i("1. RedditSubscriptionDeamon run","started");
+        Log.i("1. RedditSubscriptionDeamon run", "started");
         this.latestPostEntries = this.getRecentMediaForSubscribedKeywords();
-        Log.i("RedditSubscriptionDeamon run","finished");
+        Log.i("RedditSubscriptionDeamon run", "finished");
     }
 
     /**
@@ -92,7 +92,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     public Map<String, List<PostEntry>> getRecentMedia() {
         Log.i("3. RedditSubscriptionDeamon getRecentMedia called", "true");
         //Currently fix for not null
-        Map<String,Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(socialMedia);
+        Map<String, Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(socialMedia);
 
         Log.i("6. RedditSubscriptionDeamon getRecentMedia keywords map size", String.valueOf(keywords.size()));
         if (keywords == null || keywords.size() == 0) {
@@ -102,42 +102,41 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
         Map<String, List<PostEntry>> resultMap = new HashMap<>();
 
-        for (String key : keywords.keySet()) {
-            Log.i("7. RedditSubscriptionDeamon getRecentMedia search PostEntrys for keyword", key);
-            try {
-                URL url = new URL(
-                        RedditConstants.BASE +
-                                RedditConstants.SUBREDDIT_PREFIX + key +
-                                "/new/" +
-                                RedditConstants.AS_JSON +
-                                "?count=20");
+        try {
+            URL url = new URL(
+                    RedditConstants.BASE +
+                            RedditConstants.SUBREDDIT_PREFIX +
+                            "/test/new/" +
+                            RedditConstants.AS_JSON +
+                            "?count=100");
 
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod(RedditConstants.GET);
-                con.setRequestProperty("User-agent", RedditConstants.APP_NAME);
-                con.setDoOutput(true);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod(RedditConstants.GET);
+            con.setRequestProperty("User-agent", RedditConstants.APP_NAME);
+            con.setDoOutput(true);
 
-                String responseString = "";
+            String responseString = "";
 
-                if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
-                    responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
-                    logger.info("Response Code: " + con.getResponseCode() + ". No error.");
-                } else {
-                    logger.info("Response Code: " + con.getResponseCode() + ". Has error.");
-                    return null;
+            if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
+                responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
+                logger.info("Response Code: " + con.getResponseCode() + ". No error.");
+
+                for (String keyword : keywords.keySet()) {
+                    Log.i("8. RedditSubscriptionDeamon getRecentMedia result URL for keyword " + keyword, String.valueOf(con.getURL()));
+                    resultMap.put(keyword, this.redditUtil.getPosts(keyword, responseString));
+                    Log.i("11. RedditSubscriptionDeamon getRecentMedia resultMap for keyword: " + keyword + " found post:", String.valueOf(resultMap.get(keyword).size()));
                 }
-
-                Log.i("8. RedditSubscriptionDeamon getRecentMedia result URL for keyword "+key,String.valueOf(con.getURL()));
-                resultMap.put(key, this.redditUtil.getPosts(responseString));
-                Log.i("11. RedditSubscriptionDeamon getRecentMedia resultMap for keyword: "+key+" found post:", String.valueOf( resultMap.get(key).size() ) );
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                logger.info("Response Code: " + con.getResponseCode() + ". Has error.");
             }
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        Log.i("12. RedditSubscriptionDeamon getRecentMedia result map size: ",String.valueOf(resultMap.size()));
+        Log.i("12. RedditSubscriptionDeamon getRecentMedia result map size: ", String.valueOf(resultMap.size()));
         //resultList.stream().forEach(postEntry -> logger.info(postEntry.toString()));
         return resultMap;
     }
@@ -152,12 +151,12 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         List<PostEntry> latestPostEntries = new ArrayList<>();
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
-                Log.i("14. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords iterate through tmp.entrySet for keyword:"+entry.getKey()+" postEntires List size:", String.valueOf(entry.getValue().size()) );
-                Log.i("14.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords last checked for keyword "+entry.getKey() , String.valueOf(redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()).getTime())  );
+                Log.i("14. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords iterate through tmp.entrySet for keyword:" + entry.getKey() + " postEntires List size:", String.valueOf(entry.getValue().size()));
+                Log.i("14.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords last checked for keyword " + entry.getKey(), String.valueOf(redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()).getTime()));
                 //remove old posts
-                MyDate myDate= redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey());
-                entry.setValue(redditUtil.elimateOldPostEntries(myDate,entry.getValue()));
-                Log.i("18. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords eliminated old postEntires for keyword: "+entry.getKey()+", remaining postEntries", String.valueOf(entry.getValue().size()));
+                MyDate myDate = redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey());
+                entry.setValue(redditUtil.elimateOldPostEntries(myDate, entry.getValue()));
+                Log.i("18. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords eliminated old postEntires for keyword: " + entry.getKey() + ", remaining postEntries", String.valueOf(entry.getValue().size()));
                 //logger.info((entry.getValue().size()) + " postentries found after eliminate old entries for keyword: "+ entry.getKey());
 
                 if (entry.getValue().size() > 0) {
@@ -167,19 +166,17 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                      */
                     ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
                     BaseUtil.sortPostEntries(entry.getValue());
-                    Log.i("19. RedditSubscriptionDeamon called redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() +" and postEntries List size: "+entry.getValue().size());
+                    Log.i("19. RedditSubscriptionDeamon called redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() + " and postEntries List size: " + entry.getValue().size());
                     redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
 
                     Log.i("new media found for", entry.getKey());
-                    for(PostEntry postEntry: entry.getValue()) {
+                    for (PostEntry postEntry : entry.getValue()) {
                         latestPostEntries.add(postEntry);
                     }
 
 
-
-                }
-                else{
+                } else {
                     redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()));
                 }
 

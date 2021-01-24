@@ -47,10 +47,8 @@ import de.htw.berlin.steganography.auth.models.NetworkParcel;
 import de.htw.berlin.steganography.auth.models.NetworkName;
 import de.htw.berlin.steganography.auth.models.TokenInformation;
 import de.htw.berlin.steganography.auth.strategy.ImgurAuthStrategy;
-import de.htw.berlin.steganography.auth.strategy.InstagramAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.RedditAuthStrategy;
 import de.htw.berlin.steganography.auth.strategy.TwitterAuthStrategy;
-import de.htw.berlin.steganography.auth.strategy.YoutubeAuthStrategy;
 import de.htw.berlin.steganography.persistence.JSONPersistentManager;
 import de.htw.berlin.steganography.persistence.JSONPersistentWriter;
 
@@ -156,7 +154,6 @@ public class OAuthMainActivity extends AppCompatActivity {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-
     }
 
 
@@ -522,8 +519,6 @@ public class OAuthMainActivity extends AppCompatActivity {
         networks.add(Constants.REDDIT_TOKEN_OBJ);
         networks.add(Constants.IMGUR_TOKEN_OBJ);
         networks.add(Constants.TWITTER_TOKEN_OBJ);
-        networks.add(Constants.YOUTUBE_TOKEN_OBJ);
-        networks.add(Constants.INSTAGRAM_TOKEN_OBJ);
 
         for (String network : networks) {
             String networkName = null;
@@ -569,22 +564,6 @@ public class OAuthMainActivity extends AppCompatActivity {
 
                     this.parcelMap.put(np.getNetworkName(), np);
                     break;
-                case NetworkName.INSTAGRAM:
-                    /**
-                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
-                     */
-                    networkName = NetworkName.INSTAGRAM;
-                    authInformation = getAuthInformation(networkName);
-
-                    np = new NetworkParcel.Builder()
-                            .withNetworkName(networkName)
-                            .withTokenInformation(tokenInformation)
-                            .withAuthStrategy(new InstagramAuthStrategy(this, authInformation))
-                            //.withSocialMedia(instagram)
-                            .build();
-
-                    this.parcelMap.put(np.getNetworkName(), np);
-                    break;
                 case NetworkName.TWITTER:
                     /**
                      * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
@@ -598,23 +577,6 @@ public class OAuthMainActivity extends AppCompatActivity {
                             .withTokenInformation(tokenInformation)
                             .withAuthStrategy(new TwitterAuthStrategy(this, authInformation))
                             //.withSocialMedia(twitter)
-                            .build();
-
-                    this.parcelMap.put(np.getNetworkName(), np);
-                    break;
-                case NetworkName.YOUTUBE:
-                    /**
-                     * TODO dein social media objekt initialisieren, token setzen und in die networks liste adden
-                     */
-
-                    networkName = NetworkName.YOUTUBE;
-                    authInformation = getAuthInformation(networkName);
-
-                    np = new NetworkParcel.Builder()
-                            .withNetworkName(networkName)
-                            .withTokenInformation(tokenInformation)
-                            .withAuthStrategy(new YoutubeAuthStrategy(this, authInformation))
-                            //.withSocialMedia(youtube)
                             .build();
 
                     this.parcelMap.put(np.getNetworkName(), np);
@@ -656,28 +618,12 @@ public class OAuthMainActivity extends AppCompatActivity {
                         .withState(UUID.randomUUID().toString())
                         .build();
                 return authInformation;
-            case NetworkName.INSTAGRAM:
-                /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
-                 * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
-                 */
-                authInformation = new AuthInformation.Builder()
-                        .withPlatform(NetworkName.INSTAGRAM)
-                        .build();
-                return authInformation;
             case NetworkName.TWITTER:
                 /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
                  * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
                  */
                 authInformation = new AuthInformation.Builder()
                         .withPlatform(NetworkName.TWITTER)
-                        .build();
-                return authInformation;
-            case NetworkName.YOUTUBE:
-                /* TODO alle für deinen OAuth-Vorgang nötigen values setzen.
-                 * Am besten mit einer Constantsdatei im Constantsordner (auth/constants) ums einheitlich zu machen.
-                 */
-                authInformation = new AuthInformation.Builder()
-                        .withPlatform(NetworkName.YOUTUBE)
                         .build();
                 return authInformation;
             default:

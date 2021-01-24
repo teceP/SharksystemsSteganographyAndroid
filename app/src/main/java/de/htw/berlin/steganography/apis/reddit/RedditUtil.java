@@ -57,7 +57,11 @@ public class RedditUtil extends BaseUtil {
      * @return
      */
     public String getUrl(RedditGetResponse.ResponseChildData data){
-        return this.decodeUrl(data.getData().getPreview().getImages().getSource().getUrl());
+        if(data.getData().getUrl_overridden_by_dest() != null){
+            return this.decodeUrl(data.getData().getUrl_overridden_by_dest());
+        }
+        Log.i("1. RedditSubscriptionDeamon run", "url_overridden_by_dest was null. Returning empty string as url...");
+        return "";
     }
 
     /**
@@ -80,14 +84,14 @@ public class RedditUtil extends BaseUtil {
      * @param responseString JSON String (Reddit response)
      * @return Returns a sorted list of Postentries (downloadlinks and timestamps) from a json-String
      */
-    public List<PostEntry> getPosts(String responseString){
+    public List<PostEntry> getPosts(String keyword, String responseString){
         Log.i("9. RedditUtil getPosts called with URL String", responseString);
         List<PostEntry> postEntries = new ArrayList<>();
         try{
             RedditGetResponse responseArray = new Gson().fromJson(responseString, RedditGetResponse.class);
 
             for(RedditGetResponse.ResponseChildData child : responseArray.getData().getChildren()){
-                if(child != null && !this.hasNullObjects(child)){
+                if(child != null && child.getData().getTitle().contains(keyword) && !this.hasNullObjects(child)){
                     postEntries.add(new PostEntry(this.decodeUrl(this.getUrl(child)), this.getTimestamp(child), ".png"));
                 }
             }

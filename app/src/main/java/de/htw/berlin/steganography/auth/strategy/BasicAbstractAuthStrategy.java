@@ -87,4 +87,10 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
         }
     }
 
+    public void clearTokens(){
+        OAuthMainActivity.getMainActivityInstance().getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
+    }
 }

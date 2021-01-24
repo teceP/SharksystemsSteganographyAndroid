@@ -42,8 +42,6 @@ import okhttp3.Response;
 
 public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
 
-
-
     public RedditAuthStrategy(OAuthMainActivity context, AuthInformation authInformation) {
         super(context, authInformation);
     }
@@ -53,6 +51,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                RedditAuthStrategy.super.clearTokens();
                 Button oauthBtn = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.auth);
                 TextView infoText = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.infoText);
 

@@ -20,8 +20,6 @@ public class AuthStrategyFactory {
                 return new RedditAuthStrategy(context, authInformation);
             case "imgur":
                 return new ImgurAuthStrategy(context, authInformation);
-            case "instagram":
-                return new InstagramAuthStrategy(context, authInformation);
             case "twitter":
                 return new TwitterAuthStrategy(context, authInformation);
             default:
