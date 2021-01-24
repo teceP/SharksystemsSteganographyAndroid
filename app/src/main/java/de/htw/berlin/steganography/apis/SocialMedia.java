@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public abstract class SocialMedia {
-    private List<String> encodedMessage = new ArrayList<>();
+ 
     protected Map<String, Long> allSubscribedKeywordsAndLastTimeChecked = new HashMap<>();
     protected List<String> message = new ArrayList<>();
     public static final Integer DEFAULT_INTERVALL = 5;
@@ -72,9 +72,6 @@ public abstract class SocialMedia {
         updateListenersMessages();
     }
 
-    public List<String> getEncodedMessage(){
-        return encodedMessage;
-    }
 
     public List<String> getMessage(){
         return message;
