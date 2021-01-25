@@ -51,7 +51,7 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RedditAuthStrategy.super.clearTokens();
+                //RedditAuthStrategy.super.clearTokens();
                 Button oauthBtn = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.auth);
                 TextView infoText = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.infoText);
 

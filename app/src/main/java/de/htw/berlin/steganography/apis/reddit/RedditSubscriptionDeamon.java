@@ -106,7 +106,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
             URL url = new URL(
                     RedditConstants.BASE +
                             RedditConstants.SUBREDDIT_PREFIX +
-                            "/test/new/" +
+                            "test/new/" +
                             RedditConstants.AS_JSON +
                             "?count=100");
 
@@ -115,10 +115,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
             con.setRequestProperty("User-agent", RedditConstants.APP_NAME);
             con.setDoOutput(true);
 
-            String responseString = "";
+            String responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
 
             if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
-                responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
                 logger.info("Response Code: " + con.getResponseCode() + ". No error.");
 
                 for (String keyword : keywords.keySet()) {
@@ -127,6 +126,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                     Log.i("11. RedditSubscriptionDeamon getRecentMedia resultMap for keyword: " + keyword + " found post:", String.valueOf(resultMap.get(keyword).size()));
                 }
             } else {
+                logger.info("response string: " + responseString);
                 logger.info("Response Code: " + con.getResponseCode() + ". Has error.");
             }
 

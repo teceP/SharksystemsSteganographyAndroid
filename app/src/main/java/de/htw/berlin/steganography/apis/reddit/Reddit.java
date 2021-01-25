@@ -29,6 +29,9 @@ import de.htw.berlin.steganography.apis.reddit.models.RedditPostResponse;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
 import de.htw.berlin.steganography.apis.utils.BlobConverterImpl;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import okhttp3.*;
 
 import java.util.Collections;
@@ -56,7 +59,7 @@ public class Reddit extends SocialMedia {
     private static final Logger logger = Logger.getLogger(Reddit.class.getName());
 
     /**
-     * Utilities which are used while uploading, download, searching
+     * Utilities which are used while upF--loading, download, searching
      */
     private RedditUtil redditUtil;
 
@@ -119,13 +122,21 @@ public class Reddit extends SocialMedia {
                     .addFormDataPart("title", hashtag)
                     .addFormDataPart("kind", "image")
                     .addFormDataPart("text", hashtag)
-                    .addFormDataPart("sr", hashtag)
+                    .addFormDataPart("sr", "test")
                     .addFormDataPart("resubmit", "true")
                     .addFormDataPart("send_replies", "true")
                     .addFormDataPart("api_type", "json")
                     .addFormDataPart("url", url)
                     .build();
 
+            /**
+             *
+             */
+
+
+            /**
+             *
+             */
             Request request = new Request.Builder()
                     .addHeader("Content-Type", "application/x-www-form-urlencoded")
                     .headers(Headers.of("Authorization", ("Bearer " + this.token.getToken())))
@@ -136,11 +147,23 @@ public class Reddit extends SocialMedia {
 
             Response response = client.newCall(request).execute();
             String responseString = response.body().string();
+
+            logger.info("Request token STRING: -------------------------: \n" + this.token.getToken());
+            logger.info("Request token STRING: -------------------------: \n" + this.token.getToken());
+
+            logger.info("RESPONSE STRING: -------------------------: \n" + responseString);
             int respCode = response.code();
             logger.info("Response code: " + respCode);
             if(!BaseUtil.hasErrorCode(respCode)){
-                RedditPostResponse rpr = new Gson().fromJson(responseString, RedditPostResponse.class);
-                logger.info("Uploaded: " + rpr.getJson().getData().getUrl());
+                JsonObject rootObj = JsonParser.parseString(responseString).getAsJsonObject();
+
+                //    {"json": {"errors": [], "data": {"url": "https://www.reddit.com/r/Katze/comments/l4kuma/katze/", "drafts_count": 0, "id": "l4kuma", "name": "t3_l4kuma"}}}
+                String urlObj = rootObj
+                        .getAsJsonObject("json")
+                        .getAsJsonObject("data")
+                        .get("url").getAsString();
+
+                logger.info("Uploaded: " + urlObj);
                 return true;
             }
         } catch (Exception e) {

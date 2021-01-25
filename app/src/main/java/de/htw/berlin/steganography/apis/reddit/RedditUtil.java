@@ -91,7 +91,9 @@ public class RedditUtil extends BaseUtil {
             RedditGetResponse responseArray = new Gson().fromJson(responseString, RedditGetResponse.class);
 
             for(RedditGetResponse.ResponseChildData child : responseArray.getData().getChildren()){
-                if(child != null && child.getData().getTitle().contains(keyword) && !this.hasNullObjects(child)){
+                if(child != null
+                        && child.getData().getTitle().contains(keyword)
+                        && !this.hasNullObjects(child)){
                     postEntries.add(new PostEntry(this.decodeUrl(this.getUrl(child)), this.getTimestamp(child), ".png"));
                 }
             }
