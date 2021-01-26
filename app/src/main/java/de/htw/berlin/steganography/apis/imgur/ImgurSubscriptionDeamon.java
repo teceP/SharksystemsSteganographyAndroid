@@ -109,7 +109,10 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
                 con.setRequestMethod(RedditConstants.GET);
                 con.setRequestProperty("User-agent", ImgurConstants.APP_NAME);
                 con.setRequestProperty("Authorization", "Client-ID " + ImgurConstants.CLIENT_ID);
-                con.setDoOutput(true);
+
+                con.getRequestProperties().entrySet().stream().forEach(r -> logger.info(r.getKey() + " : " + r.getValue()));
+
+                logger.info("TEST1234 : " + con.getResponseCode());
 
                 String responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
 

@@ -23,9 +23,9 @@ package de.htw.berlin.steganography.apis.imgur;
  */
 
 public interface ImgurConstants {
-    String APP_NAME = "SharksystemsStega";
+    String APP_NAME = "sharksystemstega";
     String UPLOAD_URL = "https://api.imgur.com/3/upload";
-    String CLIENT_ID = "6d628f37c5f9729";
+    String CLIENT_ID = "ce5772044e3b15d";
     String BASE_URI = "https://api.imgur.com/3/";
     String SEARCH_URI = "gallery/search/time?q=";
 }
