@@ -80,13 +80,16 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
     public void setPixel(int value) throws BitmapInaccuracyException {
         if (currentPosition < 0 || this.currentPosition >= this.pixelOrder.size())
             throw new IndexOutOfBoundsException("No pixel at current position.");
-
+        // save 'before' value for logging
         int before = this.bitmap.getPixel(this.currentX, this.currentY);
 
+        // actual change
         this.bitmap.setPixel(this.currentX, this.currentY, value);
-        int changedTo = this.bitmap.getPixel(this.currentX, this.currentY);
 
-        if (value != changedTo) {
+        // check 'after' value to see if change worked as intended
+        int after = this.bitmap.getPixel(this.currentX, this.currentY);
+        // verbose log and exception throwing if change didn't work as intended
+        if (value != after) {
             Log.i("Overlay", "-------------Bitmap Pixel Error------------------");
             Log.i("Overlay", "before   :" +
                     " Alpha=" + ((before >> 24) & 0xff) +
@@ -99,10 +102,10 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
                     " Green=" + ((value >> 8) & 0xff) +
                     " Blue=" + (value & 0xff));
             Log.i("Overlay", "but is   :" +
-                    " Alpha=" + ((changedTo >> 24) & 0xff) +
-                    " Red=" + ((changedTo >> 16) & 0xff) +
-                    " Green=" + ((changedTo >> 8) & 0xff) +
-                    " Blue=" + (changedTo & 0xff));
+                    " Alpha=" + ((after >> 24) & 0xff) +
+                    " Red=" + ((after >> 16) & 0xff) +
+                    " Green=" + ((after >> 8) & 0xff) +
+                    " Blue=" + (after & 0xff));
             Log.i("Overlay", "-------------------------------------------------");
 
             throw new BitmapInaccuracyException("This image cannot be used for encoding, " +

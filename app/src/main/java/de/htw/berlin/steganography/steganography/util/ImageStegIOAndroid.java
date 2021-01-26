@@ -55,16 +55,6 @@ public class ImageStegIOAndroid implements ImageStegIO{
     private void processImage(byte[] carrier)
             throws IOException, UnsupportedImageTypeException {
 
-        /* Option A
-        this.bitmap = ImageDecoder.decodeBitmap(
-                ImageDecoder.createSource(ByteBuffer.wrap(carrier)),
-                // listener to get mime type
-                (decoder, info, source) -> {
-                    this.format = info.getMimeType();
-                }
-        );
-        */
-
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
 
@@ -73,7 +63,12 @@ public class ImageStegIOAndroid implements ImageStegIO{
         Log.i(TAG, "image format: " + this.format);
 
         // logging and possible setting of ColorSpace to make algorithm work
-        setColorSpace();
+        if (!this.bitmap.getColorSpace().isSrgb()) {
+            Log.i(TAG, "setColorSpace:  the Images ColorSpace is: " +
+                    this.bitmap.getColorSpace() +
+                    ". Trying to set to sRGB.");
+            setColorSpace();
+        }
 
         // TODO: Probably not necessary -> would only be compressed to PNG
         if (this.format == null) {
@@ -92,17 +87,15 @@ public class ImageStegIOAndroid implements ImageStegIO{
     }
 
     private void setColorSpace() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.i(TAG, "processImage: bitmaps ColorSpace: " + this.bitmap.getColorSpace());
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                this.bitmap.setColorSpace(ColorSpace.get(ColorSpace.Named.SRGB));
-            } else {
-                Log.i(TAG, "processImage: AndroidVersion too low to try setting ColorSpace:" +
-                        " is: " + Build.VERSION.SDK_INT +
-                        " // " +
-                        " needed: " + Build.VERSION_CODES.Q);
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            this.bitmap.setColorSpace(ColorSpace.get(ColorSpace.Named.SRGB));
+        } else {
+            Log.i(TAG, "processImage: AndroidVersion too low to set ColorSpace:" +
+                    " is: " + Build.VERSION.SDK_INT +
+                    " // " +
+                    " needed: " + Build.VERSION_CODES.Q);
+            Log.i(TAG, "setColorSpace: Setting ColorSpace to sRGB failed, " +
+                    "hiding or getting secret message will probably not work.");
         }
     }
 
