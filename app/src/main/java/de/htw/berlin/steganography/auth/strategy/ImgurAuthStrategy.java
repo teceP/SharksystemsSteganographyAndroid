@@ -44,6 +44,9 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
         super(context, authInformation);
     }
 
+    /**
+     * Specific authorize implemenation for Imgur. See documentation from BasicAbstractAuthStrategy for more information.
+     */
     @Override
     public View.OnClickListener authorize() {
         return new View.OnClickListener() {
@@ -136,6 +139,9 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
         };
     }
 
+    /**
+     * Specific token implemenation for Imgur. See documentation from BasicAbstractAuthStrategy for more information.
+     */
     @Override
     public View.OnClickListener token() {
         return v -> {
@@ -207,6 +213,9 @@ public class ImgurAuthStrategy extends BasicAbstractAuthStrategy {
         };
     }
 
+    /**
+     * Specific refresh implemenation for Imgur. See documentation from BasicAbstractAuthStrategy for more information.
+     */
     @Override
     public View.OnClickListener refresh() {
         return v -> {

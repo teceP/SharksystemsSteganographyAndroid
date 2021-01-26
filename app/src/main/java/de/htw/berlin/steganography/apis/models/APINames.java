@@ -20,13 +20,9 @@ package de.htw.berlin.steganography.apis.models;
 
 public enum APINames {
 
-    FACEBOOK("facebook"),
-    TWITTER("twitter"),
-    DAILYMOTION("dailymotion"),
-    YOUTUBE("youtube"),
     REDDIT("reddit"),
     IMGUR("imgur"),
-    TUMBLR("tumblr");
+    TUMBLR("twitter");
 
     private String value;
 

@@ -18,9 +18,23 @@ import de.htw.berlin.steganography.auth.models.TokenInformation;
  * @author Mario Teklic
  */
 
+/**
+ * Abstract implementation of an AuthStrategy implementation, which contains several
+ * methods and the auth information, which are used in each implementation.
+ *
+ * Each Auth Strategy should implement a OAuth2 flow which is specified in the RFC6749:
+ * https://tools.ietf.org/html/rfc6749
+ */
 public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implements AuthStrategy, Runnable {
 
+    /**
+     * Holds any Auth Information which are needed in a OAuth2 Flow, or which are generated in this flow.
+     */
     private AuthInformation authInformation;
+
+    /**
+     * Context
+     */
     protected OAuthMainActivity contextActivity;
 
     public BasicAbstractAuthStrategy(OAuthMainActivity context, AuthInformation authInformation){
@@ -38,15 +52,32 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
         this.authInformation = authInformation;
     }
 
+    /**
+     * 1. action in the flow, which authorizes the user with the individual provider (e.g. Reddit, Imgur)
+     *
+     * @return Authorization Token
+     */
     @Override
     public abstract View.OnClickListener authorize();
 
+    /**
+     * 2. action in the flow, which triggers the provider to send a "Access Token" and a "Refresh Token" in exchange for the
+     *  Authorization token from step 1.
+     *
+     */
     @Override
     public abstract View.OnClickListener token();
 
+    /**
+     * (3.) Action in the flow. Trigger the provider to send a fresh access token.
+     * @return
+     */
     @Override
     public abstract View.OnClickListener refresh();
 
+    /**
+     * Triggers the refresh-Method to execute.
+     */
     @Override
     public void run() {
         View v = OAuthMainActivity.getMainActivityInstance().findViewById(R.id.dummyBtn);
@@ -71,6 +102,11 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
         return new TokenInformation(network);
     }
 
+    /**
+     * Stores a TokenInformation object.
+     * @param context
+     * @param tokenInformation
+     */
     public void applyTokenInformation(Context context, TokenInformation tokenInformation){
         Gson gson = new Gson();
         String json = gson.toJson(tokenInformation);
@@ -87,6 +123,9 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
         }
     }
 
+    /**
+     * Clears all stored tokens. Use with care.
+     */
     public void clearTokens(){
         OAuthMainActivity.getMainActivityInstance().getSharedPreferences(Constants.SHARKSYS_PREF, MODE_PRIVATE)
                 .edit()

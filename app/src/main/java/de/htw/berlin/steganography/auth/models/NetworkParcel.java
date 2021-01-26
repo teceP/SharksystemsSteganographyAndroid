@@ -9,15 +9,34 @@ import de.htw.berlin.steganography.auth.strategy.AuthStrategy;
  * @author Mario Teklic
  */
 
+/**
+ * Holds all information about a users authentication.
+ */
 public class NetworkParcel implements Comparable<NetworkParcel>{
 
     /**
-     * Also holds AuthInformations
+     * Id from parcel
      */
     private final Integer id;
+
+    /**
+     * Network/Provider name
+     */
     private String networkName;
+
+    /**
+     * Authentication Strategy
+     */
     private AuthStrategy authStrategy;
+
+    /**
+     * Tokeninformation
+     */
     private TokenInformation tokenInformation;
+
+    /**
+     * Social Media
+     */
     private SocialMedia socialMedia;
 
     public NetworkParcel(Builder builder){
@@ -72,6 +91,11 @@ public class NetworkParcel implements Comparable<NetworkParcel>{
         return this.id;
     }
 
+    /**
+     * Compares network parcles by its id
+     * @param o
+     * @return
+     */
     @Override
     public int compareTo(NetworkParcel o) {
         Log.i("MYY", o.getNetworkName() + " - " + this.getNetworkName());

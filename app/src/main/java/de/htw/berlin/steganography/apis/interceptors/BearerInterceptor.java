@@ -40,6 +40,8 @@ public class BearerInterceptor implements Interceptor {
 
     /**
      * Adds an User-Agent to a Request and proceedes the request
+     *
+     * {@inheritDoc}
      */
     @Override
     public Response intercept(Chain chain) throws IOException {

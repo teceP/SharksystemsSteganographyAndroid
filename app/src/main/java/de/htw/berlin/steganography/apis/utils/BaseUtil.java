@@ -49,11 +49,14 @@ import java.util.stream.Collectors;
 public class BaseUtil {
     private static final Logger logger = Logger.getLogger(BaseUtil.class.getName());
 
-
     public BaseUtil(){
-
     }
 
+    /**
+     * Updates all listeners
+     * @param socialMedia
+     * @param msgList
+     */
     public void updateListeners(SocialMedia socialMedia, List<String> msgList) {
         class AndroidDownloadTask implements Runnable{
             SocialMedia socialMediaTask;
@@ -114,9 +117,13 @@ public class BaseUtil {
      * @param latestPostTimestamp
      */
     public void setLatestPostTimestamp(SocialMedia socialMedia, String keyword, MyDate latestPostTimestamp) {
-        logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
-        socialMedia.setLastTimeCheckedForKeyword(keyword, (latestPostTimestamp.getTime() - 600000));
-        Log.i("called social media setLatest", "called social media setLatest");
+        if(latestPostTimestamp.getTime() != 0){
+            logger.info("Set timestamp in ms: " + latestPostTimestamp.getTime());
+            socialMedia.setLastTimeCheckedForKeyword(keyword, (latestPostTimestamp.getTime() - 600000));
+            Log.i("called social media setLatest", "called social media setLatest");
+        }else{
+            logger.info("Latest timestamp will not be set because the timestamp parameter was zero.");
+        }
     }
 
     /**
@@ -138,7 +145,6 @@ public class BaseUtil {
             logger.info("Exception was thrown, while retrieving latest stored timestamp. Default value for latest timestamp is 'new Date(0)'.");
             oldPostTimestamp = new MyDate(new Date(0));
         }
-
         return oldPostTimestamp;
     }
 
@@ -149,17 +155,11 @@ public class BaseUtil {
      */
     public Map<String, Long> getKeywordAndLastTimeCheckedMap(SocialMedia socialMedia){
         Log.i("4. BaseUtil called getKeywordAndLastTimeCheckedMap for socialMedia", socialMedia.getApiName() );
-
         Map<String, Long> keywords = new HashMap<>();
-
         keywords = socialMedia.getAllSubscribedKeywordsAndLastTimeChecked();
         Log.i("5. BaseUtil getKeywordAndLastTimeCheckedMap keywords Map size", String.valueOf(keywords.size()));
-
-
         return keywords;
     }
-
-
 
     /**
      * Returns a timestamp for a String of info which represents the time as ms.
@@ -208,7 +208,4 @@ public class BaseUtil {
     public static String decodeUrl(String url){
         return url.replace("amp;", "");
     }
-
-
-
 }

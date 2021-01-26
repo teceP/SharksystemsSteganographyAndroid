@@ -6,20 +6,51 @@ import de.htw.berlin.steganography.auth.constants.Constants;
  * @author Mario Teklic
  */
 
+/**
+ * Holds all different tokens and timestamps for one user.
+ */
 public class TokenInformation {
 
     private transient static final long serialVersionUID = 1L;
 
+    /**
+     * Network name
+     */
     private String network;
+
+    /**
+     * Key
+     */
     private String key;
 
+    /**
+     * Token
+     */
     private String token = Constants.NO_RESULT;
+
+    /**
+     * Tokentimestamp. Default: -1
+     */
     private long tokenTimestamp = -1;
 
+    /**
+     * Accesstoken
+     */
     private String accessToken = Constants.NO_RESULT;
+
+    /**
+     * Accesstokentimestamp. Default: -1
+     */
     private long accessTokenTimestamp = -1;
 
+    /**
+     * Refreshtoken
+     */
     private String refreshToken = Constants.NO_RESULT;
+
+    /**
+     * Refreshtokentimestamp. Default: -1
+     */
     private long refreshTokenTimestamp = -1;
 
     public TokenInformation(){}

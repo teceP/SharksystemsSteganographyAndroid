@@ -15,8 +15,14 @@ import okio.Buffer;
  * @author Mario Teklic
  */
 
+/**
+ * Basic Authentication Interceptor which is applied before a request goes out to a provider
+ */
 public class BasicAuthInterceptor implements Interceptor {
 
+    /**
+     * Username and password, combined as a Bearer token String
+     */
     private String credentials;
 
     public BasicAuthInterceptor(String user, String password){

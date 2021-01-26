@@ -59,6 +59,10 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
      * Utilities for processing the search
      */
     private RedditUtil redditUtil;
+
+    /**
+     * Social Media
+     */
     private SocialMedia socialMedia;
 
     /**
@@ -79,6 +83,10 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         this.socialMedia = socialMedia;
     }
 
+    /**
+     * Search for all subscribed keywords.
+     * {@inheritDoc}
+     */
     @Override
     public void run() {
         Log.i("1. RedditSubscriptionDeamon run", "started");
@@ -120,6 +128,11 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
             if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
                 logger.info("Response Code: " + con.getResponseCode() + ". No error.");
 
+                /**
+                 * TODO
+                 * wenn kein error kam und es nur keinen neuen post durchs filtern gab, trotzdem timestamp setzen.
+                 */
+
                 for (String keyword : keywords.keySet()) {
                     Log.i("8. RedditSubscriptionDeamon getRecentMedia result URL for keyword " + keyword, String.valueOf(con.getURL()));
                     resultMap.put(keyword, this.redditUtil.getPosts(keyword, responseString));
@@ -141,6 +154,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         return resultMap;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<PostEntry> getRecentMediaForSubscribedKeywords() {
         Log.i("2. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords called ", "true");
@@ -153,47 +169,37 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
                 Log.i("14. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords iterate through tmp.entrySet for keyword:" + entry.getKey() + " postEntires List size:", String.valueOf(entry.getValue().size()));
                 Log.i("14.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords last checked for keyword " + entry.getKey(), String.valueOf(redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()).getTime()));
-                //remove old posts
                 MyDate myDate = redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey());
                 entry.setValue(redditUtil.elimateOldPostEntries(myDate, entry.getValue()));
                 Log.i("18. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords eliminated old postEntires for keyword: " + entry.getKey() + ", remaining postEntries", String.valueOf(entry.getValue().size()));
-                //logger.info((entry.getValue().size()) + " postentries found after eliminate old entries for keyword: "+ entry.getKey());
 
                 if (entry.getValue().size() > 0) {
                     newPostAvailable = true;
-                    /**
-                     * TODO 0 oder letztes element.
-                     */
-                    ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
                     BaseUtil.sortPostEntries(entry.getValue());
                     Log.i("19. RedditSubscriptionDeamon called redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() + " and postEntries List size: " + entry.getValue().size());
                     redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
-
 
                     Log.i("new media found for", entry.getKey());
                     for (PostEntry postEntry : entry.getValue()) {
                         latestPostEntries.add(postEntry);
                     }
-
-
                 } else {
                     redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()));
                 }
-
-
             }
             redditUtil.updateListeners(socialMedia, latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
             Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size()));
-
             return latestPostEntries;
         }
-
         logger.info("No new media found.");
         latestPostEntries = Collections.emptyList();
         newPostAvailable = false;
         return Collections.emptyList();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isNewPostAvailable() {
         return newPostAvailable;

@@ -92,6 +92,9 @@ public class Imgur extends SocialMedia {
         executor = Executors.newScheduledThreadPool(1);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean postToSocialNetwork(byte[] media, de.htw.berlin.steganography.apis.MediaType mediaType, String keyword) {
         if (this.getToken() == null || this.getToken().getToken() == null) {
@@ -248,8 +251,9 @@ public class Imgur extends SocialMedia {
         return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();
     }
 
-
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<byte[]> getRecentMediaForKeyword() {
         return Optional.ofNullable(this.imgurSubscriptionDeamon.getRecentMediaForSubscribedKeywords())
@@ -259,21 +263,33 @@ public class Imgur extends SocialMedia {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Token getToken() {
         return this.token;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setToken(Token token) {
         this.token = token;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getApiName() {
         return IMGUR.getValue();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<String, Long> getAllSubscribedKeywordsAndLastTimeChecked() {
         try{
@@ -283,11 +299,9 @@ public class Imgur extends SocialMedia {
         }
     }
 
-    @Override
-    public void setBlogName(String blogname) {
-        //Only used in tumblr implementation
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stopSearch() {
         logger.info("Stop searched was executed.");
@@ -295,6 +309,9 @@ public class Imgur extends SocialMedia {
             scheduledFuture.cancel(false);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void startSearch() {
         logger.info("Start search was executed.");
@@ -308,6 +325,9 @@ public class Imgur extends SocialMedia {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean unsubscribeKeyword(String keyword) {
         if (scheduledFuture == null) {
@@ -323,20 +343,17 @@ public class Imgur extends SocialMedia {
         else {
             if (isSchedulerRunning())
                 stopSearch();
-
             try {
                 if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
                     allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
                     logger.info("Removed keyword '" + keyword + "' from Imgur.");
                     return true;
                 }
-
             } catch (Exception e) {
                 logger.info(keyword + " was not found in keywordlist.");
             }
             if (isSchedulerRunning())
                 startSearch();
-
         }
         return false;
     }
