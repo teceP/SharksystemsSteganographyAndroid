@@ -24,13 +24,13 @@ import java.util.ArrayList;
 
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
 
-public class RemoveTransparentShuffleOverlay extends ShuffleOverlay {
+public class NoTransparencyShuffleOverlay extends ShuffleOverlay {
 
-    protected RemoveTransparentShuffleOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
+    protected NoTransparencyShuffleOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
         super(bitmap);
     }
 
-    public RemoveTransparentShuffleOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
+    public NoTransparencyShuffleOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
         super(bitmap, seed);
     }
 
