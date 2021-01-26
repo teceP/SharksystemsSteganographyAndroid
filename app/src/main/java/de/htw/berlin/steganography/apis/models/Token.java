@@ -18,6 +18,9 @@
 
 package de.htw.berlin.steganography.apis.models;
 
+/**
+ * Represents a OAuth2 Token String and timestamp.
+ */
 public class Token {
 
     /**

@@ -4,18 +4,67 @@ package de.htw.berlin.steganography.auth.models;
  * @author Mario Teklic
  */
 
+/**
+ * Holds all information about a provider's specific OAuth2 Flow.
+ *
+ * If any members are not clear, read the RFC6749:
+ * https://tools.ietf.org/html/rfc6749
+ */
 public class AuthInformation {
 
+    /**
+     * OAuth2 Provider (e.g. Reddit/Imgur)
+     */
     private String platform;
+
+    /**
+     * API Key
+     */
     private String clientId;
+
+    /**
+     * API Secret
+     */
     private String clientSecret;
+
+    /**
+     * Authentication Url
+     */
     private String authUrl;
+
+    /**
+     * Token receive Url
+     */
     private String tokenUrl;
+
+    /**
+     * Redirect Url
+     */
     private String redirectUri;
+
+    /**
+     * How long is the token valid
+     */
     private String duration;
+
+    /**
+     * Grant type
+     */
     private String grantType;
+
+    /**
+     * Scope
+     */
     private String scope;
+
+    /**
+     * Response type
+     */
     private String responseType;
+
+    /**
+     * state
+     */
     private String state;
 
     public AuthInformation(){

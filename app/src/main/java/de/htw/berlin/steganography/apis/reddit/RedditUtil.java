@@ -20,61 +20,52 @@ package de.htw.berlin.steganography.apis.reddit;
 
 import android.util.Log;
 
-import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.models.PostEntry;
-import de.htw.berlin.steganography.apis.reddit.models.RedditAboutResponse;
 import de.htw.berlin.steganography.apis.reddit.models.RedditGetResponse;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.util.*;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * @author Mario Teklic
  */
 
-
+/**
+ * Helperclass for Reddit and RedditSubscriptionDeamon
+ */
 public class RedditUtil extends BaseUtil {
-
-    private final static Logger logger = Logger.getLogger(Reddit.class.getName());
 
     public RedditUtil() {
     }
 
     /**
      * Returns the downloadable and decoded URL of an image from a reddit post
-     * @param data GET Response of reddit
+     * @param
      * @return
      */
-    public String getUrl(RedditGetResponse.ResponseChildData data){
-        if(data.getData().getUrl_overridden_by_dest() != null){
-            return this.decodeUrl(data.getData().getUrl_overridden_by_dest());
+    public String getUrl(JsonObject jsonObject){
+        if(jsonObject.has("url_overridden_by_dest")){
+            return this.decodeUrl(jsonObject.get("url_overridden_by_dest").getAsString());
         }
+
         Log.i("1. RedditSubscriptionDeamon run", "url_overridden_by_dest was null. Returning empty string as url...");
         return "";
     }
 
     /**
      *  Returns the timestamp from a reddit post
-     * @param data GET Response of reddit
      * @return
      */
-    public MyDate getTimestamp(RedditGetResponse.ResponseChildData data){
-        String info = data.getData().getCreated();
-        if(info == null || info.isEmpty()){
-            info = data.getData().getCreated_utc();
+    public MyDate getTimestamp(JsonObject jsonObject){
+        if(jsonObject.has("created")){
+            return new MyDate(new Date(jsonObject.get("created").getAsLong()));
+        }else{
+            return new MyDate(new Date(jsonObject.get("created_utc").getAsLong()));
         }
-        return this.getTimestamp(info);
     }
 
     /**
@@ -85,16 +76,17 @@ public class RedditUtil extends BaseUtil {
      * @return Returns a sorted list of Postentries (downloadlinks and timestamps) from a json-String
      */
     public List<PostEntry> getPosts(String keyword, String responseString){
-        Log.i("9. RedditUtil getPosts called with URL String", responseString);
+        //Log.i("9. RedditUtil getPosts called with URL String", responseString);
         List<PostEntry> postEntries = new ArrayList<>();
         try{
             RedditGetResponse responseArray = new Gson().fromJson(responseString, RedditGetResponse.class);
+            JsonObject jsonObject = JsonParser.parseString(responseString).getAsJsonObject();
 
             for(RedditGetResponse.ResponseChildData child : responseArray.getData().getChildren()){
                 if(child != null
                         && child.getData().getTitle().contains(keyword)
-                        && !this.hasNullObjects(child)){
-                    postEntries.add(new PostEntry(this.decodeUrl(this.getUrl(child)), this.getTimestamp(child), ".png"));
+                        && !this.hasNullObjects(jsonObject)){
+                    postEntries.add(new PostEntry(this.decodeUrl(this.getUrl(jsonObject)), this.getTimestamp(jsonObject), ".png"));
                 }
             }
 
@@ -110,16 +102,15 @@ public class RedditUtil extends BaseUtil {
      * Proofs if there are null objects in a GET responses child data
      * Tests only objcets which are used in the process after this method.
      * Only date and download-url.
-     * @param responseChildData
      * @return true if HAS null objects, false if NOT. False is in this case GOOD.
      * @throws Exception while trying to initialize variables.
      */
-    public boolean hasNullObjects(RedditGetResponse.ResponseChildData responseChildData){
+    public boolean hasNullObjects(JsonObject jsonObject){
         MyDate myDate = null;
         String url = null;
         try{
-            myDate = this.getTimestamp(responseChildData);
-            url = this.getUrl(responseChildData);
+            myDate = this.getTimestamp(jsonObject);
+            url = this.getUrl(jsonObject);
         }catch (Exception e){
             /*
             logger.info("Post entry has null object.");
@@ -139,47 +130,6 @@ public class RedditUtil extends BaseUtil {
             return true;
         if(myDate == null && url == null)
             return true;
-
         return false;
-    }
-
-    /**
-     * Tests if on a specific subreddit, image uploads are allowed or not.
-     * @param subreddit E.g. 'nature' but NOT 'r/nature'! Subreddit prefix will be added in this method. Dont need to provide before.
-     * @return true if is allowed.
-     */
-    public boolean isImageUploadAllowed(String subreddit){
-        //key allows_images isnt supported anymore
-        return true;
-        /*try {
-            URL url = new URL(RedditConstants.BASE +
-                    RedditConstants.SUBREDDIT_PREFIX + subreddit +
-                    "/about" + RedditConstants.AS_JSON);
-
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod(RedditConstants.GET);
-            con.setRequestProperty("User-agent", RedditConstants.APP_NAME);
-            con.setDoOutput(true);
-
-            String responseString = "";
-
-            if (!this.hasErrorCode(con.getResponseCode())) {
-                responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
-                logger.info("Response Code: " + con.getResponseCode() + ". No error.");
-            } else {
-                logger.info("Response Code: " + con.getResponseCode() + ". Has error.");
-                return false;
-            }
-
-            RedditAboutResponse redditAboutResponse = new Gson().fromJson(responseString, RedditAboutResponse.class);
-            return redditAboutResponse.getData().isAllow_images();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;*/
     }
 }

@@ -25,7 +25,6 @@ import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.Token;
 import de.htw.berlin.steganography.apis.imgur.Imgur;
 import de.htw.berlin.steganography.apis.interceptors.BearerInterceptor;
-import de.htw.berlin.steganography.apis.reddit.models.RedditPostResponse;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
 import de.htw.berlin.steganography.apis.utils.BlobConverterImpl;
 import com.google.gson.Gson;
@@ -46,6 +45,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static de.htw.berlin.steganography.apis.models.APINames.REDDIT;
+import static de.htw.berlin.steganography.apis.reddit.RedditConstants.SUBREDDIT;
 
 /**
  * @author Mario Teklic
@@ -98,6 +98,9 @@ public class Reddit extends SocialMedia {
         executor = Executors.newScheduledThreadPool(1);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean postToSocialNetwork(byte[] media, MediaType mediaType, String hashtag) {
         if (this.token == null) {
@@ -122,21 +125,13 @@ public class Reddit extends SocialMedia {
                     .addFormDataPart("title", hashtag)
                     .addFormDataPart("kind", "image")
                     .addFormDataPart("text", hashtag)
-                    .addFormDataPart("sr", "test")
+                    .addFormDataPart("sr", SUBREDDIT)
                     .addFormDataPart("resubmit", "true")
                     .addFormDataPart("send_replies", "true")
                     .addFormDataPart("api_type", "json")
                     .addFormDataPart("url", url)
                     .build();
 
-            /**
-             *
-             */
-
-
-            /**
-             *
-             */
             Request request = new Request.Builder()
                     .addHeader("Content-Type", "application/x-www-form-urlencoded")
                     .headers(Headers.of("Authorization", ("Bearer " + this.token.getToken())))
@@ -148,23 +143,18 @@ public class Reddit extends SocialMedia {
             Response response = client.newCall(request).execute();
             String responseString = response.body().string();
 
-            logger.info("Request token STRING: -------------------------: \n" + this.token.getToken());
-            logger.info("Request token STRING: -------------------------: \n" + this.token.getToken());
+            logger.info("Request token STRING: ------------------------- '" + this.token.getToken() + "'.");
+            logger.info("Request resp STRING: ------------------------- '" + responseString + "'.");
 
-            logger.info("RESPONSE STRING: -------------------------: \n" + responseString);
             int respCode = response.code();
             logger.info("Response code: " + respCode);
             if(!BaseUtil.hasErrorCode(respCode)){
                 JsonObject rootObj = JsonParser.parseString(responseString).getAsJsonObject();
-
-                //    {"json": {"errors": [], "data": {"url": "https://www.reddit.com/r/Katze/comments/l4kuma/katze/", "drafts_count": 0, "id": "l4kuma", "name": "t3_l4kuma"}}}
-                String urlObj = rootObj
-                        .getAsJsonObject("json")
-                        .getAsJsonObject("data")
-                        .get("url").getAsString();
-
-                logger.info("Uploaded: " + urlObj);
-                return true;
+                //    {"json": {"errors": [], "data": {"url": "https://www.reddit.com/r/test/comments/l4kuma/katze/", "drafts_count": 0, "id": "l4kuma", "name": "t3_l4kuma"}}}
+                if(responseString.contains("url")){
+                    logger.info("Uploaded: " + rootObj.get("url"));
+                    return true;
+                }
             }
         } catch (Exception e) {
             logger.info("Error while creating new post on reddit.");
@@ -178,6 +168,8 @@ public class Reddit extends SocialMedia {
      * Listens for new post entries in imgur network for stored keywords.
      * Asynchron.
      * @param interval Interval in minutes
+     *
+     * {@inheritDoc}
      */
     @Override
     public void changeSchedulerPeriod(Integer interval) {
@@ -201,8 +193,9 @@ public class Reddit extends SocialMedia {
         }
     }
 
-
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<byte[]> getRecentMediaForKeyword() {
         return Optional.ofNullable(this.redditSubscriptionDeamon.getRecentMediaForSubscribedKeywords())
@@ -212,21 +205,33 @@ public class Reddit extends SocialMedia {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Token getToken() {
         return this.token;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setToken(Token token) {
         this.token = token;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getApiName() {
         return REDDIT.getValue();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<String, Long> getAllSubscribedKeywordsAndLastTimeChecked() {
         try{
@@ -236,11 +241,9 @@ public class Reddit extends SocialMedia {
         }
     }
 
-    @Override
-    public void setBlogName(String blogname) {
-        //Only used in tumblr implementation
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stopSearch() {
         logger.info("Stop searched was executed.");
@@ -248,6 +251,9 @@ public class Reddit extends SocialMedia {
             scheduledFuture.cancel(true);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void startSearch() {
         logger.info("Start search was executed.");
@@ -262,6 +268,9 @@ public class Reddit extends SocialMedia {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean unsubscribeKeyword(String keyword) {
         if (scheduledFuture == null) {
@@ -277,7 +286,6 @@ public class Reddit extends SocialMedia {
         else {
             if (isSchedulerRunning())
                 stopSearch();
-
             try {
                 if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
                     allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
@@ -290,7 +298,6 @@ public class Reddit extends SocialMedia {
             }
             if (isSchedulerRunning())
                 startSearch();
-
         }
         return false;
     }

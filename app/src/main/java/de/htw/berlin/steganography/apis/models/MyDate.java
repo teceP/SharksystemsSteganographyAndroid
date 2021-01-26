@@ -59,6 +59,9 @@ public class MyDate implements Comparable<MyDate>{
         this.date = date;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int compareTo(MyDate opposite) {
         return Long.valueOf(this.getTime()).compareTo(opposite.getTime());

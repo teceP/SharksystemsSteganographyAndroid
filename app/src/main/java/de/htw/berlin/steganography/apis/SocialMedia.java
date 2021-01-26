@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020
- * Contributed by NAME HERE
+ * Contributed by Mario Teklic
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,32 +26,61 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.concurrent.ConcurrentHashMap;
 
-
+/**
+ * Basic Socialmedia abstract implementation
+ */
 public abstract class SocialMedia {
- 
+
+    /**
+     * All Subscribed keyword and its last time checked-timestamp
+     */
     protected Map<String, Long> allSubscribedKeywordsAndLastTimeChecked = new HashMap<>();
+
+    /**
+     * Decoded messages from a media
+     */
     protected List<String> message = new ArrayList<>();
+
+    /**
+     * Default search interval for the automatic search
+     */
     public static final Integer DEFAULT_INTERVALL = 5;
 
+    /**
+     * Listeners which gets updated when a new message has arrived
+     */
     protected List<SocialMediaListener> socialMediaListeners = new ArrayList<SocialMediaListener>();
 
+    /**
+     * Add a new listener
+     * @param socialMediaListener
+     */
     public void addAsListener(SocialMediaListener socialMediaListener){
         socialMediaListeners.add(socialMediaListener);
     }
 
+    /**
+     * Remove a listener
+     * @param socialMediaListener
+     */
     public void removeAsListener(SocialMediaListener socialMediaListener){
         socialMediaListeners.remove(socialMediaListener);
     }
 
+    /**
+     * Update all listeners messages
+     */
     private void updateListenersMessages(){
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
             socialMediaListener.updateSocialMediaMessage(this,message);
         }
     }
 
+    /**
+     * Upadte all listeners last time checked
+     * @param keyword
+     */
     private void updateListenersLastTimeChecked(String keyword){
         Log.i("SocialMedia updateListenersLastTimeChecked", "for keyword: " + keyword);
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
@@ -60,18 +89,23 @@ public abstract class SocialMedia {
         Log.i("SocialMedia updateListenersLastTimeChecked", "finished");
     }
 
+    /**
+     * Sets a new message list and updates all listeners about these new messages
+     * @param messageList
+     */
     public void setMessages(List<String> messageList){
         this.message = messageList;
         updateListenersMessages();
     }
 
+    /**
+     * Adds a new message list to the message list and updates all listeners about the whole message list
+     * @param messageList
+     */
     public void addMessages(List<String> messageList){
-        for(String string: messageList){
-            this.message.add(string);
-        }
+        this.message.addAll(messageList);
         updateListenersMessages();
     }
-
 
     public List<String> getMessage(){
         return message;
@@ -89,7 +123,10 @@ public abstract class SocialMedia {
      */
     public abstract boolean postToSocialNetwork(byte[] media, MediaType mediaType, String keyword);
 
-
+    /**
+     * Sets keywords and last time checked
+     * @param keywordsAndLastTimeChecked
+     */
     public void putAllSubscribedKeywordsAndLastTimeChecked(Map<String,Long> keywordsAndLastTimeChecked){
         this.allSubscribedKeywordsAndLastTimeChecked = keywordsAndLastTimeChecked;
     }
@@ -131,7 +168,6 @@ public abstract class SocialMedia {
             else{
                 return new Long(0);
             }
-
         }
         return null;
     }
@@ -152,6 +188,11 @@ public abstract class SocialMedia {
         }
     }
 
+    /**
+     * Unsubscribes for a keyword
+     * @param keyword
+     * @return false if this keyword wasnt found in the subscribed-keywords-list
+     */
     public boolean unsubscribeKeyword(String keyword){
         if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
             allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
@@ -163,20 +204,27 @@ public abstract class SocialMedia {
     }
 
     /**
-     * Get Medias posted under keyword
-
+     * Get Medias posted with keyword
      * @return true if successful
      */
     public abstract List<byte[]> getRecentMediaForKeyword();
 
+    /**
+     * Stops the automatic search
+     */
     public abstract void stopSearch();
 
+    /**
+     * Starts the automatic search.
+     * If no interval was set, the default interval (5 minutes) will be used.
+     */
     public abstract void startSearch();
 
+    /**
+     * Changes the automatic search interval
+     * @param interval
+     */
     public abstract void changeSchedulerPeriod(Integer interval);
 
     public abstract String getApiName();
-
-
-    public abstract void setBlogName(String blogname);
 }

@@ -1,8 +1,6 @@
 package de.htw.berlin.steganography.auth.strategy;
 
-import android.app.Activity;
 import android.app.Dialog;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
@@ -46,6 +44,9 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
         super(context, authInformation);
     }
 
+    /**
+     * Specific authorize implemenation for Reddit. See documentation from BasicAbstractAuthStrategy for more information.
+     */
     @Override
     public View.OnClickListener authorize() {
         return new View.OnClickListener() {
@@ -140,6 +141,9 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
         };
     }
 
+    /**
+     * Specific token implemenation for Reddit. See documentation from BasicAbstractAuthStrategy for more information.
+     */
     @Override
     public View.OnClickListener token() {
         return v -> {
@@ -208,6 +212,9 @@ public class RedditAuthStrategy extends BasicAbstractAuthStrategy {
         };
     }
 
+    /**
+     * Specific refresh implemenation for Reddit. See documentation from BasicAbstractAuthStrategy for more information.
+     */
     @Override
     public View.OnClickListener refresh() {
         return v -> {

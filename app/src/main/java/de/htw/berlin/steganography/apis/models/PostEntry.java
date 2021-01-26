@@ -72,12 +72,17 @@ public class PostEntry implements Comparable<PostEntry>{
      * @param postEntry
      * @return 1 if equal
      * @return -1 if not equal
+     *
+     * {@inheritDoc}
      */
     @Override
     public int compareTo(PostEntry postEntry) {
         return this.getDate().compareTo(postEntry.getDate());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString(){
         return "URL: " + getUrl() + "\n"

@@ -40,10 +40,7 @@ import java.util.logging.StreamHandler;
  */
 public class ImgurUtil extends BaseUtil {
 
-    private static final Logger logger = Logger.getLogger(ImgurUtil.class.getName());
-
     public ImgurUtil() {
-
     }
 
     /**
@@ -82,5 +79,4 @@ public class ImgurUtil extends BaseUtil {
         }
         return false;
     }
-
 }

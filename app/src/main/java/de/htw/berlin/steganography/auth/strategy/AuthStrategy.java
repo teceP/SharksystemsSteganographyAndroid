@@ -2,7 +2,6 @@ package de.htw.berlin.steganography.auth.strategy;
 
 import android.content.Context;
 import android.view.View;
-import android.widget.TextView;
 
 import de.htw.berlin.steganography.auth.models.AuthInformation;
 import de.htw.berlin.steganography.auth.models.TokenInformation;

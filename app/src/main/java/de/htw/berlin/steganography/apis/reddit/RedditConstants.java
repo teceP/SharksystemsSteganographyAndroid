@@ -31,4 +31,5 @@ public interface RedditConstants {
     String UPLOAD_PATH = "/api/submit";
     String GET = "GET";
     String AS_JSON = ".json";
+    String SUBREDDIT = "test";
 }

@@ -22,7 +22,9 @@ package de.htw.berlin.steganography.apis;
  * @author Mario Teklic
  */
 
-
+/**
+ * Supported MediaTypes
+ */
 public enum MediaType {
-    JPEG,JPG,BMP,PNG,GIF,TIFF,MP3;
+    PNG;
 }

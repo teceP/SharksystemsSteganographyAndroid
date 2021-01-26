@@ -76,8 +76,6 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
         this.socialMedia = socialMedia;
     }
 
-
-
     @Override
     public void run() {
         //bool newPostAvailable will be setted in getRecentMediaForSubscribedKeywords()
@@ -136,6 +134,9 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
         return resultMap;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<PostEntry> getRecentMediaForSubscribedKeywords() {
         Map<String, List<PostEntry>> tmp = this.getRecentMedia();
@@ -143,45 +144,33 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
 
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
-
-
-                //NEED SORT TO UPDATE TIMESTAMP
-                //BaseUtil.sortPostEntries(tmp);
                 entry.setValue(imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(socialMedia,entry.getKey()), entry.getValue()));
                 logger.info((entry.getValue().size()) + " postentries found after eliminate old entries INFO.");
 
                 if (entry.getValue().size() > 0) {
                     newPostAvailable = true;
-                    /**
-                     * TODO 0 oder letztes element.
-                     */
-                    ///keywordchange STILL NEED TO SORT LIST FOR CORRECT TIMESTAMP UPDATE
                     BaseUtil.sortPostEntries(entry.getValue());
                     imgurUtil.setLatestPostTimestamp(socialMedia,entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
-
 
                     Log.i("new media found", "New media found.");
                     for(PostEntry postEntry: entry.getValue()) {
                         latestPostEntries.add(postEntry);
                     }
-
-
-
                 }
             }
             imgurUtil.updateListeners(socialMedia,latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
             Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size()));
-
             return latestPostEntries;
         }
-
         logger.info("No new media found.");
         latestPostEntries = Collections.emptyList();
         newPostAvailable = false;
         return Collections.emptyList();
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isNewPostAvailable() {
         return this.newPostAvailable;
