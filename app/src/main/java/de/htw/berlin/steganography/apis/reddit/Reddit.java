@@ -179,7 +179,6 @@ public class Reddit extends SocialMedia {
             startSearch();
         }
         this.interval = interval;
-
     }
 
     /**
@@ -188,8 +187,9 @@ public class Reddit extends SocialMedia {
      */
     public boolean isSchedulerRunning(){
         if(scheduledFuture!=null){
-        return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();}
-        else{ return false;
+            return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();
+        }else{
+            return false;
         }
     }
 
@@ -261,7 +261,6 @@ public class Reddit extends SocialMedia {
             scheduledFuture = executor.scheduleAtFixedRate(this.redditSubscriptionDeamon,0, DEFAULT_INTERVALL, TimeUnit.MINUTES);
             Log.i("startsaerch","Start search was executed if.");
             System.out.println(executor);
-
         } else {
             Log.i("startsaerch","Start search was executed else.");
             scheduledFuture = executor.scheduleAtFixedRate(this.redditSubscriptionDeamon, 0, interval, TimeUnit.MINUTES);

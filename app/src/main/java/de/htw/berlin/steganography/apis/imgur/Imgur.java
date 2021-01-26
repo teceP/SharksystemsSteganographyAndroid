@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.imgur;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.models.Token;
 import de.htw.berlin.steganography.apis.imgur.models.ImgurPostResponse;
@@ -234,13 +236,12 @@ public class Imgur extends SocialMedia {
      */
     @Override
     public void changeSchedulerPeriod(Integer interval) {
-        if(isSchedulerRunning())
+        if(isSchedulerRunning()) {
             stopSearch();
-
-        this.interval = interval;
-
-        if(isSchedulerRunning())
+            this.interval = interval;
             startSearch();
+        }
+        this.interval = interval;
     }
 
     /**
@@ -248,7 +249,11 @@ public class Imgur extends SocialMedia {
      * @return
      */
     public boolean isSchedulerRunning(){
-        return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();
+        if(scheduledFuture!=null){
+            return !scheduledFuture.isCancelled() && !scheduledFuture.isDone();
+        }else{
+            return false;
+        }
     }
 
     /**
@@ -306,7 +311,7 @@ public class Imgur extends SocialMedia {
     public void stopSearch() {
         logger.info("Stop searched was executed.");
         if (scheduledFuture != null && !scheduledFuture.isCancelled())
-            scheduledFuture.cancel(false);
+            scheduledFuture.cancel(true);
     }
 
     /**
@@ -316,12 +321,12 @@ public class Imgur extends SocialMedia {
     public void startSearch() {
         logger.info("Start search was executed.");
         if (interval == null) {
-            System.out.println(executor);
             scheduledFuture = executor.scheduleAtFixedRate(this.imgurSubscriptionDeamon,0, DEFAULT_INTERVALL, TimeUnit.MINUTES);
+            Log.i("startsaerch","Start search was executed if.");
             System.out.println(executor);
-
         } else {
-            scheduledFuture = executor.schedule(this.imgurSubscriptionDeamon, interval, TimeUnit.MINUTES);
+            Log.i("startsaerch","Start search was executed else.");
+            scheduledFuture = executor.scheduleAtFixedRate(this.imgurSubscriptionDeamon, 0, interval, TimeUnit.MINUTES);
         }
     }
 
@@ -346,9 +351,10 @@ public class Imgur extends SocialMedia {
             try {
                 if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
                     allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
-                    logger.info("Removed keyword '" + keyword + "' from Imgur.");
+                    logger.info("Removed keyword '" + keyword + "' from Reddit.");
                     return true;
                 }
+
             } catch (Exception e) {
                 logger.info(keyword + " was not found in keywordlist.");
             }

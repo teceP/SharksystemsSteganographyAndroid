@@ -26,6 +26,7 @@ import java.util.Set;
 import de.htw.berlin.steganography.steganography.Steganography;
 import de.htw.berlin.steganography.steganography.exceptions.UnknownStegFormatException;
 import de.htw.berlin.steganography.steganography.image.encoders.BuffImgEncoder;
+import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityException;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageWritingException;
 import de.htw.berlin.steganography.steganography.image.exceptions.NoImageException;
@@ -101,7 +102,7 @@ public class ImageStegMod implements Steganography {
     @Override
     public byte[] encode(byte[] carrier, byte[] payload)
             throws IOException, UnsupportedImageTypeException, NoImageException,
-                    ImageWritingException, ImageCapacityException {
+            ImageWritingException, ImageCapacityException, BitmapInaccuracyException {
 
         return encode(carrier, payload, DEFAULT_SEED);
     }
@@ -109,7 +110,7 @@ public class ImageStegMod implements Steganography {
     @Override
     public byte[] encode(byte[] carrier, byte[] payload, long seed)
             throws IOException, NoImageException, UnsupportedImageTypeException,
-                    ImageWritingException, ImageCapacityException {
+            ImageWritingException, ImageCapacityException, BitmapInaccuracyException {
 
         if (carrier == null)
             throw new NullPointerException("Parameter 'carrier' must not be null");

@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -56,6 +57,9 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
      */
     private ImgurUtil imgurUtil;
 
+    /**
+     * Social Media
+     */
     private SocialMedia socialMedia;
 
     /**
@@ -90,7 +94,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
 
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
-            return null;
+            return Collections.emptyMap();
         }
 
         Map<String, List<PostEntry>> resultMap = new HashMap<>();
@@ -99,8 +103,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
             logger.info("Check for new post entries for keyword '" + key + "' ...");
 
             try {
-                URL url = new URL(
-                        BASE_URI + SEARCH_URI + key);
+                URL url = new URL(BASE_URI + SEARCH_URI + key);
 
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod(RedditConstants.GET);
@@ -108,27 +111,21 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
                 con.setRequestProperty("Authorization", "Client-ID " + ImgurConstants.CLIENT_ID);
                 con.setDoOutput(true);
 
-                String responseString = "";
+                String responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
 
                 if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
-                    responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
                     logger.info("Response Code: " + con.getResponseCode() + ". No error.");
+                    resultMap.put(key, this.imgurUtil.getPosts(responseString));
                 } else {
-                    logger.info("Response Code: " + con.getResponseCode() + ". Has error.");
-                    return null;
+                    logger.info("Response Code: " + con.getResponseCode() + ". Has error. For Keyword: " + key + ".");
                 }
-
                 logger.info(String.valueOf(con.getURL()));
-                resultMap.put(key, this.imgurUtil.getPosts(responseString));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
         }
-
         //logger.info((resultList.size()) + " postentries found.");
         //resultList.stream().forEach(postEntry -> logger.info(postEntry.toString()));
         return resultMap;

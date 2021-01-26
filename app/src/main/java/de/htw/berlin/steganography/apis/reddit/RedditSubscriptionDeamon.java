@@ -127,12 +127,6 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
             if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
                 logger.info("Response Code: " + con.getResponseCode() + ". No error.");
-
-                /**
-                 * TODO
-                 * wenn kein error kam und es nur keinen neuen post durchs filtern gab, trotzdem timestamp setzen.
-                 */
-
                 for (String keyword : keywords.keySet()) {
                     Log.i("8. RedditSubscriptionDeamon getRecentMedia result URL for keyword " + keyword, String.valueOf(con.getURL()));
                     resultMap.put(keyword, this.redditUtil.getPosts(keyword, responseString));
@@ -161,10 +155,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
     public List<PostEntry> getRecentMediaForSubscribedKeywords() {
         Log.i("2. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords called ", "true");
         Map<String, List<PostEntry>> tmp = this.getRecentMedia();
-
         Log.i("13.3 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp size", String.valueOf(tmp.size()));
-
         List<PostEntry> latestPostEntries = new ArrayList<>();
+
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
                 Log.i("14. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords iterate through tmp.entrySet for keyword:" + entry.getKey() + " postEntires List size:", String.valueOf(entry.getValue().size()));
