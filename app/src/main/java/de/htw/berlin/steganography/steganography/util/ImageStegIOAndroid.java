@@ -2,6 +2,9 @@ package de.htw.berlin.steganography.steganography.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ColorSpace;
+import android.os.Build;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,6 +30,8 @@ public class ImageStegIOAndroid implements ImageStegIO{
 
     private String format;
 
+    private static final String TAG = "ImageStegIOAndroid";
+
     private static final Set<String> SUPPORTED_FORMATS = new HashSet<>(
             Arrays.asList("image/bmp", "image/gif", "image/png")
     );
@@ -50,28 +55,27 @@ public class ImageStegIOAndroid implements ImageStegIO{
     private void processImage(byte[] carrier)
             throws IOException, UnsupportedImageTypeException {
 
-        /* Option A
-        this.bitmap = ImageDecoder.decodeBitmap(
-                ImageDecoder.createSource(ByteBuffer.wrap(carrier)),
-                // listener to get mime type
-                (decoder, info, source) -> {
-                    this.format = info.getMimeType();
-                }
-        );
-        */
-
-
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
 
         this.bitmap = BitmapFactory.decodeByteArray(carrier, 0, carrier.length, options);
         this.format = options.outMimeType;
+        Log.i(TAG, "image format: " + this.format);
+
+        // logging and possible setting of ColorSpace to make algorithm work
+        if (!this.bitmap.getColorSpace().isSrgb()) {
+            Log.i(TAG, "setColorSpace:  the Images ColorSpace is: " +
+                    this.bitmap.getColorSpace() +
+                    ". Trying to set to sRGB.");
+            setColorSpace();
+        }
 
         // TODO: Probably not necessary -> would only be compressed to PNG
-        if (this.format == null)
+        if (this.format == null) {
             throw new UnsupportedImageTypeException(
                     "The Image format is unknown and cannot be supported."
             );
+        }
 
         if (!isFormatSupported(this.format))
             throw new UnsupportedImageTypeException(
@@ -80,6 +84,19 @@ public class ImageStegIOAndroid implements ImageStegIO{
                             ") is not supported."
             );
         //////////////////////////////////////////////////////////////////
+    }
+
+    private void setColorSpace() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            this.bitmap.setColorSpace(ColorSpace.get(ColorSpace.Named.SRGB));
+        } else {
+            Log.i(TAG, "processImage: AndroidVersion too low to set ColorSpace:" +
+                    " is: " + Build.VERSION.SDK_INT +
+                    " // " +
+                    " needed: " + Build.VERSION_CODES.Q);
+            Log.i(TAG, "setColorSpace: Setting ColorSpace to sRGB failed, " +
+                    "hiding or getting secret message will probably not work.");
+        }
     }
 
     private boolean isFormatSupported(String formatName) {
@@ -108,7 +125,7 @@ public class ImageStegIOAndroid implements ImageStegIO{
         return this.format;
     }
 
-     /**
+    /**
      * Determines and returns the suitable encoder (and overlay) for the given bufferedImage according to its type.
      * @param seed to hand to the overlay
      * @return BuffImgEncoder with set BufferedImageCoordinateOverlay, chosen accordingly to the images type

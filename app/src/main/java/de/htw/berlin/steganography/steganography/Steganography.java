@@ -21,6 +21,7 @@ package de.htw.berlin.steganography.steganography;
 import java.io.IOException;
 
 import de.htw.berlin.steganography.steganography.exceptions.*;
+import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 
 
 public interface Steganography {
@@ -32,7 +33,7 @@ public interface Steganography {
      */
     byte[] encode(byte[] carrier, byte[] payload)
             throws IOException, MediaNotFoundException, UnsupportedMediaTypeException,
-                    MediaReassemblingException, MediaCapacityException;
+            MediaReassemblingException, MediaCapacityException, BitmapInaccuracyException;
 
     /**
      * Takes some data and conceals it in a carrier (container used to hide data) according to the given seed.
@@ -43,7 +44,7 @@ public interface Steganography {
      */
     byte[] encode(byte[] carrier, byte[] payload, long seed)
             throws IOException, MediaNotFoundException, UnsupportedMediaTypeException,
-                    MediaReassemblingException, MediaCapacityException;
+            MediaReassemblingException, MediaCapacityException, BitmapInaccuracyException;
 
     /**
      * Retrieves hidden message from a steganographic file.

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityException;
 import de.htw.berlin.steganography.steganography.image.overlays.BufferedImageCoordinateOverlay;
 
@@ -51,7 +52,7 @@ public class PixelBit extends BuffImgEncoder {
     }
 
     @Override
-    public void encode(byte[] payload) throws ImageCapacityException {
+    public void encode(byte[] payload) throws ImageCapacityException, BitmapInaccuracyException {
         if ((payload.length * 8) > overlay.available()) {
             StringBuilder sb = new StringBuilder("More Bits of payload (")
                 .append(payload.length * 8)

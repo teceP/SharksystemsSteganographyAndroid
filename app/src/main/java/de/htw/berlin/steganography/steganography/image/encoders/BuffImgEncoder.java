@@ -19,6 +19,7 @@
 package de.htw.berlin.steganography.steganography.image.encoders;
 
 
+import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityException;
 import de.htw.berlin.steganography.steganography.image.overlays.BufferedImageCoordinateOverlay;
 
@@ -39,7 +40,7 @@ public abstract class BuffImgEncoder {
      * given to the constructor.
      * @param payload payload or "message" to encode
      */
-    public abstract void encode(byte[] payload) throws ImageCapacityException;
+    public abstract void encode(byte[] payload) throws ImageCapacityException, BitmapInaccuracyException;
 
     /**
      * Decodes pixels in the sequence provided by the overlay
