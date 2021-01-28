@@ -116,7 +116,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                             RedditConstants.SUBREDDIT_PREFIX +
                             "test/new/" +
                             RedditConstants.AS_JSON +
-                            "?count=100");
+                            "?count=20");
 
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(RedditConstants.GET);
@@ -160,16 +160,16 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
 
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
-                Log.i("14. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords iterate through tmp.entrySet for keyword:" + entry.getKey() + " postEntires List size:", String.valueOf(entry.getValue().size()));
-                Log.i("14.2 RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords last checked for keyword " + entry.getKey(), String.valueOf(redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()).getTime()));
+                Log.i("14.  tmp.entrySet for keyword:" + entry.getKey() + " postEntires List size:", String.valueOf(entry.getValue().size()));
+                Log.i("14.2  last checked for keyword " + entry.getKey(), String.valueOf(redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()).getTime()));
                 MyDate myDate = redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey());
                 entry.setValue(redditUtil.elimateOldPostEntries(myDate, entry.getValue()));
-                Log.i("18. RedditSubscriptionDeamon getRecentMediaForsubscribedKeywords eliminated old postEntires for keyword: " + entry.getKey() + ", remaining postEntries", String.valueOf(entry.getValue().size()));
+                Log.i("18.  eliminated old postEntires for keyword: " + entry.getKey() + ", remaining postEntries", String.valueOf(entry.getValue().size()));
 
                 if (entry.getValue().size() > 0) {
                     newPostAvailable = true;
                     BaseUtil.sortPostEntries(entry.getValue());
-                    Log.i("19. RedditSubscriptionDeamon called redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() + " and postEntries List size: " + entry.getValue().size());
+                    Log.i("19. redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() + " and postEntries List size: " + entry.getValue().size());
                     redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
                     Log.i("new media found for", entry.getKey());

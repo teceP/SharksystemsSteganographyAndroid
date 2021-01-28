@@ -2,6 +2,13 @@ package de.htw.berlin.steganography;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import de.htw.berlin.steganography.apis.SocialMedia;
+import de.htw.berlin.steganography.apis.SocialMediaModel;
+import de.htw.berlin.steganography.apis.reddit.Reddit;
+
 import static org.junit.Assert.*;
 
 /**
@@ -14,4 +21,6 @@ public class ExampleUnitTest {
     public void addition_isCorrect() {
         assertEquals(4, 2 + 2);
     }
+
+
 }
