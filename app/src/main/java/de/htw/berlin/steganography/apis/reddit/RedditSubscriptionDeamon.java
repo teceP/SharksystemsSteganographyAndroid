@@ -116,7 +116,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                             RedditConstants.SUBREDDIT_PREFIX +
                             "test/new/" +
                             RedditConstants.AS_JSON +
-                            "?count=20");
+                            "?count=100");
 
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(RedditConstants.GET);
