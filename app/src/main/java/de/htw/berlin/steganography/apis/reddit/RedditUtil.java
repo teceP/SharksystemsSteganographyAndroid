@@ -77,6 +77,8 @@ public class RedditUtil extends BaseUtil {
      */
     public List<PostEntry> getPosts(String keyword, String responseString){
         //Log.i("9. RedditUtil getPosts called with URL String", responseString);
+        System.out.println(responseString);
+        Log.i("9. responseString", responseString);
         List<PostEntry> postEntries = new ArrayList<>();
         try{
             RedditGetResponse responseArray = new Gson().fromJson(responseString, RedditGetResponse.class);
