@@ -532,7 +532,7 @@ public class OAuthMainActivity extends AppCompatActivity {
 
             switch (tokenInformation.getNetwork()) {
                 case NetworkName.REDDIT:
-                    SocialMedia reddit = new Reddit();
+                    SocialMedia reddit = new Reddit(null);
                     reddit.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
 
                     networkName = NetworkName.REDDIT;
@@ -549,7 +549,7 @@ public class OAuthMainActivity extends AppCompatActivity {
                     this.parcelMap.put(np.getNetworkName(), np);
                     break;
                 case NetworkName.IMGUR:
-                    SocialMedia imgur = new Imgur();
+                    SocialMedia imgur = new Imgur(null);
                     imgur.setToken(new Token(tokenInformation.getAccessToken(), tokenInformation.getAccessTokenTimestamp()));
 
                     networkName = NetworkName.IMGUR;

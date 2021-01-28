@@ -23,6 +23,7 @@ import android.util.Log;
 import de.htw.berlin.steganography.apis.models.Token;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +33,12 @@ import java.util.Map;
  */
 public abstract class SocialMedia {
 
+    private Token token;
     /**
      * All Subscribed keyword and its last time checked-timestamp
      */
-    protected Map<String, Long> allSubscribedKeywordsAndLastTimeChecked = new HashMap<>();
+    private SocialMediaModel socialMediaModel;
 
-    /**
-     * Decoded messages from a media
-     */
-    protected List<String> message = new ArrayList<>();
 
     /**
      * Default search interval for the automatic search
@@ -51,6 +49,10 @@ public abstract class SocialMedia {
      * Listeners which gets updated when a new message has arrived
      */
     protected List<SocialMediaListener> socialMediaListeners = new ArrayList<SocialMediaListener>();
+
+    public SocialMedia(SocialMediaModel socialMediaModel){
+        this.socialMediaModel = socialMediaModel;
+    }
 
     /**
      * Add a new listener
@@ -73,7 +75,7 @@ public abstract class SocialMedia {
      */
     private void updateListenersMessages(){
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
-            socialMediaListener.updateSocialMediaMessage(this,message);
+            socialMediaListener.updateSocialMediaMessage(this,socialMediaModel.getMessage());
         }
     }
 
@@ -84,7 +86,7 @@ public abstract class SocialMedia {
     private void updateListenersLastTimeChecked(String keyword){
         Log.i("SocialMedia updateListenersLastTimeChecked", "for keyword: " + keyword);
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
-            socialMediaListener.updateSocialMediaLastTimeChecked(this, keyword, allSubscribedKeywordsAndLastTimeChecked.get(keyword));
+            socialMediaListener.updateSocialMediaLastTimeChecked(this, keyword, socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().get(keyword));
         }
         Log.i("SocialMedia updateListenersLastTimeChecked", "finished");
     }
@@ -94,7 +96,7 @@ public abstract class SocialMedia {
      * @param messageList
      */
     public void setMessages(List<String> messageList){
-        this.message = messageList;
+        this.socialMediaModel.setMessages(messageList);
         updateListenersMessages();
     }
 
@@ -103,17 +105,21 @@ public abstract class SocialMedia {
      * @param messageList
      */
     public void addMessages(List<String> messageList){
-        this.message.addAll(messageList);
+        this.socialMediaModel.getMessage().addAll(messageList);
         updateListenersMessages();
     }
 
     public List<String> getMessage(){
-        return message;
+        return socialMediaModel.getMessage();
     }
 
-    public abstract Token getToken();
+    public Token getToken(){
+        return token;
+    };
 
-    public abstract void setToken(Token token);
+    public void setToken(Token token){
+        this.token = token;
+    }
 
     /**
      * Post media on this Social Media under the keyword
@@ -128,11 +134,15 @@ public abstract class SocialMedia {
      * @param keywordsAndLastTimeChecked
      */
     public void putAllSubscribedKeywordsAndLastTimeChecked(Map<String,Long> keywordsAndLastTimeChecked){
-        this.allSubscribedKeywordsAndLastTimeChecked = keywordsAndLastTimeChecked;
+        this.socialMediaModel.putAllSubscribedKeywordsAndLastTimeChecked(keywordsAndLastTimeChecked);
     }
 
-    public Map<String, Long> getAllSubscribedKeywordsAndLastTimeChecked(){
-        return allSubscribedKeywordsAndLastTimeChecked;
+    public Map<String, Long> getAllSubscribedKeywordsAndLastTimeChecked() {
+        try{
+            return socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked();
+        } catch (Exception e) {
+            return Collections.emptyMap();
+        }
     }
 
     public List<String> getAllSubscribedKeywordsAsList(){
@@ -144,12 +154,12 @@ public abstract class SocialMedia {
     }
 
     public void putKeywordAndLastTimeChecked(String keyword, Long lastTimeChecked){
-        allSubscribedKeywordsAndLastTimeChecked.put(keyword, lastTimeChecked);
+        socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().put(keyword, lastTimeChecked);
     }
 
     public boolean setLastTimeCheckedForKeyword(String keyword, Long lastTimeChecked){
-        if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
-            allSubscribedKeywordsAndLastTimeChecked.put(keyword, lastTimeChecked);
+        if(socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)){
+            socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().put(keyword, lastTimeChecked);
             this.updateListenersLastTimeChecked(keyword);
             return true;
         }
@@ -159,11 +169,11 @@ public abstract class SocialMedia {
     }
 
     public Long getLastTimeCheckedForKeyword(String keyword){
-        if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)) {
+        if(socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)) {
             Log.i("SocialMedia getLastTimeCheckedForKeyword map contains keyword: ", keyword);
-            if(allSubscribedKeywordsAndLastTimeChecked.get(keyword)!=null) {
-                Log.i("SocialMedia getLastTimeCheckedForKeyword keyword: "+ keyword+ " lastTimeChecked", String.valueOf(allSubscribedKeywordsAndLastTimeChecked.get(keyword)));
-                return allSubscribedKeywordsAndLastTimeChecked.get(keyword);
+            if(socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().get(keyword)!=null) {
+                Log.i("SocialMedia getLastTimeCheckedForKeyword keyword: "+ keyword+ " lastTimeChecked", String.valueOf(socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().get(keyword)));
+                return socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().get(keyword);
             }
             else{
                 return new Long(0);
@@ -179,8 +189,8 @@ public abstract class SocialMedia {
      * @return true if successful
      */
     public boolean subscribeToKeyword(String keyword){
-        if(!allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
-            this.allSubscribedKeywordsAndLastTimeChecked.put(keyword, new Long(0));
+        if(!socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)){
+            this.socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().put(keyword, new Long(0));
             return true;
         }
         else {
@@ -194,8 +204,8 @@ public abstract class SocialMedia {
      * @return false if this keyword wasnt found in the subscribed-keywords-list
      */
     public boolean unsubscribeKeyword(String keyword){
-        if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
-            allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
+        if(socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)){
+            socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().remove(keyword);
             return true;
         }
         else{

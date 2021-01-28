@@ -22,6 +22,7 @@ import android.util.Log;
 
 import de.htw.berlin.steganography.apis.MediaType;
 import de.htw.berlin.steganography.apis.SocialMedia;
+import de.htw.berlin.steganography.apis.SocialMediaModel;
 import de.htw.berlin.steganography.apis.models.Token;
 import de.htw.berlin.steganography.apis.imgur.Imgur;
 import de.htw.berlin.steganography.apis.interceptors.BearerInterceptor;
@@ -92,7 +93,8 @@ public class Reddit extends SocialMedia {
     /**
      * Default constructor. Prepares the subscription deamon, utils and the executor.
      */
-    public Reddit() {
+    public Reddit(SocialMediaModel socialMediaModel) {
+        super(socialMediaModel);
         this.redditUtil = new RedditUtil();
         this.redditSubscriptionDeamon = new RedditSubscriptionDeamon(this,redditUtil);
         executor = Executors.newScheduledThreadPool(1);
@@ -213,13 +215,6 @@ public class Reddit extends SocialMedia {
         return this.token;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setToken(Token token) {
-        this.token = token;
-    }
 
     /**
      * {@inheritDoc}
@@ -229,17 +224,7 @@ public class Reddit extends SocialMedia {
         return REDDIT.getValue();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, Long> getAllSubscribedKeywordsAndLastTimeChecked() {
-        try{
-            return allSubscribedKeywordsAndLastTimeChecked;
-        } catch (Exception e) {
-            return Collections.emptyMap();
-        }
-    }
+
 
     /**
      * {@inheritDoc}
@@ -273,8 +258,8 @@ public class Reddit extends SocialMedia {
     @Override
     public boolean unsubscribeKeyword(String keyword) {
         if (scheduledFuture == null) {
-            if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
-                allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
+            if(this.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)){
+                this.getAllSubscribedKeywordsAndLastTimeChecked().remove(keyword);
                 logger.info("Removed keyword '" + keyword + "' from Reddit.");
                 return true;
             }
@@ -286,8 +271,8 @@ public class Reddit extends SocialMedia {
             if (isSchedulerRunning())
                 stopSearch();
             try {
-                if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
-                    allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
+                if(this.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)){
+                    this.getAllSubscribedKeywordsAndLastTimeChecked().remove(keyword);
                     logger.info("Removed keyword '" + keyword + "' from Reddit.");
                     return true;
                 }

@@ -21,6 +21,7 @@ package de.htw.berlin.steganography.apis.imgur;
 import android.util.Log;
 
 import de.htw.berlin.steganography.apis.SocialMedia;
+import de.htw.berlin.steganography.apis.SocialMediaModel;
 import de.htw.berlin.steganography.apis.models.Token;
 import de.htw.berlin.steganography.apis.imgur.models.ImgurPostResponse;
 import de.htw.berlin.steganography.apis.interceptors.BearerInterceptor;
@@ -88,7 +89,8 @@ public class Imgur extends SocialMedia {
     /**
      * Standard constructor prepares the Subscriptiondeamon but does not start it
      */
-    public Imgur() {
+    public Imgur(SocialMediaModel socialMediaModel) {
+        super(socialMediaModel);
         imgurUtil = new ImgurUtil();
         imgurSubscriptionDeamon = new ImgurSubscriptionDeamon(this, imgurUtil);
         executor = Executors.newScheduledThreadPool(1);
@@ -292,17 +294,7 @@ public class Imgur extends SocialMedia {
         return IMGUR.getValue();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, Long> getAllSubscribedKeywordsAndLastTimeChecked() {
-        try{
-            return allSubscribedKeywordsAndLastTimeChecked;
-        } catch (Exception e) {
-            return Collections.emptyMap();
-        }
-    }
+
 
     /**
      * {@inheritDoc}
@@ -336,8 +328,8 @@ public class Imgur extends SocialMedia {
     @Override
     public boolean unsubscribeKeyword(String keyword) {
         if (scheduledFuture == null) {
-            if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
-                allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
+            if(this.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)){
+                this.getAllSubscribedKeywordsAndLastTimeChecked().remove(keyword);
                 logger.info("Removed keyword '" + keyword + "' from Reddit.");
                 return true;
             }
@@ -349,8 +341,8 @@ public class Imgur extends SocialMedia {
             if (isSchedulerRunning())
                 stopSearch();
             try {
-                if(allSubscribedKeywordsAndLastTimeChecked.containsKey(keyword)){
-                    allSubscribedKeywordsAndLastTimeChecked.remove(keyword);
+                if(this.getAllSubscribedKeywordsAndLastTimeChecked().containsKey(keyword)){
+                    this.getAllSubscribedKeywordsAndLastTimeChecked().remove(keyword);
                     logger.info("Removed keyword '" + keyword + "' from Reddit.");
                     return true;
                 }
