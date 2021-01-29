@@ -59,7 +59,8 @@ public class RedditUtil extends BaseUtil {
 
             //Imgurbilder können einfach mit .png appended werden.
             //Das ist eine Ausnahme, da wir das in diesem Falle wissen und wir den Dienst selbst zum hochladen benutzen
-            if(child.getData().getUrl_overridden_by_dest().toLowerCase().contains("https://imgur.com/")){
+            if(child.getData().getUrl_overridden_by_dest().toLowerCase().contains("https://imgur.com/")
+                    && !child.getData().getUrl_overridden_by_dest().toLowerCase().contains(".png")){
                 child.getData().setUrl_overridden_by_dest(child.getData().getUrl_overridden_by_dest() + ".png");
                 Log.i("getUrl", "Appended .png to imgur link.");
             }
