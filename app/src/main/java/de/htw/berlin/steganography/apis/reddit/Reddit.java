@@ -145,9 +145,6 @@ public class Reddit extends SocialMedia {
             Response response = client.newCall(request).execute();
             String responseString = response.body().string();
 
-            logger.info("Request token STRING: ------------------------- '" + this.token.getToken() + "'.");
-            logger.info("Request resp STRING: ------------------------- '" + responseString + "'.");
-
             int respCode = response.code();
             logger.info("Response code: " + respCode);
             if(!BaseUtil.hasErrorCode(respCode)){

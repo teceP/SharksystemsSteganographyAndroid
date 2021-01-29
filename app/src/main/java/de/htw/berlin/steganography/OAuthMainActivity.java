@@ -671,6 +671,17 @@ public class OAuthMainActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    private void resetTokensForSpecificNetwork(String networkName) {
+        TokenInformation tokenInformation = getTokenInformationFromSharedPref(networkName);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(tokenInformation);
+
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString(tokenInformation.getNetwork().toLowerCase().trim() + Constants.TOKEN_OBJ_SUFFIX, json);
+        editor.apply();
+    }
+
     public static OAuthMainActivity getMainActivityInstance() {
         return instance;
     }

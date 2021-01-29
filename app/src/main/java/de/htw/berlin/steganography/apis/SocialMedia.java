@@ -84,11 +84,11 @@ public abstract class SocialMedia {
      * @param keyword
      */
     private void updateListenersLastTimeChecked(String keyword){
-        Log.i("SocialMedia updateListenersLastTimeChecked", "for keyword: " + keyword);
+        //Log.i("SocialMedia updateListenersLastTimeChecked", "for keyword: " + keyword);
         for(SocialMediaListener socialMediaListener : socialMediaListeners){
             socialMediaListener.updateSocialMediaLastTimeChecked(this, keyword, socialMediaModel.getAllSubscribedKeywordsAndLastTimeChecked().get(keyword));
         }
-        Log.i("SocialMedia updateListenersLastTimeChecked", "finished");
+        //Log.i("SocialMedia updateListenersLastTimeChecked", "finished");
     }
 
     /**

@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.imgur;
 
+import android.util.Log;
+
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.imgur.models.ImgurGetResponse;
 import de.htw.berlin.steganography.apis.models.PostEntry;

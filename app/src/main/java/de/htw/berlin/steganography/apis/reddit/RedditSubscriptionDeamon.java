@@ -133,7 +133,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                     Log.i("11. RedditSubscriptionDeamon getRecentMedia resultMap for keyword: " + keyword + " found post:", String.valueOf(resultMap.get(keyword).size()));
                 }
             } else {
-                logger.info("response string: " + responseString);
+                logger.info("response string: /1 " + responseString);
                 logger.info("Response Code: " + con.getResponseCode() + ". Has error.");
             }
 
