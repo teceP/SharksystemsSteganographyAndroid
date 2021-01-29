@@ -18,6 +18,8 @@
 
 package de.htw.berlin.steganography.apis.models;
 
+import android.util.Log;
+
 import java.util.Date;
 
 /**

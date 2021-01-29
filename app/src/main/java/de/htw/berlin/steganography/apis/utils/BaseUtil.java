@@ -200,6 +200,20 @@ public class BaseUtil {
     }
 
     /**
+     * If a timestamp comes with an '.' in its String, it cant be parsed into a Date object.
+     *
+     * @param ms
+     * @return
+     */
+    public static String cutTimestamp(String ms){
+        if(ms.contains(".")){
+            return ms.split("\\.")[0];
+        }
+        Log.i("cutTimestamp", "String has no '.'.");
+        return ms;
+    }
+
+    /**
      * 'Decoded' an URL: 'amp;' will be replaced with an empty String.
      *  This is the only encoding which is used in the URL String for this application.
      * @param url

@@ -47,24 +47,59 @@ public class RedditUtil extends BaseUtil {
      * @param
      * @return
      */
-    public String getUrl(JsonObject jsonObject){
-        if(jsonObject.has("url_overridden_by_dest")){
-            return this.decodeUrl(jsonObject.get("url_overridden_by_dest").getAsString());
+    public String getUrl(RedditGetResponse.ResponseChildData child){
+        Log.i("getUrl", "Get URL Start");
+        String url = "";
+
+        //Zuerst mit overridden by dest versuchen, falls .png im link ist
+        if(child.getData().getUrl_overridden_by_dest() != null
+                && !child.getData().getUrl_overridden_by_dest().isEmpty()
+                && (child.getData().getUrl_overridden_by_dest().toLowerCase().contains(".png")
+                || (child.getData().getUrl_overridden_by_dest().toLowerCase().contains("https://imgur.com/") && !child.getData().getUrl_overridden_by_dest().toLowerCase().contains(".mp4")))){
+
+            //Imgurbilder können einfach mit .png appended werden.
+            //Das ist eine Ausnahme, da wir das in diesem Falle wissen und wir den Dienst selbst zum hochladen benutzen
+            if(child.getData().getUrl_overridden_by_dest().toLowerCase().contains("https://imgur.com/")){
+                child.getData().setUrl_overridden_by_dest(child.getData().getUrl_overridden_by_dest() + ".png");
+                Log.i("getUrl", "Appended .png to imgur link.");
+            }
+
+            Log.i("IMG URL set by 'overridden by dest'", (child.getData().getUrl_overridden_by_dest()));
+            url = this.decodeUrl(child.getData().getUrl_overridden_by_dest());
         }
 
-        Log.i("1. RedditSubscriptionDeamon run", "url_overridden_by_dest was null. Returning empty string as url...");
-        return "";
+        //falls overridden by dest nicht vorhanden oder kein .png enthalten ist
+        //mit preview versuchen
+        if(url.equals("")
+                && child.getData().getPreview() != null
+                && child.getData().getPreview().getImages().getSource() != null
+                && child.getData().getPreview().getImages().getSource().getUrl() != null
+                && !child.getData().getPreview().getImages().getSource().getUrl().isEmpty()
+                && child.getData().getPreview().getImages().getSource().getUrl().toLowerCase().contains(".png")){
+            url = this.decodeUrl(child.getData().getPreview().getImages().getSource().getUrl());
+            Log.i("IMG URL set by 'preview.source'", (child.getData().getPreview().getImages().getSource().getUrl()));
+        }
+
+        Log.i("Returning ", (url.equals("") ? "empty String, due to no .png found in child data" : "following String as image url: " + url));
+
+        Log.i("getUrl", "Get URL End");
+
+        return url;
     }
 
     /**
      *  Returns the timestamp from a reddit post
      * @return
      */
-    public MyDate getTimestamp(JsonObject jsonObject){
-        if(jsonObject.has("created")){
-            return new MyDate(new Date(jsonObject.get("created").getAsLong()));
+    public MyDate getTimestamp(RedditGetResponse.ResponseChildData child){
+        if(child.getData().getCreated() != null && !child.getData().getCreated().isEmpty()){
+            child.getData().setCreated(BaseUtil.cutTimestamp(child.getData().getCreated()));
+            Log.i("CREATED: ", child.getData().getCreated() );
+            return new MyDate(new Date(Long.parseLong(child.getData().getCreated())));
         }else{
-            return new MyDate(new Date(jsonObject.get("created_utc").getAsLong()));
+            child.getData().setCreated_utc(BaseUtil.cutTimestamp(child.getData().getCreated_utc()));
+            Log.i("CREATED_UTC: ", child.getData().getCreated_utc() );
+            return new MyDate(new Date(Long.parseLong(child.getData().getCreated_utc())));
         }
     }
 
@@ -77,22 +112,28 @@ public class RedditUtil extends BaseUtil {
      */
     public List<PostEntry> getPosts(String keyword, String responseString){
         //Log.i("9. RedditUtil getPosts called with URL String", responseString);
-        System.out.println(responseString);
-        Log.i("9. responseString", responseString);
         List<PostEntry> postEntries = new ArrayList<>();
         try{
             RedditGetResponse responseArray = new Gson().fromJson(responseString, RedditGetResponse.class);
-            JsonObject jsonObject = JsonParser.parseString(responseString).getAsJsonObject();
 
             for(RedditGetResponse.ResponseChildData child : responseArray.getData().getChildren()){
+               /* Log.i("asdasdasdasd", "===========================================");
+                Log.i("asdasdasdasd title:", (child.getData().getTitle()) + "");
+                Log.i("asdasd nicht null oben:", (child != null) + "");
+                Log.i("asdasd title contains", (child.getData().getTitle().toLowerCase().contains(keyword.toLowerCase()) + ""));
+                Log.i("asdasdasdasd", "===========================================");*/
+
                 if(child != null
-                        && child.getData().getTitle().contains(keyword)
-                        && !this.hasNullObjects(jsonObject)){
-                    postEntries.add(new PostEntry(this.decodeUrl(this.getUrl(jsonObject)), this.getTimestamp(jsonObject), ".png"));
+                        && child.getData().getTitle().toLowerCase().contains(keyword.toLowerCase())){
+                    String url = this.decodeUrl(this.getUrl(child));
+                    if(!url.equals("") || !url.isEmpty()){
+                        postEntries.add(new PostEntry(url, this.getTimestamp(child), ".png"));
+                        Log.i("Hallo 4 (loop) ", "added " + new PostEntry(url, this.getTimestamp(child), ".png").toString());
+                    }else{
+                        Log.i("Hallo 4 (loop) ", "NOT added bc url was empty ");
+                    }
                 }
             }
-
-            //postEntries.stream().forEach(postEntry -> System.out.println(postEntry.toString()));
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -107,22 +148,13 @@ public class RedditUtil extends BaseUtil {
      * @return true if HAS null objects, false if NOT. False is in this case GOOD.
      * @throws Exception while trying to initialize variables.
      */
-    public boolean hasNullObjects(JsonObject jsonObject){
-        MyDate myDate = null;
-        String url = null;
+    public boolean hasNullObjects(RedditGetResponse.ResponseChildData child){
+        MyDate myDate;
+        String url;
         try{
-            myDate = this.getTimestamp(jsonObject);
-            url = this.getUrl(jsonObject);
+            url = this.getUrl(child);
+            myDate = this.getTimestamp(child);
         }catch (Exception e){
-            /*
-            logger.info("Post entry has null object.");
-            if(myDate == null && url != null)
-                logger.info("Date was null. URL: " + url);
-            if(myDate != null && url == null)
-                logger.info("URL was null. No media found. This happens, when this entry was is not a picture but for an example a comment. Date: " + myDate.getTime());
-            if(myDate == null && url == null)
-                logger.info("URL and Date are null.");
-              */
             return true;
         }
 

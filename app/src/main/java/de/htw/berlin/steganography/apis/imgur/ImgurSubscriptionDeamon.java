@@ -25,6 +25,9 @@ import de.htw.berlin.steganography.apis.SubscriptionDeamon;
 import de.htw.berlin.steganography.apis.reddit.RedditConstants;
 import de.htw.berlin.steganography.apis.models.PostEntry;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -104,25 +107,31 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
 
             try {
                 URL url = new URL(BASE_URI + SEARCH_URI + key);
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder()
+                        .url(url)
+                        .build();
+                Log.i("Hello imgur", "1");
+                Response response = client.newCall(request).execute();
+                Log.i("Hello imgur", "2");
 
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod(RedditConstants.GET);
-                con.setRequestProperty("User-agent", ImgurConstants.APP_NAME);
-                con.setRequestProperty("Authorization", "Client-ID " + ImgurConstants.CLIENT_ID);
+                int respCode = response.code();
+                Log.i("Hello imgur", "3");
 
-                con.getRequestProperties().entrySet().stream().forEach(r -> logger.info(r.getKey() + " : " + r.getValue()));
+                String responseString = response.body().string();
+                Log.i("Hello imgur", "4");
 
-                logger.info("TEST1234 : " + con.getResponseCode());
+                if (!BaseUtil.hasErrorCode(respCode)) {
+                    Log.i("Hello imgur", "5");
 
-                String responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
-
-                if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
-                    logger.info("Response Code: " + con.getResponseCode() + ". No error.");
+                    logger.info("Response Code  imgur: " + respCode + ". No error.");
                     resultMap.put(key, this.imgurUtil.getPosts(responseString));
                 } else {
-                    logger.info("Response Code: " + con.getResponseCode() + ". Has error. For Keyword: " + key + ".");
+                    Log.i("Hello imgur", "5,5");
+
+                    logger.info("Response Code  imgur: " + respCode + ". Has error. For Keyword: " + key + ".");
                 }
-                logger.info(String.valueOf(con.getURL()));
+                logger.info(url.toString());
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {

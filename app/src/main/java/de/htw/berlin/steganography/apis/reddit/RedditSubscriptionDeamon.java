@@ -25,9 +25,13 @@ import de.htw.berlin.steganography.apis.SubscriptionDeamon;
 import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
 import de.htw.berlin.steganography.apis.models.PostEntry;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -101,8 +105,9 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         Log.i("3. RedditSubscriptionDeamon getRecentMedia called", "true");
         //Currently fix for not null
         Map<String, Long> keywords = redditUtil.getKeywordAndLastTimeCheckedMap(socialMedia);
-
+        keywords.entrySet().stream().forEach(r-> Log.i("keyword map entries", "Key: " + r.getKey() + ", Value: " + r.getValue()));
         Log.i("6. RedditSubscriptionDeamon getRecentMedia keywords map size", String.valueOf(keywords.size()));
+
         if (keywords == null || keywords.size() == 0) {
             logger.info("No keyword(s) were set.");
             return Collections.emptyMap();
@@ -118,23 +123,30 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                             RedditConstants.AS_JSON +
                             "?count=100");
 
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod(RedditConstants.GET);
-            con.setRequestProperty("User-agent", RedditConstants.APP_NAME);
-            con.setDoOutput(true);
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(url)
+                    .build();
+            Response response = client.newCall(request).execute();
 
-            String responseString = new BufferedReader(new InputStreamReader(con.getInputStream())).lines().collect(Collectors.joining());
+            int respCode = response.code();
+            String responseString = response.body().string();
 
-            if (!BaseUtil.hasErrorCode(con.getResponseCode())) {
-                logger.info("Response Code: " + con.getResponseCode() + ". No error.");
+            Log.i("escgr", responseString);
+
+            if (!BaseUtil.hasErrorCode(respCode)) {
+
+                logger.info("Response Code: " + respCode + ". No error.");
                 for (String keyword : keywords.keySet()) {
-                    Log.i("8. RedditSubscriptionDeamon getRecentMedia result URL for keyword " + keyword, String.valueOf(con.getURL()));
+                    Log.i("8. RedditSubscriptionDeamon getRecentMedia result URL for keyword " + keyword, url.toString());
                     resultMap.put(keyword, this.redditUtil.getPosts(keyword, responseString));
+                    Log.i("->>>>>>>>>>>>>>>>>> " + keyword , "" + resultMap.put(keyword, this.redditUtil.getPosts(keyword, responseString)).size());
+
                     Log.i("11. RedditSubscriptionDeamon getRecentMedia resultMap for keyword: " + keyword + " found post:", String.valueOf(resultMap.get(keyword).size()));
                 }
             } else {
-                logger.info("response string: /1 " + responseString);
-                logger.info("Response Code: " + con.getResponseCode() + ". Has error.");
+                logger.info("response string: " + responseString);
+                logger.info("Response Code: " + respCode + ". Has error.");
             }
 
         } catch (MalformedURLException e) {
@@ -177,6 +189,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
                         latestPostEntries.add(postEntry);
                     }
                 } else {
+                    Log.i("no new media found for", entry.getKey());
                     redditUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), redditUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()));
                 }
             }
