@@ -154,7 +154,7 @@ public class RedditSubscriptionDeamon implements SubscriptionDeamon {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        resultMap.entrySet().stream().forEach(a -> Log.i("Entry xx", "Key: " + a.getKey() + ", Val: " + a.getValue()));
         Log.i("12. RedditSubscriptionDeamon getRecentMedia result map size: ", String.valueOf(resultMap.size()));
         //resultList.stream().forEach(postEntry -> logger.info(postEntry.toString()));
         return resultMap;

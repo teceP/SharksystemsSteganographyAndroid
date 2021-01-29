@@ -71,7 +71,15 @@ public class BaseUtil {
                 Log.i("BaseUtil updateListeners", "starting to download...");
                 for (String link : msgList) {
                     Log.i("BaseUtil updateListeners", "begin download of new file... Link:" + link);
-                    encodedByteArray.add(BlobConverterImpl.downloadToByte(link));
+                    byte[] nextBytes;
+                    try{
+                        nextBytes = BlobConverterImpl.downloadToByte(link);
+                        if(nextBytes.length > 0){
+                            encodedByteArray.add(nextBytes);
+                        }
+                    }catch (Exception e){
+                        Log.i("BaseUtil updateListeners", "Exception while downloading file. Continue with next...");
+                    }
                     Log.i("BaseUtil updateListeners", "finished downloading file...");
                 }
                 Log.i("BaseUtil updateListeners", "finished downloading all files");
