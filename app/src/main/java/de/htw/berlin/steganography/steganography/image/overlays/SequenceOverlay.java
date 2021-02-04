@@ -19,10 +19,7 @@
 package de.htw.berlin.steganography.steganography.image.overlays;
 
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -32,7 +29,11 @@ import java.util.stream.IntStream;
 import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
 
-public class SerialOverlay implements BufferedImageCoordinateOverlay {
+/**
+ * This class returns Pixels of the underlying Bitmap in order from top left (x=0, y=0)
+ * to bottom right (x=bitmap.getWidth(), y=bitmap.getHeight()).
+ */
+public class SequenceOverlay implements PixelCoordinateOverlay {
 
     protected final Bitmap bitmap;
     protected List<Integer> pixelOrder;
@@ -40,34 +41,37 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
     protected int currentX = 0;
     protected int currentY = 0;
 
-    protected SerialOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
+    public SequenceOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
         this.bitmap = bitmap;
 
         Bitmap.Config type = this.bitmap.getConfig();
         if (!this.typeAccepted(type))
             throw new UnsupportedImageTypeException("This overlay doesn't support images of type " + type);
     }
+/*
 
-    public SerialOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
+    public SequenceOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
         this(bitmap);
         createOverlay();
     }
+*/
 
     protected boolean typeAccepted(Bitmap.Config type) {
         return type == Bitmap.Config.ARGB_8888;
     }
 
     protected void createOverlay() {
-        if (this.pixelOrder == null) {
-            this.pixelOrder =
-                    IntStream.range(0, bitmap.getHeight() * bitmap.getWidth())
-                            .boxed()
-                            .collect(Collectors.toList());
-        }
+        this.pixelOrder =
+                IntStream.range(0, bitmap.getHeight() * bitmap.getWidth())
+                        .boxed()
+                        .collect(Collectors.toList());
     }
 
     @Override
     public int next() throws NoSuchElementException {
+        if (this.pixelOrder == null)
+            createOverlay();
+
         if (++currentPosition >= this.pixelOrder.size())
             throw new NoSuchElementException("No pixels left.");
 
@@ -78,6 +82,9 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
 
     @Override
     public void setPixel(int value) throws BitmapInaccuracyException {
+        if (this.pixelOrder == null)
+            createOverlay();
+
         if (currentPosition < 0 || this.currentPosition >= this.pixelOrder.size())
             throw new IndexOutOfBoundsException("No pixel at current position.");
 
@@ -106,12 +113,15 @@ public class SerialOverlay implements BufferedImageCoordinateOverlay {
             Log.i("Overlay", "-------------------------------------------------");
 
             throw new BitmapInaccuracyException("This image cannot be used for encoding, " +
-                    "because Androids Bitmap will not change colors correctly.");
+                    "because Androids Bitmap will not change its colors correctly.");
         }
     }
 
     @Override
     public int available() {
+        if (this.pixelOrder == null)
+            createOverlay();
+
         return this.pixelOrder.size() - this.currentPosition -1;
     }
 }

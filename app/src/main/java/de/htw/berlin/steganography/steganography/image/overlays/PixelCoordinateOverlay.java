@@ -24,10 +24,10 @@ import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccura
 
 /**
  * Classes that implement this interface should be able to return pixels of a
- * given BufferedImage in an order independent from the coordinate system
- * of BufferedImage (Overlay).
+ * given Bitmap in an order independent from the coordinate system
+ * of Bitmap (Overlay).
  */
-public interface BufferedImageCoordinateOverlay {
+public interface PixelCoordinateOverlay {
 
     /**
      * Returns the next pixel value as an int (representing ARGB as its bytes).
@@ -38,10 +38,13 @@ public interface BufferedImageCoordinateOverlay {
     int next() throws NoSuchElementException;
 
     /**
-     * Sets the current pixel to the given value
+     * Sets the current pixel to the given value and checks if the correct value was actually
+     * set by the Bitmap. This is due to inaccuracies of Bitmap while trying to set a pixel to a
+     * specific value.
      * @param value the value to set the current pixel to
      * @throws NoSuchElementException if setPixel() is called before the first call to next().
      * Or if setPixel() is called after the last call to next() produced a NoSuchElementException
+     * @throws BitmapInaccuracyException if the desired value was not set correctly by bitmap
      */
     void setPixel(int value) throws NoSuchElementException, BitmapInaccuracyException;
 

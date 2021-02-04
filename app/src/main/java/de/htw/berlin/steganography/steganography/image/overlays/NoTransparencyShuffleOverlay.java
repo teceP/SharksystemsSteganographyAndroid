@@ -24,18 +24,18 @@ import java.util.ArrayList;
 
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
 
+/**
+ * This class returns Pixels of the underlying Bitmap in a random order determined by the seed
+ * that is given to its constructor. It will only return Pixels with an alpha value of 255.
+ */
 public class NoTransparencyShuffleOverlay extends ShuffleOverlay {
-
-    protected NoTransparencyShuffleOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
-        super(bitmap);
-    }
 
     public NoTransparencyShuffleOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
         super(bitmap, seed);
     }
 
     @Override
-    protected void createOverlay() {
+    protected void initOverlay() {
         this.pixelOrder = new ArrayList<>();
         for(int y = 0; y < this.bitmap.getHeight(); y++) {
             for (int x = 0; x < this.bitmap.getWidth(); x++) {

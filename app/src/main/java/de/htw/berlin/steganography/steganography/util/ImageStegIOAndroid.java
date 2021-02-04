@@ -16,7 +16,7 @@ import de.htw.berlin.steganography.steganography.image.encoders.PixelBit;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageWritingException;
 import de.htw.berlin.steganography.steganography.image.exceptions.NoImageException;
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
-import de.htw.berlin.steganography.steganography.image.overlays.BufferedImageCoordinateOverlay;
+import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 import de.htw.berlin.steganography.steganography.image.overlays.NoTransparencyShuffleOverlay;
 import de.htw.berlin.steganography.steganography.image.overlays.ShuffleOverlay;
 
@@ -54,7 +54,6 @@ public class ImageStegIOAndroid implements ImageStegIO{
      */
     public ImageStegIOAndroid(byte[] image, boolean useTransparent)
             throws UnsupportedImageTypeException, NoImageException {
-
         this(image);
     }
 
@@ -88,7 +87,7 @@ public class ImageStegIOAndroid implements ImageStegIO{
         }
         //////////////////////////////////////////////////////////////////
 
-        // logging and possible setting of ColorSpace to make algorithm work
+        // logging and possible changing of ColorSpace to sRGB to make algorithm work
         if (!this.bitmap.getColorSpace().isSrgb()) {
             Log.i(TAG, "setColorSpace:  the Images ColorSpace is: " +
                     this.bitmap.getColorSpace() +
@@ -141,7 +140,7 @@ public class ImageStegIOAndroid implements ImageStegIO{
      * In the current state, this will always be the PixelBit encoder with an overlay that only
      * uses pixels with an alpha value of 255.
      * @param seed to hand to the overlay
-     * @return BuffImgEncoder with set BufferedImageCoordinateOverlay, chosen accordingly to the images type
+     * @return BuffImgEncoder with set PixelCoordinateOverlay, chosen accordingly to the images type
      * @throws UnsupportedImageTypeException if the images type is not supported by any known encoder / overlay
      */
     @Override
@@ -166,7 +165,7 @@ public class ImageStegIOAndroid implements ImageStegIO{
      * @return ShuffleOverlay or NoTransparencyShuffleOverlay
      * @throws UnsupportedImageTypeException if the image type is not supported by the overlay
      */
-    private BufferedImageCoordinateOverlay getOverlay(Bitmap bitmap, long seed)
+    private PixelCoordinateOverlay getOverlay(Bitmap bitmap, long seed)
             throws UnsupportedImageTypeException {
 
         return this.useTransparent ?

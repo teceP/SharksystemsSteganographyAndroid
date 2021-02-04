@@ -21,17 +21,17 @@ package de.htw.berlin.steganography.steganography.image.encoders;
 
 import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityException;
-import de.htw.berlin.steganography.steganography.image.overlays.BufferedImageCoordinateOverlay;
+import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 
 public abstract class BuffImgEncoder {
 
-    protected BufferedImageCoordinateOverlay overlay;
+    protected PixelCoordinateOverlay overlay;
 
-    public BuffImgEncoder(BufferedImageCoordinateOverlay overlay) throws IllegalArgumentException {
+    public BuffImgEncoder(PixelCoordinateOverlay overlay) throws IllegalArgumentException {
         this.overlay = overlay;
     }
 
-    public BufferedImageCoordinateOverlay getOverlay() {
+    public PixelCoordinateOverlay getOverlay() {
         return this.overlay;
     }
 

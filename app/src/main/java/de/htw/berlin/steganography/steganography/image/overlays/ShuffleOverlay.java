@@ -25,28 +25,29 @@ import java.util.Random;
 
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
 
-
-public class ShuffleOverlay extends SerialOverlay {
+/**
+ * This class returns Pixels of the underlying Bitmap in a random order determined by the seed
+ * that is given to its constructor
+ */
+public class ShuffleOverlay extends SequenceOverlay {
 
     protected Random random;
 
-    protected ShuffleOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
-        super(bitmap);
-    }
-
     public ShuffleOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
         super(bitmap);
-
         this.random = new Random(seed);
-        createOverlay();
-        shufflePixelOrder();
     }
 
     protected void createOverlay() {
+        initOverlay();
+        shufflePixelOrder();
+    }
+
+    protected void initOverlay() {
         super.createOverlay();
     }
 
-    private void shufflePixelOrder() {
+    protected void shufflePixelOrder() {
         Collections.shuffle(this.pixelOrder, this.random);
     }
 }

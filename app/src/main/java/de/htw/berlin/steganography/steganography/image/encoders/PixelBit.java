@@ -25,13 +25,13 @@ import java.util.Random;
 
 import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityException;
-import de.htw.berlin.steganography.steganography.image.overlays.BufferedImageCoordinateOverlay;
+import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 
 
 public class PixelBit extends BuffImgEncoder {
     private int numOfChannels = 3;
 
-    public PixelBit(BufferedImageCoordinateOverlay overlay) throws IllegalArgumentException {
+    public PixelBit(PixelCoordinateOverlay overlay) throws IllegalArgumentException {
         super(overlay);
     }
 
