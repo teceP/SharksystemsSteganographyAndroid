@@ -141,30 +141,4 @@ public class RedditUtil extends BaseUtil {
         Log.i("10. RedditUtil getPosts return postEntries size", String.valueOf(postEntries.size()));
         return postEntries;
     }
-
-    /**
-     * Proofs if there are null objects in a GET responses child data
-     * Tests only objcets which are used in the process after this method.
-     * Only date and download-url.
-     * @return true if HAS null objects, false if NOT. False is in this case GOOD.
-     * @throws Exception while trying to initialize variables.
-     */
-    public boolean hasNullObjects(RedditGetResponse.ResponseChildData child){
-        MyDate myDate;
-        String url;
-        try{
-            url = this.getUrl(child);
-            myDate = this.getTimestamp(child);
-        }catch (Exception e){
-            return true;
-        }
-
-        if(myDate == null && url != null)
-            return true;
-        if(myDate != null && url == null)
-            return true;
-        if(myDate == null && url == null)
-            return true;
-        return false;
-    }
 }
