@@ -146,11 +146,10 @@ public class OAuthMainActivity extends AppCompatActivity {
         String passedActivityString = "com.example.stegaexampleapp.FileUploadedTestActivity";
         openPassedActivity(passedActivityString);*/
 
-
-
         oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().token());
         oauthBtn.setOnClickListener(getCurrentSelectedNetwork().getAuthStrategy().authorize());
         oauthBtn.callOnClick();
+
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -176,6 +175,9 @@ public class OAuthMainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Initialize all variables
+     */
     public void initObjects() {
         instance = this;
 
@@ -204,7 +206,6 @@ public class OAuthMainActivity extends AppCompatActivity {
          * Initial token state
          */
         this.authStatus = new Integer(Constants.STATUS_UNCHECKED);
-
     }
 
     /**
@@ -220,6 +221,9 @@ public class OAuthMainActivity extends AppCompatActivity {
         return list;
     }
 
+    /**
+     * Updates all Network Parcels with data from SharedPreferences
+     */
     public void updateSocialMediaTokens() {
         for(NetworkParcel np : this.parcelMap.values()){
             TokenInformation ti = getTokenInformationFromSharedPref(np.getNetworkName());
@@ -229,6 +233,10 @@ public class OAuthMainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Returns the current selected network's Network Parcel
+     * @return
+     */
     public NetworkParcel getCurrentSelectedNetwork() {
 
         Log.i("spinner string for parcelMap.get",spinner.getSelectedItem().toString().toLowerCase());
@@ -237,6 +245,10 @@ public class OAuthMainActivity extends AppCompatActivity {
         //return this.parcelMap.get(spinner.getSelectedItem().toString().toLowerCase());
     }
 
+    /**
+     * Updates the token information of the current selected network
+     * @param tokenInformation
+     */
     public void updateCurrentSelectedNetworkTokenInformation(TokenInformation tokenInformation) {
         this.getCurrentSelectedNetwork().setTokenInformation(tokenInformation);
     }
@@ -450,6 +462,10 @@ public class OAuthMainActivity extends AppCompatActivity {
      * Other Click Events
      */
 
+    /**
+     * Performs "updateState()" when executed
+     * @return OnClickListener
+     */
     private AdapterView.OnItemSelectedListener spinnerOnItemClick() {
         return new AdapterView.OnItemSelectedListener() {
             @Override
@@ -466,6 +482,11 @@ public class OAuthMainActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * Performs a refresh-token of a network
+     * @param network Name of the network
+     * @return OnClickListener
+     */
     public View.OnClickListener doRefreshOnClick(String network) {
         return v -> {
             try {
@@ -489,13 +510,19 @@ public class OAuthMainActivity extends AppCompatActivity {
      * UI Objects
      */
 
+    /**
+     * Sets the authentication status
+     * @param authStatus
+     */
     public void setAuthStatus(int authStatus) {
         Log.i("MYY", "Old state: " + this.authStatus);
         this.authStatus = authStatus;
         Log.i("MYY", "New state: " + this.authStatus);
-
     }
 
+    /**
+     * Updates user interface with up-to-date data
+     */
     public void updateUI() {
         updateTokenInformationForRecyclerView();
         setButtonStates();
@@ -506,6 +533,10 @@ public class OAuthMainActivity extends AppCompatActivity {
      * RESTORE
      */
 
+    /**
+     * Updates the token information for the recyclerview
+     * -> Not in use anymore after app user-interface reduction
+     */
     public void updateTokenInformationForRecyclerView() {
         this.tokenInformationsRecyclerView.clear();
         for (TokenInformation ti : this.parcelMap.values().stream().map(NetworkParcel::getTokenInformation).collect(Collectors.toList())) {
@@ -514,6 +545,10 @@ public class OAuthMainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Restores all network parcels from shared preferences, which where stored in the past
+     * -> Not in use anymore after app user-interface reduction
+     */
     public void restoreNetworkParcels() {
         List<String> networks = new ArrayList<>();
         networks.add(Constants.REDDIT_TOKEN_OBJ);
@@ -585,6 +620,11 @@ public class OAuthMainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Returns the Auth Information about a Network such a OAuth URL and so on.
+     * @param network Network Name
+     * @return
+     */
     private AuthInformation getAuthInformation(String network) {
         AuthInformation authInformation;
         switch (network) {
@@ -631,16 +671,31 @@ public class OAuthMainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * @{inheritDoc}
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
+    /**
+     *
+     * @return Parcel Map with all network parcels
+     */
     public Map<String, NetworkParcel> getParcelMap() {
         return this.parcelMap;
     }
 
+    /**
+     * Top Navi Menu
+     * -> Not in use anymore after app user-interface reduction
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -659,7 +714,10 @@ public class OAuthMainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void resetTokensForSelectedNetwork() {
+    /**
+     * Resets the token for the current selected network
+     */
+    public void resetTokensForSelectedNetwork() {
         TokenInformation tokenInformation = getCurrentSelectedTokenInformationFromSharedPref();
         tokenInformation = new TokenInformation(tokenInformation.getNetwork());
 
@@ -671,7 +729,10 @@ public class OAuthMainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void resetTokensForSpecificNetwork(String networkName) {
+    /**
+     * Resets the token for a specific network
+     */
+    public void resetTokensForSpecificNetwork(String networkName) {
         TokenInformation tokenInformation = getTokenInformationFromSharedPref(networkName);
 
         Gson gson = new Gson();
@@ -692,6 +753,11 @@ public class OAuthMainActivity extends AppCompatActivity {
      **********************************************************************************
      */
 
+    /**
+     * Returns the access token for a network
+     * @param network
+     * @return
+     */
     public String provideToken(String network) {
         return this.parcelMap.get(network).getTokenInformation().getAccessToken();
     }
@@ -702,6 +768,9 @@ public class OAuthMainActivity extends AppCompatActivity {
      ***
      ***/
 
+    /**
+     * Sets all spinner options
+     */
     private void setSpinner() {
         spinner = findViewById(R.id.spinner);
         String[] items = new String[]{"Reddit", "Imgur", "Twitter", "Instagram", "YouTube"};
