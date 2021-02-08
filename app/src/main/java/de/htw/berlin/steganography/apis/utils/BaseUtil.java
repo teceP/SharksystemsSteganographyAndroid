@@ -90,8 +90,6 @@ public class BaseUtil {
                         Log.i("BaseUtil updateListeners", "started decoding file...");
                         decodedMessageString.add(new String(steganography.decode(encodedByte)));
                         Log.i("BaseUtil updateListeners", "decoded file...");
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     } catch (MediaNotFoundException e) {
                         e.printStackTrace();
                     } catch (UnsupportedMediaTypeException e) {
