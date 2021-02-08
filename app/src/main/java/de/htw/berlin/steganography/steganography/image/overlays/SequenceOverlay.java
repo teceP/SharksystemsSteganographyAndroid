@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020
- * Contributed by Henk Lubig
+ * Contributed by Henk-Joas Lubig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,12 @@ public class SequenceOverlay implements PixelCoordinateOverlay {
     protected int currentX = 0;
     protected int currentY = 0;
 
+    /**
+     * Creates a SequenceOverlay that returns Pixels of the underlying Bitmap in order from top left (x=0, y=0)
+     * to bottom right (x=bitmap.getWidth(), y=bitmap.getHeight()).
+     * @param bitmap the Bitmap to represent the pixels of.
+     * @throws UnsupportedImageTypeException if the type of image is not supported by this overlay
+     */
     public SequenceOverlay(Bitmap bitmap) throws UnsupportedImageTypeException {
         this.bitmap = bitmap;
 
@@ -48,18 +54,22 @@ public class SequenceOverlay implements PixelCoordinateOverlay {
         if (!this.typeAccepted(type))
             throw new UnsupportedImageTypeException("This overlay doesn't support images of type " + type);
     }
-/*
 
-    public SequenceOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
-        this(bitmap);
-        createOverlay();
-    }
-*/
-
+    /**
+     * <p>Checks whether the type of the given image is accepted by this overlay.</p>
+     * <p>Overwritten by subclasses to apply their own rules for acceptance.</p>
+     * @param type representation of an image type as an int of Bitmap.Config
+     * @return true if the images type is accepted by this overlay
+     */
     protected boolean typeAccepted(Bitmap.Config type) {
         return type == Bitmap.Config.ARGB_8888;
     }
 
+    /**
+     * <p>Creates the overlay as an independent method to address pixels without using
+     * Bitmaps coordinates.</p>
+     * <p>Subclasses overwrite this method to use their own logic of creating the overlay.</p>
+     */
     protected void createOverlay() {
         this.pixelOrder =
                 IntStream.range(0, bitmap.getHeight() * bitmap.getWidth())

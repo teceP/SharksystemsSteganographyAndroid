@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2020
+ * Contributed by Henk-Joas Lubig
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.htw.berlin.steganography.steganography.util;
 
 import android.graphics.Bitmap;
@@ -11,13 +29,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import de.htw.berlin.steganography.steganography.image.encoders.BuffImgEncoder;
+import de.htw.berlin.steganography.steganography.image.encoders.BitmapEncoder;
 import de.htw.berlin.steganography.steganography.image.encoders.PixelBit;
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageWritingException;
 import de.htw.berlin.steganography.steganography.image.exceptions.NoImageException;
 import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedImageTypeException;
-import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 import de.htw.berlin.steganography.steganography.image.overlays.NoTransparencyShuffleOverlay;
+import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 import de.htw.berlin.steganography.steganography.image.overlays.ShuffleOverlay;
 
 public class ImageStegIOAndroid implements ImageStegIO{
@@ -35,26 +53,18 @@ public class ImageStegIOAndroid implements ImageStegIO{
             Arrays.asList("image/bmp", "image/gif", "image/png")
     );
 
-    public ImageStegIOAndroid(byte[] image)
-            throws UnsupportedImageTypeException, NoImageException {
-
+    /**
+     * <p>Creates an object that exists to handle reading and writing of Bitmaps to and from byte arrays
+     * as well as choosing the appropriate encoders (and their overlays) for the given image.
+     * It holds on to the image during its en- or decoding.</p>
+     * <p>The image will only be processed if the methods getFormat() or getEncoder() are called.</p>
+     * @param image the image to handle In- and Output of
+     * @param useTransparent ignored (always false) due to more frequent Bitmap inaccuracies
+     *                       whenever transparent pixels are involved
+     */
+    public ImageStegIOAndroid(byte[] image, boolean useTransparent) {
         this.input = image;
         this.useTransparent = false;
-        processImage(this.input);
-    }
-
-    /**
-     * This constructor has no use in the current state and does the same as ImageSteg(byte[] image).
-     * Transparent pixels lead to inaccuracies in the Android class Bitmap and can therefore not be
-     * used.
-     * @param image the image tp process
-     * @param useTransparent always false
-     * @throws UnsupportedImageTypeException
-     * @throws NoImageException
-     */
-    public ImageStegIOAndroid(byte[] image, boolean useTransparent)
-            throws UnsupportedImageTypeException, NoImageException {
-        this(image);
     }
 
     private void processImage(byte[] carrier)
@@ -114,12 +124,15 @@ public class ImageStegIOAndroid implements ImageStegIO{
     }
 
     /**
-     * Returns the image in its current state (Output-Image) as a Byte Array. This Class can
-     * only return images as PNG-files.
-     * @throws ImageWritingException if the image could not be written
+     * <p>Returns the image in its current state (Output-Image) as a byte Array.</p>
+     * <p>If the image was not yet processed, return == input</p>
+     * @return the image in its current state as a byte array
+     * @throws ImageWritingException if the image was not written to a byte array for unknown reasons
      */
     @Override
     public byte[] getImageAsByteArray() throws ImageWritingException {
+        if (this.bitmap == null)
+            return input;
 
         ByteArrayOutputStream resultImage = new ByteArrayOutputStream();
 
@@ -130,22 +143,36 @@ public class ImageStegIOAndroid implements ImageStegIO{
         return resultImage.toByteArray();
     }
 
+    /**
+     * <p>Returns the images format.</p>
+     * <p>Processes the image if necessary.</p>
+     * @return the images format (png, bmp, ...) as a String
+     * @throws UnsupportedImageTypeException if the image type read from input is not supported
+     * @throws NoImageException if no image could be read from input
+     */
     @Override
-    public String getFormat() {
+    public String getFormat() throws NoImageException, UnsupportedImageTypeException {
+        if (this.bitmap == null)
+            processImage(this.input);
+
         return this.format;
     }
 
     /**
-     * Determines and returns the suitable encoder (and overlay) for the given bufferedImage according to its type.
-     * In the current state, this will always be the PixelBit encoder with an overlay that only
-     * uses pixels with an alpha value of 255.
+     * <p>Determines and returns the suitable encoder (and overlay) for the image according to its type.</p>
+     * <p>In the current state, this will always be the PixelBit encoder with an overlay that only
+     * uses pixels with an alpha value of 255.</p>
+     * <p>Processes the image if it was not processed already.</p>
      * @param seed to hand to the overlay
      * @return BuffImgEncoder with set PixelCoordinateOverlay, chosen accordingly to the images type
      * @throws UnsupportedImageTypeException if the images type is not supported by any known encoder / overlay
+     * @throws NoImageException if no image could be read from input
      */
     @Override
-    public BuffImgEncoder getEncoder(long seed)
-            throws UnsupportedImageTypeException {
+    public BitmapEncoder getEncoder(long seed)
+            throws UnsupportedImageTypeException, NoImageException {
+        if (this.bitmap == null)
+            processImage(this.input);
 
         Bitmap.Config type = bitmap.getConfig();
 
@@ -158,14 +185,13 @@ public class ImageStegIOAndroid implements ImageStegIO{
     }
 
     /**
-     * Returns overlay according to global variable useTransparent. In the current state, this will
-     * always be an overlay that only uses pixels with an alpha value of 255.
+     * Returns overlay according to global variable useTransparent.
      * @param bitmap Bitmap to hand to overlay
      * @param seed Seed to hand to overlay
      * @return ShuffleOverlay or NoTransparencyShuffleOverlay
      * @throws UnsupportedImageTypeException if the image type is not supported by the overlay
      */
-    private PixelCoordinateOverlay getOverlay(Bitmap bitmap, long seed)
+    protected PixelCoordinateOverlay getOverlay(Bitmap bitmap, long seed)
             throws UnsupportedImageTypeException {
 
         return this.useTransparent ?

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020
- * Contributed by NAME HERE
+ * Contributed by Henk-Joas Lubig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,14 @@ import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedIma
  */
 public class NoTransparencyShuffleOverlay extends ShuffleOverlay {
 
+    /**
+     * <p>Creates an Overlay that returns Pixels of the underlying Bitmap in a random order determined by the seed
+     * that is given to its constructor.</p>
+     * <p>It will only return Pixels with an alpha value of 255.</p>
+     * @param bitmap Bitmap to represent the pixels of
+     * @param seed Long to be used to affect the randomization of pixelorder.
+     * @throws UnsupportedImageTypeException if the images type is not supported by this overlay
+     */
     public NoTransparencyShuffleOverlay(Bitmap bitmap, long seed) throws UnsupportedImageTypeException {
         super(bitmap, seed);
     }

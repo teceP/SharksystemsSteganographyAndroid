@@ -28,7 +28,7 @@ import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityE
 import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 
 
-public class PixelBit extends BuffImgEncoder {
+public class PixelBit extends BitmapEncoder {
     private int numOfChannels = 3;
 
     public PixelBit(PixelCoordinateOverlay overlay) throws IllegalArgumentException {
@@ -44,6 +44,19 @@ public class PixelBit extends BuffImgEncoder {
         return this.numOfChannels;
     }
 
+    /**
+     * <p>Sets the number of color channels this algorithm is choosing from
+     * to encode data. Cannot be greater than 4 or smaller than 1.</p>
+     * <p>If the value is 1, this algorithm acts as a normal LSB-Encoder.</p>
+     * <ul>
+     *     <li>1: Blue channel</li>
+     *     <li>2: Green and Blue channel</li>
+     *     <li>3: Red, Green and Blue channel</li>
+     *     <li>4: Alpha, Red, Green and Blue channel</li>
+     * </ul>
+     * <p>The use of 4 channels is discouraged due to Bitmaps inaccuracies</p>
+     * @param numberOfChannels number of channels to use
+     */
     public void setNumberOfChannels(int numberOfChannels) {
         if (numberOfChannels > 4 || numberOfChannels < 1)
             throw new IllegalArgumentException("Number of channels can only be a number between " +
@@ -121,11 +134,11 @@ public class PixelBit extends BuffImgEncoder {
     }
 
     /**
-     * In this algorithm, if the return of this function is true, the given pixel represents a bit-value of 1.
-     * If it is false, the pixel represents a bit-value of 0.<br/><br/>
-     * Returns true, if the sum of the individual bytes of pixelARGB is an uneven number.<br/>
-     * Differently put: It determines whether the amount of 1's in the least significant bits
-     * of each individual byte of pixelARGB is uneven.
+     * <p>In this algorithm, if the return of this function is true, the given pixel represents a bit-value of 1.
+     * If it is false, the pixel represents a bit-value of 0.</p>
+     * <p>Returns true, if the sum of the individual bytes of pixelARGB is an uneven number ((A+R+G+B) mod 2 == 1).</p>
+     * <p>Differently put: It determines whether the amount of 1's in the least significant bits
+     * of each individual byte of pixelARGB is uneven.</p>
      * @param pixelARGB pixel that represents a bit.
      * @return true if the given pixel represents a 1 bit.
      */
@@ -139,11 +152,12 @@ public class PixelBit extends BuffImgEncoder {
     }
 
     /**
-     * Changes the value of a random color channel (ARGB) of the given pixel
-     * by +1 or -1 (randomly, but w/o overflow).<br/><br/>
-     * Since a pixel represents a bit, this method "flips" it.
-     * (By changing the outcome of (A+R+G+B) & 1 == 0)
+     * <p>Changes the value of a random color channel (ARGB) of the given pixel
+     * by +1 or -1 (randomly, but avoiding overflow).</p>
+     * <p>Since a pixel represents a bit, this method "flips" it.
+     * (By changing the outcome of (A+R+G+B) &amp; 1 == 0)</p>
      * @param pixelARGB the pixelValue to change
+     * @return the changed pixelValue
      */
     protected int changePixelValue(int pixelARGB) {
         Random rng = new Random();

@@ -26,13 +26,13 @@ import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccura
 
 public interface Steganography {
     /**
-     * Takes some data and conceals it in a carrier (container used to hide data).
-     * @param carrier carrier used to hide the data
+     * Encodes the given payload in the given carrier (image, mp3, ...) and returns the result.
+     * The format of the returned media will be the same as carrier. Carrier needs to be an exact media representation
+     * as it would be read from a file by an InputStream.
+     * @param carrier media used to hide the payload
      * @param payload data to hide
-     * @return steganographic data
-     * @throws IOException if a problem occurs during reading of carrier or payload
-     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could
-     * not be read from carrier
+     * @return steganographic data - exact media representation. Can be stored as it is to a file to open externally
+     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could not be read from carrier
      * @throws UnsupportedMediaTypeException if the Media Type (e.g. JPG) is not supported
      * @throws MediaReassemblingException if a problem occurred during writing of the result media
      * @throws MediaCapacityException if the payload doesn't fit in the carrier
@@ -40,18 +40,20 @@ public interface Steganography {
      * not encoding the payload properly
      */
     byte[] encode(byte[] carrier, byte[] payload)
-            throws IOException, MediaNotFoundException, UnsupportedMediaTypeException,
+            throws MediaNotFoundException, UnsupportedMediaTypeException,
             MediaReassemblingException, MediaCapacityException, BitmapInaccuracyException;
 
     /**
-     * Takes some data and conceals it in a carrier (container used to hide data) according to the given seed.
-     * @param carrier carrier used to hide the data
+     * <p>Encodes the given payload in the given carrier (image, mp3, ...) and returns the result.
+     * The format of the returned media will be the same as carrier. Carrier needs to be an exact media representation
+     * as it would be read from a file by an InputStream.</p>
+     * <p>The Seed changes the way the payload is encoded. When decoding the result, the exact same Seed needs to be
+     * given to decode()</p>
+     * @param carrier media used to hide the payload
      * @param payload data to hide
      * @param seed affects the resulting steganographic data (similar to a password)
-     * @return steganographic data
-     * @throws IOException if a problem occurs during reading of carrier or payload
-     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could
-     * not be read from carrier
+     * @return steganographic data - exact media representation. Can be stored as it is to a file to open externally
+     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could not be read from carrier
      * @throws UnsupportedMediaTypeException if the Media Type (e.g. JPG) is not supported
      * @throws MediaReassemblingException if a problem occurred during writing of the result media
      * @throws MediaCapacityException if the payload doesn't fit in the carrier
@@ -59,56 +61,65 @@ public interface Steganography {
      * not encoding the payload properly
      */
     byte[] encode(byte[] carrier, byte[] payload, long seed)
-            throws IOException, MediaNotFoundException, UnsupportedMediaTypeException,
+            throws MediaNotFoundException, UnsupportedMediaTypeException,
             MediaReassemblingException, MediaCapacityException, BitmapInaccuracyException;
 
     /**
-     * Retrieves hidden message from a steganographic file.
-     * @param steganographicData Data containing data to extract
-     * @return hidden message
-     * @throws IOException if a problem occurs during reading of steganographicData
-     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could
-     * not be read from steganographicData
+     * <p>Decodes a hidden message in the given steganographicData and returns it as a byte array.</p>
+     * <p>steganographicData needs to be an exact media representation as it would be read from a file by an
+     * InputStream.</p>
+     * <p>This method only works if the message was encoded using no Seed or the respective default Seed.
+     * Otherwise it will throw an UnknownStegFormat as if no message was found.</p>
+     * @param steganographicData Media containing the hidden message to decode
+     * @return the hidden message as a byte array
+     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could not be read from steganographicData
      * @throws UnsupportedMediaTypeException if the Media Type (e.g. JPG) is not supported
+     * @throws UnknownStegFormatException if no hidden message was found
      */
     byte[] decode(byte[] steganographicData)
-            throws IOException, MediaNotFoundException, UnsupportedMediaTypeException, UnknownStegFormatException;
+            throws MediaNotFoundException, UnsupportedMediaTypeException, UnknownStegFormatException;
 
     /**
-     * Retrieves hidden message from a steganographic file.
-     * @param steganographicData Data containing data to extract
+     * <p>Decodes a hidden message in the given steganographicData and returns it as a byte array.</p>
+     * <p>steganographicData needs to be an exact media representation as it would be read from a file by an
+     * InputStream</p>
+     * <p>This method only works if the message was encoded using the given Seed. Otherwise it will throw an
+     * UnknownStegFormatException as if no message was found.</p>
+     * @param steganographicData Media containing the hidden message to decode
      * @param seed seed that was used to encode the given stenographicData
-     * @return hidden message
-     * @throws IOException if a problem occurs during reading of steganographicData
-     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could
-     * not be read from steganographicData
+     * @return the hidden message as a byte array
+     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could not be read from
+     * steganographicData
      * @throws UnsupportedMediaTypeException if the Media Type (e.g. JPG) is not supported
+     * @throws UnknownStegFormatException if no hidden message was found
      */
     byte[] decode(byte[] steganographicData, long seed)
-            throws IOException, MediaNotFoundException, UnsupportedMediaTypeException, UnknownStegFormatException;
+            throws MediaNotFoundException, UnsupportedMediaTypeException, UnknownStegFormatException;
 
     /**
-     * Tests if the given data has a hidden message encoded in it
+     * <p>Tests whether the given data has a hidden message encoded in it. This method only works if the message was encoded
+     * using the given Seed or the respective default Seed. Otherwise it will always return false.</p>
+     * <p>The use of this method is discouraged. It saves very little resources compared to decode(...). So unless
+     * you need to test a lot of possible steganographicData, just use decode(...) and catch the UnknownStegFormatException</p>
      * @param data data to test
      * @return true if the given data has a hidden message encoded in it
-     * @throws IOException if a problem occurs during reading of data
-     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could
-     * not be read from data
+     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could not be read from data
      * @throws UnsupportedMediaTypeException if the Media Type (e.g. JPG) is not supported
      */
     boolean isSteganographicData(byte[] data)
-            throws IOException, MediaNotFoundException, UnsupportedMediaTypeException;
+            throws MediaNotFoundException, UnsupportedMediaTypeException;
 
     /**
-     * Tests if the given data has a hidden message encoded in it, using the given seed
+     * <p>Tests whether the given data has a hidden message encoded in it. This method only works if the message was encoded
+     * using the given Seed. Otherwise it will always return false.</p>
+     * <p>The use of this method is discouraged. It saves very little resources compared to decode(...). So unless
+     * you need to test a lot of possible steganographicData, just use decode(...) and catch the UnknownStegFormatException</p>
      * @param data data to test
      * @param seed seed the hidden message was encoded with
      * @return true if the given data has a hidden message encoded in it
-     * @throws IOException if a problem occurs during reading of data
-     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could
-     * not be read from data
+     * @throws MediaNotFoundException if the intended media (e.g. Image, Video, ...) could not be read from data
      * @throws UnsupportedMediaTypeException if the Media Type (e.g. JPG) is not supported
      */
     boolean isSteganographicData(byte[] data, long seed)
-            throws IOException, MediaNotFoundException, UnsupportedMediaTypeException;
+            throws MediaNotFoundException, UnsupportedMediaTypeException;
 }

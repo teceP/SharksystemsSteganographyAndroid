@@ -23,11 +23,20 @@ import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccura
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityException;
 import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 
-public abstract class BuffImgEncoder {
+/**
+ * This is a superclass to algorithms which encode and decode payloads into images using
+ * PixelCoordinateOverlays as image representation.
+ */
+public abstract class BitmapEncoder {
 
     protected PixelCoordinateOverlay overlay;
 
-    public BuffImgEncoder(PixelCoordinateOverlay overlay) throws IllegalArgumentException {
+    /**
+     * This is a superclass to algorithms which encode and decode payloads into images using
+     * PixelCoordinateOverlays as image representation.
+     * @param overlay PixelCoordinateOverlay to get pixels from
+     */
+    public BitmapEncoder(PixelCoordinateOverlay overlay) throws IllegalArgumentException {
         this.overlay = overlay;
     }
 
@@ -39,15 +48,17 @@ public abstract class BuffImgEncoder {
      * Encodes the payload in the sequence of pixels provided by the overlay
      * given to the constructor.
      * @param payload payload or "message" to encode
+     * @throws ImageCapacityException if the payload is larger than the available pixels
+     * @throws BitmapInaccuracyException if inaccuracies are detected during setting a pixels value
      */
     public abstract void encode(byte[] payload) throws ImageCapacityException, BitmapInaccuracyException;
 
     /**
-     * Decodes pixels in the sequence provided by the overlay
-     * given to the constructor, according to its algorithm
-     * and returns the result as a byte array.
-     * Decoding will continue until the byte arrays length is
-     * equal to bLength.
+     * <p>Decodes pixels in the sequence provided by the overlay
+     * (given to the constructor) according to its algorithm.
+     * Returns the result as a byte array.</p>
+     * <p>Decoding will continue until the byte arrays length is
+     * equal to bLength.</p>
      * @param bLength number of bytes to decode
      * @return decoded bytes
      */
