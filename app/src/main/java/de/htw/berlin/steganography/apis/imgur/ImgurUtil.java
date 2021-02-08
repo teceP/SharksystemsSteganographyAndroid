@@ -52,14 +52,9 @@ public class ImgurUtil extends BaseUtil {
      */
     public List<PostEntry> getPosts(String responseString){
         List<PostEntry> postEntries = new ArrayList<>();
-        Log.i("Hello  imgur->>>", "0");
-
         ImgurGetResponse responseObject = new Gson().fromJson(responseString, ImgurGetResponse.class);
-        Log.i("Hello  imgur->>>", "1");
 
         for(ImgurGetResponse.ImgurData child : responseObject.getData()){
-            Log.i("Hello  imgur->>>", "2");
-
             if(child != null && child.getImages() != null){
                 if(supportedFormat(child.getImages())){
                     postEntries.add(new PostEntry(child.getImages().get(0).getLink(), this.getTimestamp(child.getDatetime()), child.getDatetime()));

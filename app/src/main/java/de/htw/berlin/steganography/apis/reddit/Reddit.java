@@ -217,6 +217,14 @@ public class Reddit extends SocialMedia {
      * {@inheritDoc}
      */
     @Override
+    public void setToken(Token token){
+        this.token = token;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String getApiName() {
         return REDDIT.getValue();
     }
