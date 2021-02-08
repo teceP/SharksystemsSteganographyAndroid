@@ -40,8 +40,8 @@ import de.htw.berlin.steganography.steganography.image.overlays.ShuffleOverlay;
 
 public class ImageStegIOAndroid implements ImageStegIO{
 
-    private final byte[] input;
-    private final boolean useTransparent;
+    protected final byte[] input;
+    protected final boolean useTransparent;
 
     private Bitmap bitmap;
 
@@ -49,8 +49,13 @@ public class ImageStegIOAndroid implements ImageStegIO{
 
     private static final String TAG = "ImageStegIOAndroid";
 
-    private static final Set<String> SUPPORTED_FORMATS = new HashSet<>(
-            Arrays.asList("image/bmp", "image/gif", "image/png")
+    /**
+     * List of supported input image formats.
+     */
+    protected static final Set<String> SUPPORTED_FORMATS = new HashSet<>(
+            // Accepting only PNG is a design decision. You could accept a multitude of formats,
+            // but Bitmap can only output PNG and WEBP_LOSSLESS as lossless formats.
+            Arrays.asList(/*"image/bmp", "image/gif",*/ "image/png")
     );
 
     /**
@@ -81,7 +86,6 @@ public class ImageStegIOAndroid implements ImageStegIO{
         this.format = options.outMimeType;
         Log.i(TAG, "image format: " + this.format);
 
-        // TODO: Probably not necessary -> would only be compressed to PNG
         if (this.format == null) {
             throw new UnsupportedImageTypeException(
                     "The Image format is unknown and cannot be supported."
@@ -95,11 +99,10 @@ public class ImageStegIOAndroid implements ImageStegIO{
                             ") is not supported."
             );
         }
-        //////////////////////////////////////////////////////////////////
 
         // logging and possible changing of ColorSpace to sRGB to make algorithm work
         if (!this.bitmap.getColorSpace().isSrgb()) {
-            Log.i(TAG, "setColorSpace:  the Images ColorSpace is: " +
+            Log.i(TAG, "setColorSpace: the Images ColorSpace is: " +
                     this.bitmap.getColorSpace() +
                     ". Trying to set to sRGB.");
             setColorSpace();
@@ -185,7 +188,7 @@ public class ImageStegIOAndroid implements ImageStegIO{
     }
 
     /**
-     * Returns overlay according to global variable useTransparent.
+     * Returns an overlay according to global variable useTransparent.
      * @param bitmap Bitmap to hand to overlay
      * @param seed Seed to hand to overlay
      * @return ShuffleOverlay or NoTransparencyShuffleOverlay
