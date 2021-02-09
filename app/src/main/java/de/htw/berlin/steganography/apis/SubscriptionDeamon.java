@@ -32,7 +32,7 @@ public interface SubscriptionDeamon extends Runnable {
      * Searches for new post entries for a specific keyword, or for all stored keywords.
      *
 
-     * @return
+     * @return All new post entries for all subscribed keywords
      */
     List<PostEntry> getRecentMediaForSubscribedKeywords();
 

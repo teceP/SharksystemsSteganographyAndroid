@@ -182,7 +182,6 @@ public class Reddit extends SocialMedia {
 
     /**
      * Returns if the Subscription deamon is running
-     * @return
      */
     public boolean isSchedulerRunning(){
         if(scheduledFuture!=null){

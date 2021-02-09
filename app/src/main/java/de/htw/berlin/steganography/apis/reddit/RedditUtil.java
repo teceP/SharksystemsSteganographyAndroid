@@ -44,8 +44,6 @@ public class RedditUtil extends BaseUtil {
 
     /**
      * Returns the downloadable and decoded URL of an image from a reddit post
-     * @param
-     * @return
      */
     public String getUrl(RedditGetResponse.ResponseChildData child){
         Log.i("getUrl", "Get URL Start");
@@ -90,7 +88,6 @@ public class RedditUtil extends BaseUtil {
 
     /**
      *  Returns the timestamp from a reddit post
-     * @return
      */
     public MyDate getTimestamp(RedditGetResponse.ResponseChildData child){
         if(child.getData().getCreated() != null && !child.getData().getCreated().isEmpty()){
