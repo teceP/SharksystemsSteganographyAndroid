@@ -93,8 +93,6 @@ public class NetworkParcel implements Comparable<NetworkParcel>{
 
     /**
      * Compares network parcles by its id
-     * @param o
-     * @return
      */
     @Override
     public int compareTo(NetworkParcel o) {

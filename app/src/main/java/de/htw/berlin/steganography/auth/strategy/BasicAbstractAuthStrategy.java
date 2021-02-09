@@ -70,7 +70,6 @@ public abstract class BasicAbstractAuthStrategy extends AppCompatActivity implem
 
     /**
      * (3.) Action in the flow. Trigger the provider to send a fresh access token.
-     * @return
      */
     @Override
     public abstract View.OnClickListener refresh();
