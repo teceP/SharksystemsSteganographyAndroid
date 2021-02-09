@@ -50,8 +50,20 @@ public abstract class SocialMedia {
      */
     protected List<SocialMediaListener> socialMediaListeners = new ArrayList<SocialMediaListener>();
 
+    /**
+     * Constructor for SocialMedia
+     * @param socialMediaModel
+     */
     public SocialMedia(SocialMediaModel socialMediaModel){
         this.socialMediaModel = socialMediaModel;
+    }
+
+    public void setSocialMediaModel(SocialMediaModel socialMediaModel){
+        this.socialMediaModel = socialMediaModel;
+    }
+
+    public SocialMediaModel getSocialMediaModel(){
+        return socialMediaModel;
     }
 
     /**
