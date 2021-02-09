@@ -189,7 +189,6 @@ public class RedditGetResponse {
 
         /**
          * Returns first Imageentry, which ist the source image.
-         * @return
          */
         public ImageData getImages() {
             return images.get(0);

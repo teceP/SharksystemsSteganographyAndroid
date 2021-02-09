@@ -202,8 +202,6 @@ public class OAuthMainActivity extends AppCompatActivity {
 
     /**
      * Returns all TokenInformations for each Network.
-     *
-     * @return
      */
     public List<TokenInformation> getAllTokenInformations() {
         List<TokenInformation> list = new ArrayList<>();
@@ -227,7 +225,6 @@ public class OAuthMainActivity extends AppCompatActivity {
 
     /**
      * Returns the current selected network's Network Parcel
-     * @return
      */
     public NetworkParcel getCurrentSelectedNetwork() {
 
@@ -324,8 +321,8 @@ public class OAuthMainActivity extends AppCompatActivity {
     /**
      * Returns different to now in minutes.
      *
-     * @param l
-     * @return
+     * @param l Timestamp as long
+     * @return difference in ms between now and the param l.
      */
     public double getTimeDifferentInMin(long l) {
         return (double) (((System.currentTimeMillis() - l) / 1000) / 60);
@@ -334,8 +331,8 @@ public class OAuthMainActivity extends AppCompatActivity {
     /**
      * Computes how many ms left till expiration of access token.
      *
-     * @param l
-     * @return
+     * @param l Timestamp as long
+     * @return Time left in ms till expiration
      */
     public long timeLeftInMs(long l) {
         return Constants.ONE_HOUR_IN_MS - (System.currentTimeMillis() - l);
@@ -356,7 +353,7 @@ public class OAuthMainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param network: MUST be an Constant like Constants.REDDIT_TOKEN_OBJ
+     * @param network MUST be an Constant like Constants.REDDIT_TOKEN_OBJ
      * @return AuthInformation object
      */
     public TokenInformation getTokenInformationByNetworkNameFromSharedPref(String network) {
@@ -664,9 +661,8 @@ public class OAuthMainActivity extends AppCompatActivity {
     }
 
     /**
-     * @{inheritDoc}
-     * @param menu
-     * @return
+     * Top Navi Menu
+     * -> Not in use anymore after app user-interface reduction
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -686,7 +682,6 @@ public class OAuthMainActivity extends AppCompatActivity {
      * Top Navi Menu
      * -> Not in use anymore after app user-interface reduction
      * @param item
-     * @return
      */
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -748,7 +743,7 @@ public class OAuthMainActivity extends AppCompatActivity {
     /**
      * Returns the access token for a network
      * @param network
-     * @return
+     * @return Accesstoken of network
      */
     public String provideToken(String network) {
         return this.parcelMap.get(network).getTokenInformation().getAccessToken();

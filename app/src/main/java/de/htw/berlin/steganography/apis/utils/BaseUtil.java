@@ -208,8 +208,7 @@ public class BaseUtil {
     /**
      * If a timestamp comes with an '.' in its String, it cant be parsed into a Date object.
      *
-     * @param ms
-     * @return
+     * @param ms Timestamp as String
      */
     public static String cutTimestamp(String ms){
         if(ms.contains(".")){
@@ -222,8 +221,7 @@ public class BaseUtil {
     /**
      * 'Decoded' an URL: 'amp;' will be replaced with an empty String.
      *  This is the only encoding which is used in the URL String for this application.
-     * @param url
-     * @return
+     * @param url A URL
      */
     public static String decodeUrl(String url){
         return url.replace("amp;", "");
