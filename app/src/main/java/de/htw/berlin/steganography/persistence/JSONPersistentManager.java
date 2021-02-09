@@ -36,6 +36,7 @@ public class JSONPersistentManager {
 
     private JSONPersistentHelper jsonPersistentHelper;
 
+
     private static final JSONPersistentManager instance = new JSONPersistentManager();
 
     private JSONPersistentManager() {
@@ -45,6 +46,10 @@ public class JSONPersistentManager {
         return instance;
     }
 
+    /**
+     * sets the JsonPersistentHelper
+     * @param jsonPersistentHelper
+     */
     public void setJsonPersistentHelper(JSONPersistentHelper jsonPersistentHelper){
         this.jsonPersistentHelper = jsonPersistentHelper;
         try {
@@ -57,11 +62,21 @@ public class JSONPersistentManager {
         }
     }
 
+    /**
+     * returns the entire ConcurrentHashMap
+     * @return
+     */
     public Map<String, Map<String, Long>> getJsonMap(){
         return jsonMap;
 
     }
 
+    /**
+     * sets the keyword and the lastTimeChecked for the speicified keyword and Social Media Name
+     * @param apiName
+     * @param keyword
+     * @param lastTimeChecked
+     */
     public void setKeywordForAPI(APINames apiName, String keyword, Long lastTimeChecked){
         if(!jsonMap.containsKey(apiName.getValue())){
             jsonMap.put(apiName.getValue(),new HashMap<String, Long>());
@@ -74,6 +89,12 @@ public class JSONPersistentManager {
         }
     }
 
+    /**
+     * adds a new keyword with lastTimeChecked of 0L and returns true. Will not overwrite existing keywords and returns false if keyword already exists.
+     * @param apiName
+     * @param keyword
+     * @return
+     */
     public boolean addKeywordForApi(APINames apiName, String keyword){
         if(jsonMap.containsKey(apiName.getValue()) && jsonMap.get(apiName.getValue()).containsKey(keyword)){
             return false;
@@ -84,6 +105,12 @@ public class JSONPersistentManager {
         }
     }
 
+    /**
+     * removes the keyword with the associated Social Media. Returns false if either no entry for the given Social Media or no keyword
+     * @param apiName
+     * @param keyword
+     * @return
+     */
     public boolean removeKeywordForAPI(APINames apiName, String keyword){
         if(jsonMap.containsKey(apiName.getValue()) && jsonMap.get(apiName.getValue()).containsKey(keyword)){
             jsonMap.get(apiName.getValue()).remove(keyword);
@@ -101,6 +128,11 @@ public class JSONPersistentManager {
 
     }
 
+    /**
+     * returns the Map consisting of all keywords and corresponding lastTimeChecked. If there is no Map it returns a new HashMap
+     * @param apiName
+     * @return
+     */
     public Map<String, Long> getKeywordAndLastTimeCheckedMapForAPI(APINames apiName){
         if(jsonMap.containsKey(apiName.getValue())) {
             return jsonMap.get(apiName.getValue());
@@ -111,6 +143,12 @@ public class JSONPersistentManager {
 
     }
 
+    /**
+     * sets the Long for lastTimeChecked associated with the keyword for the specified Social Media Name
+     * @param apiName
+     * @param keyword
+     * @param lastTimeChecked
+     */
     public void setLastTimeCheckedForKeywordForAPI(APINames apiName, String keyword, long lastTimeChecked){
         this.setKeywordForAPI(apiName, keyword, lastTimeChecked);
         try {
@@ -120,6 +158,13 @@ public class JSONPersistentManager {
         }
     }
 
+    /**
+     * Returns a Long representing the lastTimeChecked associated with the keyword for the specified Social Media.
+     * If the Social Media or the keyword associated with the Social Media does not exist the return is null.
+     * @param apiName
+     * @param keyword
+     * @return
+     */
     public Long getLastTimeCheckedForKeywordForAPI(APINames apiName, String keyword){
         if(!jsonMap.containsKey(apiName.getValue()) && jsonMap.get(apiName.getValue()).containsKey(apiName.getValue())){
             return jsonMap.get(apiName.getValue()).get(keyword);

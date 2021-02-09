@@ -58,10 +58,18 @@ public abstract class SocialMedia {
         this.socialMediaModel = socialMediaModel;
     }
 
+    /**
+     * sets the SocialMediaModel
+     * @param socialMediaModel
+     */
     public void setSocialMediaModel(SocialMediaModel socialMediaModel){
         this.socialMediaModel = socialMediaModel;
     }
 
+    /**
+     * returns the SocialMediaModel
+     * @return
+     */
     public SocialMediaModel getSocialMediaModel(){
         return socialMediaModel;
     }
@@ -104,7 +112,7 @@ public abstract class SocialMedia {
     }
 
     /**
-     * Sets a new message list and updates all listeners about these new messages
+     * Sets a new message list of the SocialMediaModel and updates all listeners about these new messages
      * @param messageList
      */
     public void setMessages(List<String> messageList){
@@ -113,7 +121,7 @@ public abstract class SocialMedia {
     }
 
     /**
-     * Adds a new message list to the message list and updates all listeners about the whole message list
+     * Adds a new message list to the message list of the SocialMediaModel and updates all listeners about the whole message list
      * @param messageList
      */
     public void addMessages(List<String> messageList){
@@ -121,6 +129,10 @@ public abstract class SocialMedia {
         updateListenersMessages();
     }
 
+    /**
+     * returns a List of String consisting of all encoded Messages found.
+     * @return
+     */
     public List<String> getMessage(){
         return socialMediaModel.getMessage();
     }
@@ -248,5 +260,9 @@ public abstract class SocialMedia {
      */
     public abstract void changeSchedulerPeriod(Integer interval);
 
+    /**
+     * returns the API name in Lower Case
+     * @return
+     */
     public abstract String getApiName();
 }
