@@ -98,15 +98,7 @@ public class OAuthMainActivity extends AppCompatActivity {
         somethingWentWrong = (TextView) findViewById(R.id.somethingWentWrongId);
         somethingWentWrong.setVisibility(View.INVISIBLE);
 
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
 
-            @Override
-            public void run() {
-                // Hide your View after 3 seconds
-                somethingWentWrong.setVisibility(View.VISIBLE);
-            }
-        }, 3000);
 
         try {
             validatePassedNetwork();
