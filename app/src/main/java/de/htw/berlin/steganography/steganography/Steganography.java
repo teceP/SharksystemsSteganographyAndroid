@@ -18,9 +18,11 @@
 
 package de.htw.berlin.steganography.steganography;
 
-import java.io.IOException;
-
-import de.htw.berlin.steganography.steganography.exceptions.*;
+import de.htw.berlin.steganography.steganography.exceptions.MediaCapacityException;
+import de.htw.berlin.steganography.steganography.exceptions.MediaNotFoundException;
+import de.htw.berlin.steganography.steganography.exceptions.MediaReassemblingException;
+import de.htw.berlin.steganography.steganography.exceptions.UnknownStegFormatException;
+import de.htw.berlin.steganography.steganography.exceptions.UnsupportedMediaTypeException;
 import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccuracyException;
 
 

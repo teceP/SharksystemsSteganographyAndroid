@@ -18,11 +18,6 @@
 
 package de.htw.berlin.steganography.steganography.image;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import de.htw.berlin.steganography.steganography.Steganography;
 import de.htw.berlin.steganography.steganography.exceptions.UnknownStegFormatException;
 import de.htw.berlin.steganography.steganography.image.encoders.BitmapEncoder;
@@ -34,16 +29,15 @@ import de.htw.berlin.steganography.steganography.image.exceptions.UnsupportedIma
 import de.htw.berlin.steganography.steganography.util.ImageStegIO;
 import de.htw.berlin.steganography.steganography.util.ImageStegIOAndroid;
 
+/**
+ * Uses steganography to encode hidden messages ("payload") into images
+ */
 public class ImageSteg implements Steganography {
 
     public static final long DEFAULT_SEED = 1732341558;
     private static final int HEADER_SIGNATURE = 1349075561;
     private final boolean useTransparent;
     private final boolean useDefaultHeader;
-
-    private static final Set<String> supportedFormats = new HashSet<>(
-            Arrays.asList("bmp", "BMP", "gif", "GIF", "png", "PNG")
-    );
 
     /**
      * <p>Creates a new ImageSteg with settings:</p>

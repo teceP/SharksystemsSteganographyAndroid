@@ -27,7 +27,10 @@ import de.htw.berlin.steganography.steganography.image.exceptions.BitmapInaccura
 import de.htw.berlin.steganography.steganography.image.exceptions.ImageCapacityException;
 import de.htw.berlin.steganography.steganography.image.overlays.PixelCoordinateOverlay;
 
-
+/**
+ * @author Henk-Joas Lubig
+ * Implementation of RandomLSB, an algorithm to encode hidden messages into images
+ */
 public class PixelBit extends BitmapEncoder {
     private int numOfChannels = 3;
 
