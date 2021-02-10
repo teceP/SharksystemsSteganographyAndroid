@@ -21,6 +21,18 @@ package de.htw.berlin.steganography.apis;
 import java.util.List;
 
 public interface SocialMediaListener {
+    /**
+     * Function that gets called if there is a new message in the SocialMediaModel for the given SocialMedia
+     * @param socialMedia
+     * @param messages
+     */
     public void updateSocialMediaMessage(SocialMedia socialMedia, List<String> messages);
+
+    /**
+     * Function that gets called if there is a new lastTimChecked for the keyword in the SocialMediaModel for the given SocialMedia
+     * @param socialMedia
+     * @param keyword
+     * @param lastTimeChecked
+     */
     public void updateSocialMediaLastTimeChecked(SocialMedia socialMedia, String keyword, long lastTimeChecked);
 }
