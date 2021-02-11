@@ -164,7 +164,7 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
                 if (entry.getValue().size() > 0) {
                     newPostAvailable = true;
                     BaseUtil.sortPostEntries(entry.getValue());
-                    Log.i("19. redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() + " and postEntries List size: " + entry.getValue().size());
+                    Log.i("19. imgurUitl.setLatestPostTiestamp for keyword:", entry.getKey() + " and postEntries List size: " + entry.getValue().size());
                     imgurUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
                     Log.i("new media found for", entry.getKey());
