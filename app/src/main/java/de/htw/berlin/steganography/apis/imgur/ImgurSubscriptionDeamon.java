@@ -22,6 +22,7 @@ import android.util.Log;
 
 import de.htw.berlin.steganography.apis.SocialMedia;
 import de.htw.berlin.steganography.apis.SubscriptionDeamon;
+import de.htw.berlin.steganography.apis.models.MyDate;
 import de.htw.berlin.steganography.apis.reddit.RedditConstants;
 import de.htw.berlin.steganography.apis.models.PostEntry;
 import de.htw.berlin.steganography.apis.utils.BaseUtil;
@@ -149,25 +150,33 @@ public class ImgurSubscriptionDeamon implements SubscriptionDeamon {
     @Override
     public List<PostEntry> getRecentMediaForSubscribedKeywords() {
         Map<String, List<PostEntry>> tmp = this.getRecentMedia();
+        Log.i("13.3 ImgurSubscriptionDeamon getRecentMediaForsubscribedKeywords tmp size", String.valueOf(tmp.size()));
         List<PostEntry> latestPostEntries = new ArrayList<>();
 
         if (tmp != null) {
             for (Map.Entry<String, List<PostEntry>> entry : tmp.entrySet()) {
-                entry.setValue(imgurUtil.elimateOldPostEntries(imgurUtil.getLatestStoredTimestamp(socialMedia,entry.getKey()), entry.getValue()));
-                logger.info((entry.getValue().size()) + " postentries found after eliminate old entries INFO.");
+                Log.i("14.  tmp.entrySet for keyword:" + entry.getKey() + " postEntires List size:", String.valueOf(entry.getValue().size()));
+                Log.i("14.2  last checked for keyword " + entry.getKey(), String.valueOf(imgurUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()).getTime()));
+                MyDate myDate = imgurUtil.getLatestStoredTimestamp(socialMedia, entry.getKey());
+                entry.setValue(imgurUtil.elimateOldPostEntries(myDate, entry.getValue()));
+                Log.i("18.  eliminated old postEntires for keyword: " + entry.getKey() + ", remaining postEntries", String.valueOf(entry.getValue().size()));
 
                 if (entry.getValue().size() > 0) {
                     newPostAvailable = true;
                     BaseUtil.sortPostEntries(entry.getValue());
-                    imgurUtil.setLatestPostTimestamp(socialMedia,entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
+                    Log.i("19. redditUitl.setLatestPostTiestamp for keyword:", entry.getKey() + " and postEntries List size: " + entry.getValue().size());
+                    imgurUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), entry.getValue().get(entry.getValue().size() - 1).getDate());
 
-                    Log.i("new media found", "New media found.");
-                    for(PostEntry postEntry: entry.getValue()) {
+                    Log.i("new media found for", entry.getKey());
+                    for (PostEntry postEntry : entry.getValue()) {
                         latestPostEntries.add(postEntry);
                     }
+                } else {
+                    Log.i("no new media found for", entry.getKey());
+                   imgurUtil.setLatestPostTimestamp(socialMedia, entry.getKey(), imgurUtil.getLatestStoredTimestamp(socialMedia, entry.getKey()));
                 }
             }
-            imgurUtil.updateListeners(socialMedia,latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
+            imgurUtil.updateListeners(socialMedia, latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()));
             Log.i(" latestPostEntries", String.valueOf(latestPostEntries.stream().map(PostEntry::getUrl).collect(Collectors.toList()).size()));
             return latestPostEntries;
         }
